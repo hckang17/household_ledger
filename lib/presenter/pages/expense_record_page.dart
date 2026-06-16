@@ -191,6 +191,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     if (monthEntriesAsync.isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+
     /// 에러가 발생한 경우 에러 메시지를 표시한다.
     if (monthEntriesAsync.hasError) {
       return Scaffold(
@@ -249,8 +250,8 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     final monthlyBudget = monthlyIncome > 0
         ? monthlyIncome
         : ledger.settings.monthlyBudget;
-    final monthlyRemaining =
-        monthlyBudget - monthlySpent - ledger.fixedExpenseTotal;
+    final monthlyFixedExpense = ledger.fixedExpenseTotalForMonth(_focusedMonth);
+    final monthlyRemaining = monthlyBudget - monthlySpent - monthlyFixedExpense;
 
     /// 페이지를 렌더링한다.
     return BootstrapPage(

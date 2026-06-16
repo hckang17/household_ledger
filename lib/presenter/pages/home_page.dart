@@ -36,9 +36,10 @@ class HomePage extends ConsumerWidget {
         : (monthlyIncomeTotal > 0
               ? monthlyIncomeTotal
               : ledger.settings.monthlyBudget);
+    final monthlyFixedExpense = ledger?.fixedExpenseTotalForMonth(month) ?? 0;
     final remainingBudget = ledger == null
         ? 0
-        : monthlyBudget - monthlyExpense - ledger.fixedExpenseTotal;
+        : monthlyBudget - monthlyExpense - monthlyFixedExpense;
     final greeting = ledger == null
         ? ''
         : (strings['homepageGreeting'] ?? '{name}').replaceAll(
@@ -108,11 +109,20 @@ class HomePage extends ConsumerWidget {
             ),
             const SizedBox(height: 12),
 
-            /// 지출 관리 버튼
+            /// 고정지출 관리 버튼
             BootstrapActionButton(
-              label: strings['expenseManage'] ?? '',
-              icon: Icons.wallet_rounded,
-              onPressed: () => _push(context, AppRouter.expenseManagementRoute),
+              label: strings['fixedExpenseManage'] ?? '',
+              icon: Icons.account_balance_wallet_outlined,
+              onPressed: () => _push(context, AppRouter.fixedExpenseRoute),
+            ),
+            const SizedBox(height: 12),
+
+            /// 지출 기록 버튼
+            BootstrapActionButton(
+              label: strings['expenseRecord'] ?? '',
+              icon: Icons.calendar_month_rounded,
+              onPressed: () => _push(context, AppRouter.expenseRecordRoute),
+              backgroundColor: const Color(0xFF20C997),
             ),
             const SizedBox(height: 12),
 

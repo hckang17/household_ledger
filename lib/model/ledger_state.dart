@@ -72,7 +72,18 @@ class LedgerState {
         .fold<int>(0, (int total, ExpenseEntry entry) => total + entry.amount);
   }
 
-  /// 고정지출 합계를 계산한다.
+  /// 선택한 월의 고정지출 합계를 계산한다.
+  int fixedExpenseTotalForMonth(DateTime month) {
+    return fixedExpenses
+        .where(
+          (FixedExpense item) =>
+              item.appliedAt.year == month.year &&
+              item.appliedAt.month == month.month,
+        )
+        .fold<int>(0, (int total, FixedExpense item) => total + item.amount);
+  }
+
+  /// 전체 고정지출 합계를 계산한다.
   int get fixedExpenseTotal {
     return fixedExpenses.fold<int>(
       0,
@@ -84,7 +95,7 @@ class LedgerState {
   int remainingBudget(DateTime month) {
     return settings.monthlyBudget -
         monthlyExpenseTotal(month) -
-        fixedExpenseTotal;
+        fixedExpenseTotalForMonth(month);
   }
 
   /// 현재 상태의 수정본을 생성한다.
@@ -179,16 +190,33 @@ class LedgerState {
 
   /// 고정지출을 추가한 새 상태를 생성한다.
   LedgerState addFixedExpense(FixedExpense item) {
-    return copyWith(fixedExpenses: <FixedExpense>[...fixedExpenses, item]);
+    final nextItems = <FixedExpense>[...fixedExpenses, item]
+      ..sort((FixedExpense left, FixedExpense right) {
+        final byDate = right.appliedAt.compareTo(left.appliedAt);
+        if (byDate != 0) {
+          return byDate;
+        }
+        return right.id.compareTo(left.id);
+      });
+    return copyWith(fixedExpenses: nextItems);
   }
 
   /// 고정지출을 수정한 새 상태를 생성한다.
   LedgerState updateFixedExpense(FixedExpense item) {
-    return copyWith(
-      fixedExpenses: fixedExpenses
-          .map((FixedExpense current) => current.id == item.id ? item : current)
-          .toList(),
-    );
+    final nextItems =
+        fixedExpenses
+            .map(
+              (FixedExpense current) => current.id == item.id ? item : current,
+            )
+            .toList()
+          ..sort((FixedExpense left, FixedExpense right) {
+            final byDate = right.appliedAt.compareTo(left.appliedAt);
+            if (byDate != 0) {
+              return byDate;
+            }
+            return right.id.compareTo(left.id);
+          });
+    return copyWith(fixedExpenses: nextItems);
   }
 
   /// 고정지출을 삭제한 새 상태를 생성한다.

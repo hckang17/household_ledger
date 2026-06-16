@@ -23,6 +23,10 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
         '${strings['failedReadingData'] ?? 'ErrorCode: 4401'}+$tag';
   }
 
+  String _monthText(DateTime date) {
+    return '${date.year}-${date.month.toString().padLeft(2, '0')}';
+  }
+
   /// 고정지출 입력 시트를 표시한다.
   Future<void> _showEditor({FixedExpense? item}) async {
     final ledger = ref.read(ledgerProvider).asData?.value;
@@ -44,6 +48,9 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
     String paymentCode =
         item?.paymentMethodCode ??
         ledger.tagsByType(MetadataTagType.paymentMethod).first.code;
+    DateTime appliedAt =
+        item?.appliedAt ??
+        DateTime(DateTime.now().year, DateTime.now().month, 1);
     bool isSaving = false;
 
     final savedItem = await showModalBottomSheet<FixedExpense>(
@@ -135,6 +142,38 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                           labelText: strings['noteLabel'],
                         ),
                       ),
+                      const SizedBox(height: 12),
+                      Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: Text(
+                              '${strings['yearLabel'] ?? '연도'}-${strings['monthLabel'] ?? '월'}: ${_monthText(appliedAt)}',
+                            ),
+                          ),
+                          TextButton(
+                            onPressed: () async {
+                              final picked = await showDatePicker(
+                                context: context,
+                                initialDate: appliedAt,
+                                firstDate: DateTime(2000),
+                                lastDate: DateTime(2100),
+                              );
+                              if (picked == null) {
+                                return;
+                              }
+
+                              setState(() {
+                                appliedAt = DateTime(
+                                  picked.year,
+                                  picked.month,
+                                  1,
+                                );
+                              });
+                            },
+                            child: Text(strings['selectMonth'] ?? '달 선택'),
+                          ),
+                        ],
+                      ),
                       const SizedBox(height: 16),
                       BootstrapActionButton(
                         label: strings['save'] ?? '',
@@ -152,6 +191,7 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                               int.tryParse(amountController.text.trim()) ?? 0;
                           final next = FixedExpense.create(
                             id: item?.id,
+                            appliedAt: appliedAt,
                             categoryCode: categoryCode,
                             paymentMethodCode: paymentCode,
                             description: descriptionController.text,
@@ -217,6 +257,8 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
 
     final categoryTags = ledger.tagsByType(MetadataTagType.category);
     final paymentTags = ledger.tagsByType(MetadataTagType.paymentMethod);
+    final nowMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
+    final monthlyFixedExpense = ledger.fixedExpenseTotalForMonth(nowMonth);
 
     return BootstrapPage(
       title: strings['fixedExpenseTitle'] ?? '',
@@ -234,7 +276,7 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                   child: BootstrapSummaryTile(
                     label: strings['fixedExpenseTotal'] ?? '',
                     value:
-                        '${ledger.fixedExpenseTotal} ${strings['currencyUnit'] ?? ''}',
+                        '$monthlyFixedExpense ${strings['currencyUnit'] ?? ''}',
                     color: const Color(0xFF0D6EFD),
                   ),
                 ),
@@ -263,6 +305,10 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                             const SizedBox(height: 8),
                             Text(
                               '${_resolveTagLabel(categoryTags, item.categoryCode)} · ${_resolveTagLabel(paymentTags, item.paymentMethodCode)}',
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              '${_text(strings, 'selectMonth')}: ${_monthText(item.appliedAt)}',
                             ),
                             const SizedBox(height: 8),
                             Text(

@@ -47,8 +47,9 @@ class LocalStorageService {
     final preferences = await SharedPreferences.getInstance();
     final json = state.toJson();
 
-    // 핵심 데이터(지출내역)는 SQLite에 저장하므로 앱 설정 저장본에서 제외한다.
+    // 핵심 데이터(지출내역, 고정지출)는 DB에 저장하므로 앱 설정 저장본에서 제외한다.
     json.remove('expenses');
+    json.remove('fixedExpenses');
     await preferences.setString(storageKey, jsonEncode(json));
     logger.d(
       '$_logPrefix saveState() completed. onboardingCompleted=${state.settings.onboardingCompleted}, '

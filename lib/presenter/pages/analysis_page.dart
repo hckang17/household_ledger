@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/model/expense_entry.dart';
+import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
@@ -77,6 +78,38 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
         entry.categoryCode,
         (int value) => value + entry.amount,
         ifAbsent: () => entry.amount,
+      );
+    }
+
+    return result;
+  }
+
+  /// 고정지출 소비수단별 합계를 계산한다.
+  Map<String, int> _sumFixedByPaymentMethod(
+    Iterable<FixedExpense> fixedExpenses,
+  ) {
+    final result = <String, int>{};
+    for (final item in fixedExpenses) {
+      result.update(
+        item.paymentMethodCode,
+        (int value) => value + item.amount,
+        ifAbsent: () => item.amount,
+      );
+    }
+
+    return result;
+  }
+
+  /// 고정지출 소비수단별 건수를 계산한다.
+  Map<String, int> _countFixedByPaymentMethod(
+    Iterable<FixedExpense> fixedExpenses,
+  ) {
+    final result = <String, int>{};
+    for (final item in fixedExpenses) {
+      result.update(
+        item.paymentMethodCode,
+        (int value) => value + 1,
+        ifAbsent: () => 1,
       );
     }
 
@@ -328,6 +361,12 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     required int totalAmount,
     required String topLabel,
     required String emptyMessage,
+    required bool showFixedExpenseSummary,
+    required Map<String, int> fixedExpenseSummary,
+    required Map<String, int> fixedExpenseCountSummary,
+    required List<FixedExpense> fixedExpenseItems,
+    required int fixedExpenseTotal,
+    required bool showFixedExpenseAsItems,
   }) {
     final sortedEntries = summary.entries.toList()
       ..sort(
@@ -434,6 +473,81 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                           );
                         }),
 
+                      if (showFixedExpenseSummary) ...<Widget>[
+                        const SizedBox(height: 8),
+                        const Divider(height: 16),
+                        const SizedBox(height: 6),
+                        Text(
+                          _text(strings, 'fixedExpenseTitle', '고정지출'),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                        const SizedBox(height: 8),
+                        if (showFixedExpenseAsItems &&
+                            fixedExpenseItems.isEmpty)
+                          Text(_text(strings, 'emptyData', '아직 입력된 데이터가 없습니다.'))
+                        else if (showFixedExpenseAsItems)
+                          ...fixedExpenseItems.map((FixedExpense item) {
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: Row(
+                                children: <Widget>[
+                                  Expanded(child: Text(item.description)),
+                                  Text(_formatCurrency(strings, item.amount)),
+                                ],
+                              ),
+                            );
+                          })
+                        else if (fixedExpenseSummary.isEmpty)
+                          Text(_text(strings, 'emptyData', '아직 입력된 데이터가 없습니다.'))
+                        else
+                          ...(() {
+                            final sortedFixedEntries =
+                                fixedExpenseSummary.entries.toList()..sort(
+                                  (
+                                    MapEntry<String, int> left,
+                                    MapEntry<String, int> right,
+                                  ) => right.value.compareTo(left.value),
+                                );
+                            return sortedFixedEntries.map((
+                              MapEntry<String, int> item,
+                            ) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 10),
+                                child: Row(
+                                  children: <Widget>[
+                                    Expanded(
+                                      child: Text(
+                                        _resolveTagLabel(tags, item.key),
+                                      ),
+                                    ),
+                                    Text(
+                                      '${_formatCurrency(strings, item.value)} (${fixedExpenseCountSummary[item.key] ?? 0}${_text(strings, 'entryCountUnit', '건')})',
+                                    ),
+                                  ],
+                                ),
+                              );
+                            });
+                          })(),
+                        const SizedBox(height: 2),
+                        Row(
+                          children: <Widget>[
+                            Expanded(
+                              child: Text(
+                                _text(strings, 'fixedExpenseTotal', '고정지출 합계'),
+                                style: Theme.of(context).textTheme.bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                            Text(
+                              _formatCurrency(strings, fixedExpenseTotal),
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            ),
+                          ],
+                        ),
+                      ],
+
                       /// 가장 많이 지출한 카테고리를 별도로 다시 요약해서 보여준다.
                       if (topCategory != null) ...<Widget>[
                         const Divider(height: 24),
@@ -515,10 +629,22 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     }
     final rangeExpenses =
         rangeExpensesAsync.asData?.value ?? const <ExpenseEntry>[];
+    final monthlyFixedExpenses = ledger.fixedExpenses.where((
+      FixedExpense item,
+    ) {
+      return item.appliedAt.year == _selectedMonth.year &&
+          item.appliedAt.month == _selectedMonth.month;
+    }).toList();
 
     final monthlySummary = _sumByCategory(monthlyExpenses);
     final monthlySubcategorySummary = _sumBySubcategory(monthlyExpenses);
     final monthlyPaymentSummary = _sumByPaymentMethod(monthlyExpenses);
+    final monthlyFixedPaymentSummary = _sumFixedByPaymentMethod(
+      monthlyFixedExpenses,
+    );
+    final monthlyFixedPaymentCountSummary = _countFixedByPaymentMethod(
+      monthlyFixedExpenses,
+    );
     final monthlyCategoryCountSummary = _countByGroup(
       monthlyExpenses,
       (ExpenseEntry entry) => entry.categoryCode,
@@ -703,6 +829,19 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
               totalAmount: _sumAmount(activeExpenses),
               topLabel: _text(strings, 'mostUsedCategory', '제일 많이 쓰는 카테고리'),
               emptyMessage: activeEmptyMessage,
+              showFixedExpenseSummary: !usingRange,
+              fixedExpenseSummary: const <String, int>{},
+              fixedExpenseCountSummary: const <String, int>{},
+              fixedExpenseItems: usingRange
+                  ? const <FixedExpense>[]
+                  : monthlyFixedExpenses,
+              fixedExpenseTotal: usingRange
+                  ? 0
+                  : monthlyFixedExpenses.fold<int>(
+                      0,
+                      (int total, FixedExpense item) => total + item.amount,
+                    ),
+              showFixedExpenseAsItems: true,
             ),
             const SizedBox(height: 16),
 
@@ -731,6 +870,12 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                 '제일 많이 쓰는 소비 소구분',
               ),
               emptyMessage: activeEmptyMessage,
+              showFixedExpenseSummary: false,
+              fixedExpenseSummary: const <String, int>{},
+              fixedExpenseCountSummary: const <String, int>{},
+              fixedExpenseItems: const <FixedExpense>[],
+              fixedExpenseTotal: 0,
+              showFixedExpenseAsItems: false,
             ),
             const SizedBox(height: 16),
 
@@ -759,6 +904,21 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                 '제일 많이 사용한 소비수단',
               ),
               emptyMessage: activeEmptyMessage,
+              showFixedExpenseSummary: !usingRange,
+              fixedExpenseSummary: usingRange
+                  ? const <String, int>{}
+                  : monthlyFixedPaymentSummary,
+              fixedExpenseCountSummary: usingRange
+                  ? const <String, int>{}
+                  : monthlyFixedPaymentCountSummary,
+              fixedExpenseItems: const <FixedExpense>[],
+              fixedExpenseTotal: usingRange
+                  ? 0
+                  : monthlyFixedExpenses.fold<int>(
+                      0,
+                      (int total, FixedExpense item) => total + item.amount,
+                    ),
+              showFixedExpenseAsItems: false,
             ),
           ],
         ),

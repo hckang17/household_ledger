@@ -35,7 +35,7 @@
   "calendarFold": "カレンダーを折りたたむ",
   "calendarUnfold": "カレンダーを展開",
   "queryByDate": "日付で照会",
-  "viewMonthly": "月全体を見る",
+  "viewMonthly": "月全体照会",
   "expenseRecordDaySectionLabel": "{month}月{day}日",
   "currencyUnit": "¥",
   "fixedExpenseTotal": "固定支出合計",

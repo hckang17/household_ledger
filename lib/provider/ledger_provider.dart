@@ -7,6 +7,7 @@ import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/model/user_profile.dart';
 import 'package:household_ledger/services/debugging_logger.dart';
 import 'package:household_ledger/services/expense_database_service.dart';
+import 'package:household_ledger/services/fixed_expense_database_service.dart';
 import 'package:household_ledger/services/income_database_service.dart';
 import 'package:household_ledger/services/local_storage_service.dart';
 
@@ -48,6 +49,16 @@ final incomeDatabaseServiceProvider = Provider<IncomeDatabaseService>((
   );
   return IncomeDatabaseService();
 });
+
+/// 고정지출 SQLite 서비스를 주입한다.
+final fixedExpenseDatabaseServiceProvider =
+    Provider<FixedExpenseDatabaseService>((Ref ref) {
+      _logLedgerProvider(
+        'fixedExpenseDatabaseServiceProvider',
+        'FixedExpenseDatabaseService 인스턴스 생성',
+      );
+      return FixedExpenseDatabaseService();
+    });
 
 /// 앱 전체 상태를 관리한다.
 final ledgerProvider = AsyncNotifierProvider<LedgerNotifier, LedgerState>(
@@ -134,6 +145,14 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
     return ref.read(incomeDatabaseServiceProvider);
   }
 
+  FixedExpenseDatabaseService get _fixedExpenseDatabaseService {
+    _logLedgerProvider(
+      '_fixedExpenseDatabaseService',
+      'FixedExpenseDatabaseService 조회',
+    );
+    return ref.read(fixedExpenseDatabaseServiceProvider);
+  }
+
   @override
   Future<LedgerState> build() async {
     _logLedgerProvider('build', '앱 상태 초기 로드 시작');
@@ -141,6 +160,8 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
     final nowMonth = DateTime.now();
     final currentMonthExpenses = await _expenseDatabaseService
         .loadExpensesByMonth(nowMonth);
+    var allFixedExpenses = await _fixedExpenseDatabaseService
+        .loadAllFixedExpenses();
 
     // 기존 shared_preferences에 남아 있는 구버전 지출내역이 있으면 SQLite로 1회 마이그레이션한다.
     if (currentMonthExpenses.isEmpty && settingsState.expenses.isNotEmpty) {
@@ -148,12 +169,35 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
       await _expenseDatabaseService.upsertExpenses(settingsState.expenses);
       final migratedMonthExpenses = await _expenseDatabaseService
           .loadExpensesByMonth(nowMonth);
+      if (allFixedExpenses.isEmpty && settingsState.fixedExpenses.isNotEmpty) {
+        _logLedgerProvider('build', '구버전 고정지출 SQLite 마이그레이션 수행');
+        await _fixedExpenseDatabaseService.upsertFixedExpenses(
+          settingsState.fixedExpenses,
+        );
+        allFixedExpenses = await _fixedExpenseDatabaseService
+            .loadAllFixedExpenses();
+      }
       _logLedgerProvider('build', '초기 상태 반환(마이그레이션 데이터 포함)');
-      return settingsState.copyWith(expenses: migratedMonthExpenses);
+      return settingsState.copyWith(
+        expenses: migratedMonthExpenses,
+        fixedExpenses: allFixedExpenses,
+      );
+    }
+
+    if (allFixedExpenses.isEmpty && settingsState.fixedExpenses.isNotEmpty) {
+      _logLedgerProvider('build', '구버전 고정지출 SQLite 마이그레이션 수행');
+      await _fixedExpenseDatabaseService.upsertFixedExpenses(
+        settingsState.fixedExpenses,
+      );
+      allFixedExpenses = await _fixedExpenseDatabaseService
+          .loadAllFixedExpenses();
     }
 
     _logLedgerProvider('build', '초기 상태 반환(이번 달 지출내역 적용)');
-    return settingsState.copyWith(expenses: currentMonthExpenses);
+    return settingsState.copyWith(
+      expenses: currentMonthExpenses,
+      fixedExpenses: allFixedExpenses,
+    );
   }
 
   /// 현재 메모리 상태를 로컬 저장소에 저장한다.
@@ -333,6 +377,7 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
       return;
     }
 
+    await _fixedExpenseDatabaseService.upsertFixedExpense(item);
     await _commit(current.addFixedExpense(item));
     _logLedgerProvider('addFixedExpense', '고정지출 기록 추가 완료');
   }
@@ -346,6 +391,7 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
       return;
     }
 
+    await _fixedExpenseDatabaseService.upsertFixedExpense(item);
     await _commit(current.updateFixedExpense(item));
     _logLedgerProvider('updateFixedExpense', '고정지출 기록 수정 완료');
   }
@@ -359,6 +405,7 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
       return;
     }
 
+    await _fixedExpenseDatabaseService.deleteFixedExpense(id);
     await _commit(current.deleteFixedExpense(id));
     _logLedgerProvider('deleteFixedExpense', '고정지출 기록 삭제 완료');
   }
@@ -397,6 +444,11 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
 
     // 태그 코드 치환은 명시적 SQL UPDATE로 DB에도 반영한다.
     await _expenseDatabaseService.replaceExpenseTagCode(
+      type: type,
+      fromCode: targetCode,
+      toCode: replacementCode,
+    );
+    await _fixedExpenseDatabaseService.replaceFixedExpenseTagCode(
       type: type,
       fromCode: targetCode,
       toCode: replacementCode,
