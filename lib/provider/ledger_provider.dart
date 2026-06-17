@@ -457,6 +457,36 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
     _logLedgerProvider('replaceAndDeleteTag', '메타데이터 태그 교체/삭제 완료');
   }
 
+  /// 가져오기 데이터로 전체 DB를 교체하고 앱 상태를 새로 구성한다.
+  Future<void> importAllData({
+    required List<ExpenseEntry> expenses,
+    required List<FixedExpense> fixedExpenses,
+    required List<IncomeEntry> incomes,
+    required LedgerState importedState,
+  }) async {
+    _logLedgerProvider('importAllData', '데이터 전체 가져오기 시작');
+
+    await _expenseDatabaseService.deleteAllExpenses();
+    await _fixedExpenseDatabaseService.deleteAllFixedExpenses();
+    await _incomeDatabaseService.deleteAllIncomes();
+
+    await _expenseDatabaseService.upsertExpenses(expenses);
+    await _fixedExpenseDatabaseService.upsertFixedExpenses(fixedExpenses);
+    await _incomeDatabaseService.upsertIncomes(incomes);
+
+    final nowMonth = DateTime.now();
+    final currentMonthExpenses = expenses.where(
+      (ExpenseEntry e) => e.spentAt.year == nowMonth.year && e.spentAt.month == nowMonth.month,
+    ).toList();
+
+    final next = importedState.copyWith(
+      expenses: currentMonthExpenses,
+      fixedExpenses: fixedExpenses,
+    );
+    await _commit(next);
+    _logLedgerProvider('importAllData', '데이터 전체 가져오기 완료');
+  }
+
   /// 상태를 저장 포함 방식으로 교체한다.
   Future<void> _commit(LedgerState next) async {
     _logLedgerProvider('_commit', '상태 반영 및 저장 시작');

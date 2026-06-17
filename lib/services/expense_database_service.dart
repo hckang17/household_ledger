@@ -247,6 +247,21 @@ class ExpenseDatabaseService {
     _log('deleteExpense', '지출내역 단건 삭제 완료(SQLite)');
   }
 
+  /// DB에 저장된 지출내역을 전부 삭제한다.
+  Future<void> deleteAllExpenses() async {
+    _log('deleteAllExpenses', '지출내역 전체 삭제 시작');
+    if (kIsWeb) {
+      await _saveAllExpensesToPreferences(<ExpenseEntry>[]);
+      _log('deleteAllExpenses', '지출내역 전체 삭제 완료(shared_preferences)');
+      return;
+    }
+
+    final db = await _getDatabase();
+    final deletedCount = await db.delete(_tableName);
+    logger.d('$_logPrefix deleteAllExpenses() completed via SQLite. deletedCount=$deletedCount');
+    _log('deleteAllExpenses', '지출내역 전체 삭제 완료(SQLite)');
+  }
+
   /// 메타데이터 태그 코드 변경 시 소비기록의 참조 코드를 SQL UPDATE로 일괄 치환한다.
   Future<void> replaceExpenseTagCode({
     required MetadataTagType type,

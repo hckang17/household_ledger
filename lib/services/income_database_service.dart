@@ -11,7 +11,6 @@ class IncomeDatabaseService {
   static const String _databaseName = 'household_income.db';
   static const String _tableName = 'income_entries';
   static const String _webStorageKey = 'household_ledger_incomes';
-  static const String _logPrefix = '[IncomeDatabaseService]';
 
   Database? _database;
 
@@ -81,6 +80,62 @@ class IncomeDatabaseService {
       orderBy: 'earnedAt DESC, id DESC',
     );
     return rows.map(_fromRow).toList();
+  }
+
+  Future<List<IncomeEntry>> loadAllIncomes() async {
+    _log('loadAllIncomes', '소득 전체 조회 시작');
+    if (kIsWeb) {
+      return _loadAllIncomesFromPreferences();
+    }
+
+    final db = await _getDatabase();
+    final rows = await db.query(_tableName, orderBy: 'earnedAt DESC, id DESC');
+    _log('loadAllIncomes', '소득 전체 조회 완료(SQLite)');
+    return rows.map(_fromRow).toList();
+  }
+
+  Future<void> upsertIncomes(List<IncomeEntry> entries) async {
+    _log('upsertIncomes', '소득 다건 저장/수정 시작');
+    if (entries.isEmpty) {
+      _log('upsertIncomes', '입력 목록 비어 있어 저장 스킵');
+      return;
+    }
+
+    if (kIsWeb) {
+      final current = await _loadAllIncomesFromPreferences();
+      final merged = <int?, IncomeEntry>{
+        for (final entry in current) entry.id: entry,
+        for (final entry in entries) entry.id: entry,
+      };
+      await _saveAllIncomesToPreferences(merged.values.toList());
+      _log('upsertIncomes', '소득 다건 저장/수정 완료(shared_preferences)');
+      return;
+    }
+
+    final db = await _getDatabase();
+    final batch = db.batch();
+    for (final entry in entries) {
+      batch.insert(
+        _tableName,
+        _toRow(entry),
+        conflictAlgorithm: ConflictAlgorithm.replace,
+      );
+    }
+    await batch.commit(noResult: true);
+    _log('upsertIncomes', '소득 다건 저장/수정 완료(SQLite)');
+  }
+
+  Future<void> deleteAllIncomes() async {
+    _log('deleteAllIncomes', '소득 전체 삭제 시작');
+    if (kIsWeb) {
+      await _saveAllIncomesToPreferences(<IncomeEntry>[]);
+      _log('deleteAllIncomes', '소득 전체 삭제 완료(shared_preferences)');
+      return;
+    }
+
+    final db = await _getDatabase();
+    await db.delete(_tableName);
+    _log('deleteAllIncomes', '소득 전체 삭제 완료(SQLite)');
   }
 
   Future<void> upsertIncome(IncomeEntry entry) async {

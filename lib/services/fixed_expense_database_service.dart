@@ -160,6 +160,19 @@ class FixedExpenseDatabaseService {
     _log('upsertFixedExpenses', '고정지출 다건 저장/수정 완료(SQLite)');
   }
 
+  Future<void> deleteAllFixedExpenses() async {
+    _log('deleteAllFixedExpenses', '고정지출 전체 삭제 시작');
+    if (kIsWeb) {
+      await _saveAllToPreferences(<FixedExpense>[]);
+      _log('deleteAllFixedExpenses', '고정지출 전체 삭제 완료(shared_preferences)');
+      return;
+    }
+
+    final db = await _getDatabase();
+    await db.delete(_tableName);
+    _log('deleteAllFixedExpenses', '고정지출 전체 삭제 완료(SQLite)');
+  }
+
   Future<void> deleteFixedExpense(String id) async {
     _log('deleteFixedExpense', '고정지출 삭제 시작');
     if (kIsWeb) {
