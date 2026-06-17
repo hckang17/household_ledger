@@ -128,5 +128,6 @@
   "emailFormatError": "이메일 형식을 확인해주세요.",
   "passkeyConfirmLabel": "인증 키 확인",
   "passkeyMismatchError": "인증 키가 일치하지 않습니다.",
+  "passkeyRequiredError": "인증 키를 입력해주세요.",
   "exportCooldownMessage": "잦은 조작은 불가능합니다. 잠시 후에 다시 시도해주세요."
 }

@@ -93,7 +93,7 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
     }
     if (passkey.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_text(strings, 'passkeyLabel'))),
+        SnackBar(content: Text(_text(strings, 'passkeyRequiredError'))),
       );
       return;
     }
@@ -145,9 +145,12 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
           allFixed = await fixedService.loadAllFixedExpenses();
           allIncomes = await incomeService.loadAllIncomes();
         case _ExportRange.month:
-          allExpenses =
-              await expenseService.loadExpensesByMonth(_selectedMonth);
-          allFixed = await fixedService.loadFixedExpensesByMonth(_selectedMonth);
+          allExpenses = await expenseService.loadExpensesByMonth(
+            _selectedMonth,
+          );
+          allFixed = await fixedService.loadFixedExpensesByMonth(
+            _selectedMonth,
+          );
           allIncomes = await incomeService.loadIncomesByMonth(_selectedMonth);
         case _ExportRange.period:
           final endExclusive = DateTime(
@@ -210,8 +213,9 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
       context: context,
       builder: (BuildContext ctx) {
         return AlertDialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(20),
+          ),
           title: Row(
             children: <Widget>[
               const Icon(Icons.check_circle, color: Color(0xFF28A745)),
@@ -225,10 +229,9 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
             children: <Widget>[
               Text(
                 _text(strings, 'savedPathLabel'),
-                style: Theme.of(context)
-                    .textTheme
-                    .labelMedium
-                    ?.copyWith(color: Colors.grey[600]),
+                style: Theme.of(
+                  context,
+                ).textTheme.labelMedium?.copyWith(color: Colors.grey[600]),
               ),
               const SizedBox(height: 8),
               GestureDetector(
@@ -236,7 +239,8 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
                   Clipboard.setData(ClipboardData(text: savedPath));
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                        content: Text(_text(strings, 'pathCopiedMessage'))),
+                      content: Text(_text(strings, 'pathCopiedMessage')),
+                    ),
                   );
                 },
                 child: Container(
@@ -251,9 +255,7 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
                       Expanded(
                         child: Text(
                           savedPath,
-                          style: Theme.of(context)
-                              .textTheme
-                              .bodySmall
+                          style: Theme.of(context).textTheme.bodySmall
                               ?.copyWith(fontFamily: 'monospace'),
                         ),
                       ),
@@ -301,8 +303,10 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
   Widget build(BuildContext context) {
     final strings = ref.watch(localizedStringsProvider);
     final now = DateTime.now();
-    final years =
-        List<int>.generate(now.year - 2020 + 1, (i) => 2020 + i).reversed.toList();
+    final years = List<int>.generate(
+      now.year - 2020 + 1,
+      (i) => 2020 + i,
+    ).reversed.toList();
 
     return Stack(
       children: <Widget>[
@@ -319,8 +323,8 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
                       Text(
                         _text(strings, 'exportRangeSectionTitle'),
                         style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                              fontWeight: FontWeight.w700,
-                            ),
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                       const SizedBox(height: 12),
                       _buildRangeSegment(strings),
@@ -344,8 +348,8 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
                       Text(
                         _text(strings, 'signatureInfoMessage'),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey[600],
-                            ),
+                          color: Colors.grey[600],
+                        ),
                       ),
                       const SizedBox(height: 20),
                       TextField(
@@ -370,7 +374,8 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
                                   : Icons.visibility_off_outlined,
                             ),
                             onPressed: () => setState(
-                                () => _obscurePasskey = !_obscurePasskey),
+                              () => _obscurePasskey = !_obscurePasskey,
+                            ),
                           ),
                         ),
                       ),
@@ -404,8 +409,9 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
                   backgroundColor: (_isExporting || _isCooldown)
                       ? Colors.grey.shade400
                       : const Color(0xFF0D6EFD),
-                  onPressed:
-                      _isExporting ? null : () => _onExportPressed(strings),
+                  onPressed: _isExporting
+                      ? null
+                      : () => _onExportPressed(strings),
                 ),
                 const SizedBox(height: 16),
               ],
@@ -418,53 +424,68 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
   }
 
   Widget _buildRangeSegment(Map<String, String> strings) {
-    return SegmentedButton<_ExportRange>(
-      segments: <ButtonSegment<_ExportRange>>[
-        ButtonSegment(
-          value: _ExportRange.all,
-          label: Text(_text(strings, 'exportRangeAll')),
+    return SizedBox(
+      width: double.infinity,
+      child: SegmentedButton<_ExportRange>(
+        expandedInsets: EdgeInsets.zero,
+        style: SegmentedButton.styleFrom(
+          backgroundColor: Colors.grey[200],
+          selectedBackgroundColor: const Color(0xFF0D6EFD),
+          selectedForegroundColor: Colors.white,
+          textStyle: Theme.of(context)
+              .textTheme
+              .bodyMedium
+              ?.copyWith(fontWeight: FontWeight.w600),
         ),
-        ButtonSegment(
-          value: _ExportRange.month,
-          label: Text(_text(strings, 'exportRangeMonth')),
-        ),
-        ButtonSegment(
-          value: _ExportRange.period,
-          label: Text(_text(strings, 'exportRangePeriod')),
-        ),
-      ],
-      selected: <_ExportRange>{_exportRange},
-      onSelectionChanged: (Set<_ExportRange> s) =>
-          setState(() => _exportRange = s.first),
-      showSelectedIcon: false,
+        segments: <ButtonSegment<_ExportRange>>[
+          ButtonSegment(
+            value: _ExportRange.all,
+            label: Text(_text(strings, 'exportRangeAll')),
+          ),
+          ButtonSegment(
+            value: _ExportRange.month,
+            label: Text(_text(strings, 'exportRangeMonth')),
+          ),
+          ButtonSegment(
+            value: _ExportRange.period,
+            label: Text(_text(strings, 'exportRangePeriod')),
+          ),
+        ],
+        selected: <_ExportRange>{_exportRange},
+        onSelectionChanged: (Set<_ExportRange> s) =>
+            setState(() => _exportRange = s.first),
+        showSelectedIcon: false,
+      ),
     );
   }
 
-  Widget _buildMonthSelector(
-      Map<String, String> strings, List<int> years) {
+  Widget _buildMonthSelector(Map<String, String> strings, List<int> years) {
     return Row(
       children: <Widget>[
         Expanded(
           child: InputDecorator(
             decoration: InputDecoration(
               labelText: _text(strings, 'yearLabel'),
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 4,
+              ),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<int>(
                 value: _selectedMonth.year,
                 isDense: true,
                 items: years
-                    .map((y) =>
-                        DropdownMenuItem(value: y, child: Text('$y')))
+                    .map((y) => DropdownMenuItem(value: y, child: Text('$y')))
                     .toList(),
                 onChanged: (y) {
                   if (y == null) return;
-                  setState(() =>
-                      _selectedMonth = DateTime(y, _selectedMonth.month));
+                  setState(
+                    () => _selectedMonth = DateTime(y, _selectedMonth.month),
+                  );
                 },
               ),
             ),
@@ -475,23 +496,29 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
           child: InputDecorator(
             decoration: InputDecoration(
               labelText: _text(strings, 'monthLabel'),
-              border:
-                  OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-              contentPadding:
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 4,
+              ),
             ),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<int>(
                 value: _selectedMonth.month,
                 isDense: true,
                 items: List<int>.generate(12, (i) => i + 1)
-                    .map((m) => DropdownMenuItem(
-                        value: m, child: Text(_twoDigit(m))))
+                    .map(
+                      (m) =>
+                          DropdownMenuItem(value: m, child: Text(_twoDigit(m))),
+                    )
                     .toList(),
                 onChanged: (m) {
                   if (m == null) return;
-                  setState(() =>
-                      _selectedMonth = DateTime(_selectedMonth.year, m));
+                  setState(
+                    () => _selectedMonth = DateTime(_selectedMonth.year, m),
+                  );
                 },
               ),
             ),
@@ -502,55 +529,71 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
   }
 
   Widget _buildPeriodSelector(Map<String, String> strings) {
-    return Row(
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: <Widget>[
-        Expanded(
-          child: OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              padding: const EdgeInsets.symmetric(vertical: 14),
-            ),
-            onPressed: () => _pickDate(
-              context: context,
-              initial: _startDate,
-              onPicked: (d) => setState(() => _startDate = d),
-            ),
-            child: Text(
-              _startDate != null
-                  ? _formatDate(_startDate!)
-                  : _text(strings, 'exportRangeStartDateLabel'),
-              style: TextStyle(
-                  color: _startDate != null ? null : Colors.grey[500]),
-            ),
+        _buildDateButton(
+          label: _startDate != null
+              ? _formatDate(_startDate!)
+              : _text(strings, 'exportRangeStartDateLabel'),
+          isSet: _startDate != null,
+          onPressed: () => _pickDate(
+            context: context,
+            initial: _startDate,
+            onPicked: (d) => setState(() => _startDate = d),
           ),
         ),
         const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 8),
-          child: Icon(Icons.arrow_forward, size: 18, color: Colors.grey),
-        ),
-        Expanded(
-          child: OutlinedButton(
-            style: OutlinedButton.styleFrom(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12)),
-              padding: const EdgeInsets.symmetric(vertical: 14),
-            ),
-            onPressed: () => _pickDate(
-              context: context,
-              initial: _endDate,
-              onPicked: (d) => setState(() => _endDate = d),
-            ),
-            child: Text(
-              _endDate != null
-                  ? _formatDate(_endDate!)
-                  : _text(strings, 'exportRangeEndDateLabel'),
-              style: TextStyle(
-                  color: _endDate != null ? null : Colors.grey[500]),
+          padding: EdgeInsets.symmetric(vertical: 6),
+          child: Center(
+            child: Icon(
+              Icons.keyboard_double_arrow_down_outlined,
+              size: 18,
+              color: Colors.grey,
             ),
           ),
         ),
+        _buildDateButton(
+          label: _endDate != null
+              ? _formatDate(_endDate!)
+              : _text(strings, 'exportRangeEndDateLabel'),
+          isSet: _endDate != null,
+          onPressed: () => _pickDate(
+            context: context,
+            initial: _endDate,
+            onPicked: (d) => setState(() => _endDate = d),
+          ),
+        ),
       ],
+    );
+  }
+
+  Widget _buildDateButton({
+    required String label,
+    required bool isSet,
+    required VoidCallback onPressed,
+  }) {
+    return SizedBox(
+      width: double.infinity,
+      child: OutlinedButton.icon(
+        style: OutlinedButton.styleFrom(
+          alignment: Alignment.center,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        ),
+        onPressed: onPressed,
+        icon: Icon(
+          Icons.event_outlined,
+          size: 16,
+          color: isSet ? null : Colors.grey[400],
+        ),
+        label: Text(
+          label,
+          style: TextStyle(color: isSet ? null : Colors.grey[500]),
+        ),
+      ),
     );
   }
 
@@ -567,8 +610,8 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
                 Text(
                   _text(strings, 'keepAppOpenMessage'),
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                    fontWeight: FontWeight.w700,
+                  ),
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 24),

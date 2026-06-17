@@ -128,5 +128,6 @@
   "emailFormatError": "メールアドレスの形式を確認してください。",
   "passkeyConfirmLabel": "認証キーの確認",
   "passkeyMismatchError": "認証キーが一致しません。",
-  "exportCooldownMessage": "短時間での連続操作はできません。しばらくしてから再試行してください。"
+  "exportCooldownMessage": "短時間での連続操作はできません。しばらくしてから再試行してください。",
+  "passkeyRequiredError": "認証キーを入力してください。"
 }
