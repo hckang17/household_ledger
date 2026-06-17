@@ -7,12 +7,19 @@ import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widg
 import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
+import 'package:household_ledger/router/app_router.dart';
 import 'package:household_ledger/services/data_im_export_service.dart';
 
 /// CSV 파일을 선택해 가계부 데이터를 복원하는 화면이다.
 class ImportDataPage extends ConsumerStatefulWidget {
   /// 데이터 가져오기 화면을 생성한다.
-  const ImportDataPage({super.key});
+  ///
+  /// [fromSetup]이 true이면 초기 설정 화면에서 진입한 것이므로,
+  /// 가져오기 성공 시 홈 화면으로 스택을 초기화하며 이동한다.
+  const ImportDataPage({super.key, this.fromSetup = false});
+
+  /// 초기 설정 화면에서 진입했는지 여부를 나타낸다.
+  final bool fromSetup;
 
   @override
   ConsumerState<ImportDataPage> createState() => _ImportDataPageState();
@@ -53,7 +60,7 @@ class _ImportDataPageState extends ConsumerState<ImportDataPage> {
     }
     if (email.isEmpty || !email.contains('@')) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_text(strings, 'emailLabel'))),
+        SnackBar(content: Text(_text(strings, 'emailFormatError'))),
       );
       return;
     }
@@ -116,7 +123,14 @@ class _ImportDataPageState extends ConsumerState<ImportDataPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(_text(strings, 'importSuccessMessage'))),
       );
-      Navigator.of(context).pop();
+      if (widget.fromSetup) {
+        Navigator.of(context).pushNamedAndRemoveUntil(
+          AppRouter.homeRoute,
+          (Route<dynamic> route) => false,
+        );
+      } else {
+        Navigator.of(context).pop();
+      }
     } catch (_) {
       if (!mounted) {
         return;

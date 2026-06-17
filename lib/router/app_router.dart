@@ -76,7 +76,9 @@ class AppRouter {
       case exportDataRoute:
         return _buildRoute(const ExportDataPage(), settings);
       case importDataRoute:
-        return _buildRoute(const ImportDataPage(), settings);
+        final args = settings.arguments as Map<String, dynamic>?;
+        final fromSetup = args?['fromSetup'] as bool? ?? false;
+        return _buildRoute(ImportDataPage(fromSetup: fromSetup), settings);
       default:
         return _buildRoute(const OnboardingPage(), settings);
     }

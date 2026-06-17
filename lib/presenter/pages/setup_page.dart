@@ -117,6 +117,24 @@ class _SetupPageState extends ConsumerState<SetupPage> {
                   icon: Icons.save_rounded,
                   onPressed: _submit,
                 ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                    ),
+                    onPressed: () => Navigator.of(context).pushNamed(
+                      AppRouter.importDataRoute,
+                      arguments: <String, dynamic>{'fromSetup': true},
+                    ),
+                    icon: const Icon(Icons.download_outlined),
+                    label: Text(strings['importDataMenuLabel'] ?? ''),
+                  ),
+                ),
               ],
             ),
           ),
