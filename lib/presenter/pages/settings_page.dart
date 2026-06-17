@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
-import 'package:household_ledger/provider/ledger_provider.dart';
-import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
+import 'package:household_ledger/provider/ledger_provider.dart';
+import 'package:household_ledger/provider/localization_provider.dart';
+import 'package:household_ledger/router/app_router.dart';
 
 /// 환경설정 화면이다.
 class SettingsPage extends ConsumerStatefulWidget {
@@ -482,8 +483,46 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               type: MetadataTagType.paymentMethod,
               strings: strings,
             ),
+            const SizedBox(height: 16),
+            _buildDataManagementSection(context, strings),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildDataManagementSection(
+    BuildContext context,
+    Map<String, String> strings,
+  ) {
+    return BootstrapSectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            _text(strings, 'dataManagementSectionTitle'),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+          const SizedBox(height: 16),
+          BootstrapActionButton(
+            label: _text(strings, 'exportDataMenuLabel'),
+            icon: Icons.upload_file_outlined,
+            onPressed: () {
+              Navigator.of(context).pushNamed(AppRouter.exportDataRoute);
+            },
+          ),
+          const SizedBox(height: 12),
+          BootstrapActionButton(
+            label: _text(strings, 'importDataMenuLabel'),
+            icon: Icons.download_outlined,
+            backgroundColor: const Color(0xFF198754),
+            onPressed: () {
+              Navigator.of(context).pushNamed(AppRouter.importDataRoute);
+            },
+          ),
+        ],
       ),
     );
   }

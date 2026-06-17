@@ -6,7 +6,8 @@ plugins {
 
 android {
     namespace = "com.example.household_ledger"
-    compileSdk = flutter.compileSdkVersion
+    compileSdk = 36
+    // compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
     compileOptions {
