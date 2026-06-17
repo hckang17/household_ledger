@@ -423,42 +423,40 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
     );
   }
 
+  /// 추출 범위 선택 세그먼트 버튼을 빌드한다. (전체선택/월별/기간별)
   Widget _buildRangeSegment(Map<String, String> strings) {
-    return SizedBox(
-      width: double.infinity,
-      child: SegmentedButton<_ExportRange>(
-        expandedInsets: EdgeInsets.zero,
-        style: SegmentedButton.styleFrom(
-          backgroundColor: Colors.grey[200],
-          selectedBackgroundColor: const Color(0xFF0D6EFD),
-          selectedForegroundColor: Colors.white,
-          textStyle: Theme.of(context)
-              .textTheme
-              .bodyMedium
-              ?.copyWith(fontWeight: FontWeight.w600),
-        ),
-        segments: <ButtonSegment<_ExportRange>>[
-          ButtonSegment(
-            value: _ExportRange.all,
-            label: Text(_text(strings, 'exportRangeAll')),
-          ),
-          ButtonSegment(
-            value: _ExportRange.month,
-            label: Text(_text(strings, 'exportRangeMonth')),
-          ),
-          ButtonSegment(
-            value: _ExportRange.period,
-            label: Text(_text(strings, 'exportRangePeriod')),
-          ),
-        ],
-        selected: <_ExportRange>{_exportRange},
-        onSelectionChanged: (Set<_ExportRange> s) =>
-            setState(() => _exportRange = s.first),
-        showSelectedIcon: false,
+    return SegmentedButton<_ExportRange>(
+      style: SegmentedButton.styleFrom(
+        minimumSize: const Size.fromWidth(double.infinity),
+        backgroundColor: Colors.grey[200],
+        selectedBackgroundColor: const Color(0xFF0D6EFD),
+        selectedForegroundColor: Colors.white,
+        textStyle: Theme.of(
+          context,
+        ).textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w600),
       ),
+      segments: <ButtonSegment<_ExportRange>>[
+        ButtonSegment(
+          value: _ExportRange.all,
+          label: Text(_text(strings, 'exportRangeAll')),
+        ),
+        ButtonSegment(
+          value: _ExportRange.month,
+          label: Text(_text(strings, 'exportRangeMonth')),
+        ),
+        ButtonSegment(
+          value: _ExportRange.period,
+          label: Text(_text(strings, 'exportRangePeriod')),
+        ),
+      ],
+      selected: <_ExportRange>{_exportRange},
+      onSelectionChanged: (Set<_ExportRange> s) =>
+          setState(() => _exportRange = s.first),
+      showSelectedIcon: false,
     );
   }
 
+  /// 월/년 선택 드롭다운을 빌드한다. 월별 추출 범위를 선택했을 때만 표시된다.
   Widget _buildMonthSelector(Map<String, String> strings, List<int> years) {
     return Row(
       children: <Widget>[
@@ -528,6 +526,7 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
     );
   }
 
+  /// 기간 선택 버튼을 빌드한다. 기간별 추출 범위를 선택했을 때만 표시된다.
   Widget _buildPeriodSelector(Map<String, String> strings) {
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -568,6 +567,7 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
     );
   }
 
+  /// 날짜 선택 버튼을 빌드한다. 시작일/종료일 선택 시 사용된다.
   Widget _buildDateButton({
     required String label,
     required bool isSet,
@@ -597,6 +597,7 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
     );
   }
 
+  /// 진행 중 오버레이를 빌드한다.
   Widget _buildProgressOverlay(Map<String, String> strings) {
     return Positioned.fill(
       child: ColoredBox(
