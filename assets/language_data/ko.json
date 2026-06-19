@@ -141,5 +141,9 @@
   "analysisCategoryDetailTitle": "{label} 상세",
   "analysisIncomeTotal": "수입 합계",
   "analysisIncomeDailyTrendTitle": "일별 수입 추이",
-  "analysisFixedExpenseSectionTitle": "이번 달 고정지출"
+  "analysisFixedExpenseSectionTitle": "이번 달 고정지출",
+  "fixedExpenseCategoryLabel": "고정지출",
+  "analysisDailyMaxLabel": "가장 지출이 많은 날",
+  "analysisDailyMinLabel": "가장 지출이 적은 날",
+  "analysisFixedExpenseBarTitle": "고정지출 항목별 내역"
 }

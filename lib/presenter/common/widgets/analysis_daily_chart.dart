@@ -13,6 +13,9 @@ class AnalysisDailyChart extends StatelessWidget {
     required this.spots,
     required this.currency,
     required this.title,
+    this.rangeStart,
+    this.maxLabel,
+    this.minLabel,
     super.key,
   });
 
@@ -26,16 +29,52 @@ class AnalysisDailyChart extends StatelessWidget {
   /// 차트 상단에 표시할 섹션 제목이다.
   final String title;
 
+  /// 기간 시작일이다. 최고/최저 지출일의 실제 날짜 계산에 사용된다.
+  final DateTime? rangeStart;
+
+  /// 최고 지출일 레이블이다. null이면 최고/최저 지출일 영역을 표시하지 않는다.
+  final String? maxLabel;
+
+  /// 최저 지출일 레이블이다. null이면 최고/최저 지출일 영역을 표시하지 않는다.
+  final String? minLabel;
+
+  /// Y축에 표시할 금액 약식 문자열을 반환한다(만원 단위).
+  static String _yLabel(double v) {
+    if (v >= 10000) {
+      final double wan = v / 10000;
+      return wan == wan.truncateToDouble()
+          ? '${wan.toInt()}만'
+          : '${wan.toStringAsFixed(1)}만';
+    }
+    if (v >= 1000) return '${(v / 1000).toStringAsFixed(0)}K';
+    return v.toInt().toString();
+  }
+
+  /// [FlSpot.x](1-based 일 번호)를 날짜 문자열로 변환한다.
+  String _formatDayLabel(FlSpot spot) {
+    if (rangeStart == null) return '${spot.x.toInt()}일';
+    final DateTime date = rangeStart!.add(Duration(days: spot.x.toInt() - 1));
+    return '${date.year}년 ${date.month}월 ${date.day}일';
+  }
+
   @override
   Widget build(BuildContext context) {
     /// 유효 데이터가 없으면 아무것도 렌더링하지 않는다.
     if (spots.isEmpty) return const SizedBox.shrink();
     if (spots.every((FlSpot s) => s.y == 0)) return const SizedBox.shrink();
 
-    final double maxY = spots.map((FlSpot s) => s.y).reduce(
-          (double a, double b) => a > b ? a : b,
-        ) *
+    final double maxY =
+        spots
+            .map((FlSpot s) => s.y)
+            .reduce((double a, double b) => a > b ? a : b) *
         1.3;
+
+    final FlSpot maxSpot =
+        spots.reduce((FlSpot a, FlSpot b) => a.y >= b.y ? a : b);
+    final FlSpot minSpot =
+        spots.reduce((FlSpot a, FlSpot b) => a.y <= b.y ? a : b);
+
+    final bool showMaxMin = maxLabel != null && minLabel != null;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -43,9 +82,9 @@ class AnalysisDailyChart extends StatelessWidget {
         /// 차트 섹션 제목 라벨이다.
         Text(
           title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w700,
-          ),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 16),
 
@@ -78,10 +117,28 @@ class AnalysisDailyChart extends StatelessWidget {
                 ),
               ],
 
-              /// X/Y 축 타이틀 설정이다. 좌우·상단은 숨기고 하단만 표시한다.
+              /// X/Y 축 타이틀 설정이다.
               titlesData: FlTitlesData(
-                leftTitles: const AxisTitles(
-                  sideTitles: SideTitles(showTitles: false),
+                /// Y축 좌측에 만원 단위 금액 라벨을 표시한다.
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    interval: maxY / 4,
+                    reservedSize: 46,
+                    getTitlesWidget: (double value, TitleMeta meta) {
+                      if (value == 0) return const SizedBox.shrink();
+                      return SideTitleWidget(
+                        axisSide: meta.axisSide,
+                        child: Text(
+                          _yLabel(value),
+                          style: TextStyle(
+                            fontSize: 9,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
                 ),
                 rightTitles: const AxisTitles(
                   sideTitles: SideTitles(showTitles: false),
@@ -138,18 +195,68 @@ class AnalysisDailyChart extends StatelessWidget {
                       const Color(0xFF222222),
                   getTooltipItems: (List<LineBarSpot> touchedSpots) =>
                       touchedSpots.map((LineBarSpot spot) {
-                    return LineTooltipItem(
-                      '${spot.x.toInt()}\n${spot.y.toInt().toCurrency()}$currency',
-                      const TextStyle(
-                        color: Colors.white,
-                        fontSize: 11,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    );
-                  }).toList(),
+                        return LineTooltipItem(
+                          '${spot.x.toInt()}\n${spot.y.toInt().toCurrency()}$currency',
+                          const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        );
+                      }).toList(),
                 ),
               ),
             ),
+          ),
+        ),
+
+        /// 최고/최저 지출일 요약 영역이다. maxLabel이 지정된 경우에만 표시한다.
+        if (showMaxMin) ...<Widget>[
+          const SizedBox(height: 12),
+          _buildDayStatRow(
+            context,
+            label: maxLabel!,
+            spot: maxSpot,
+            color: const Color(0xFFDC3545),
+          ),
+          const SizedBox(height: 4),
+          _buildDayStatRow(
+            context,
+            label: minLabel!,
+            spot: minSpot,
+            color: const Color(0xFF198754),
+          ),
+        ],
+      ],
+    );
+  }
+
+  /// 최고/최저 지출일 한 줄 표시 행이다(레이블 | 날짜 ... 금액).
+  Widget _buildDayStatRow(
+    BuildContext context, {
+    required String label,
+    required FlSpot spot,
+    required Color color,
+  }) {
+    return Row(
+      children: <Widget>[
+        Expanded(
+          child: Text(
+            '$label : ${_formatDayLabel(spot)}',
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey.shade600,
+              fontWeight: FontWeight.w500,
+            ),
+            overflow: TextOverflow.ellipsis,
+          ),
+        ),
+        Text(
+          '${spot.y.toInt().toCurrency()}$currency',
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w700,
+            color: color,
           ),
         ),
       ],

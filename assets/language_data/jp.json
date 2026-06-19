@@ -141,5 +141,9 @@
   "analysisCategoryDetailTitle": "{label} 詳細",
   "analysisIncomeTotal": "収入合計",
   "analysisIncomeDailyTrendTitle": "日別収入推移",
-  "analysisFixedExpenseSectionTitle": "今月の固定支出"
+  "analysisFixedExpenseSectionTitle": "今月の固定支出",
+  "fixedExpenseCategoryLabel": "固定支出",
+  "analysisDailyMaxLabel": "最も支出が多い日",
+  "analysisDailyMinLabel": "最も支出が少ない日",
+  "analysisFixedExpenseBarTitle": "固定支出項目別内訳"
 }

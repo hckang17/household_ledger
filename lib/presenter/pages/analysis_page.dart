@@ -13,6 +13,12 @@ import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:intl/intl.dart';
 
+/// 고정지출 섹션을 도넛 차트에서 구분하기 위한 내부 카테고리 코드다.
+const String _kFixedCode = '__fixed__';
+
+/// 도넛 차트에서 고정지출 섹션에 항상 사용하는 어두운 색상이다.
+const Color _kFixedColor = Color(0xFF37474F);
+
 /// 기간 선택 모드를 정의한다.
 enum _PeriodMode {
   /// 월 단위로 기간을 선택한다.
@@ -24,8 +30,9 @@ enum _PeriodMode {
 
 /// 지출 분석 화면이다.
 ///
-/// 상단의 기간 선택 영역, 카테고리별 도넛 차트, 카테고리 목록,
-/// 일별 지출 추이 꺾은선 그래프를 통합하여 제공한다.
+/// 상단의 기간 선택 영역, 카테고리별 도넛 차트(고정지출 포함),
+/// 카테고리 목록, 고정지출 가로 막대 그래프, 일별 지출 추이 꺾은선 그래프를
+/// 통합하여 제공한다.
 class AnalysisPage extends ConsumerStatefulWidget {
   /// 지출 분석 화면을 생성한다.
   const AnalysisPage({super.key});
@@ -49,6 +56,10 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
 
   /// 지출/수입 탭 상태를 보관한다(true = 지출, false = 수입).
   bool _showExpense = true;
+
+  /// 고정지출 가로 막대 섹션의 위치를 추적하는 키다.
+  /// 도넛에서 고정지출을 탭할 때 이 위치로 스크롤한다.
+  final GlobalKey _fixedSectionKey = GlobalKey();
 
   @override
   void initState() {
@@ -94,7 +105,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
 
   // ─── 기간 내비게이션 ─────────────────────────────────────────────
 
-  /// 이전 달로 이동한다.
   void _prevMonth() {
     setState(() {
       _selectedMonth = DateTime(
@@ -106,7 +116,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     });
   }
 
-  /// 다음 달로 이동한다.
   void _nextMonth() {
     setState(() {
       _selectedMonth = DateTime(
@@ -118,7 +127,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     });
   }
 
-  /// 월 선택 바텀시트를 표시한다.
   Future<void> _pickMonth(
     BuildContext context,
     Map<String, String> strings,
@@ -164,9 +172,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                               );
                             }),
                             onChanged: (int? v) {
-                              if (v != null) {
-                                setModal(() => selectedYear = v);
-                              }
+                              if (v != null) setModal(() => selectedYear = v);
                             },
                           ),
                         ),
@@ -185,9 +191,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                               ),
                             ),
                             onChanged: (int? v) {
-                              if (v != null) {
-                                setModal(() => selectedMonth = v);
-                              }
+                              if (v != null) setModal(() => selectedMonth = v);
                             },
                           ),
                         ),
@@ -227,7 +231,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     }
   }
 
-  /// 날짜 범위 선택 다이얼로그를 표시한다.
   Future<void> _pickDateRange(
     BuildContext context,
     Map<String, String> strings,
@@ -259,7 +262,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     }
   }
 
-  /// 기간 선택 모드 메뉴(월간/기간)를 보여준다.
   Future<void> _showPeriodModeMenu(
     BuildContext context,
     Map<String, String> strings,
@@ -295,17 +297,30 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     if (selected == null) return;
 
     setState(() {
-      _periodMode = selected == 'monthly'
-          ? _PeriodMode.monthly
-          : _PeriodMode.range;
+      _periodMode =
+          selected == 'monthly' ? _PeriodMode.monthly : _PeriodMode.range;
       _selectedRange = null;
       _touchedIndex = -1;
     });
   }
 
+  // ─── 스크롤 ────────────────────────────────────────────────────
+
+  /// 고정지출 가로 막대 섹션으로 부드럽게 스크롤한다.
+  ///
+  /// 섹션이 렌더링되어 있지 않으면(기간 모드이거나 데이터 없음) 아무것도 하지 않는다.
+  void _scrollToFixedSection() {
+    final BuildContext? ctx = _fixedSectionKey.currentContext;
+    if (ctx == null) return;
+    Scrollable.ensureVisible(
+      ctx,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+    );
+  }
+
   // ─── 데이터 계산 ──────────────────────────────────────────────────
 
-  /// 태그 코드에 해당하는 태그 라벨을 반환한다.
   String _resolveTagLabel(List<MetadataTag> tags, String code) {
     try {
       return tags.firstWhere((MetadataTag t) => t.code == code).label;
@@ -314,20 +329,31 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     }
   }
 
-  /// 지출 목록을 카테고리별로 집계해 도넛 섹션 목록을 만든다.
+  /// 지출 목록과 고정지출 목록을 카테고리별로 집계해 도넛 섹션 목록을 만든다.
+  ///
+  /// 고정지출은 [_kFixedCode] 코드로 하나의 섹션으로 합산되며
+  /// [_kFixedColor](어두운 색)을 고정 사용한다.
   List<DonutSection> _buildDonutSections(
     List<ExpenseEntry> expenses,
     List<MetadataTag> categoryTags,
+    List<FixedExpense> fixedExpenses,
+    Map<String, String> strings,
   ) {
-    if (expenses.isEmpty) return <DonutSection>[];
-
     final Map<String, int> sums = <String, int>{};
+
     for (final ExpenseEntry e in expenses) {
       sums.update(
         e.categoryCode,
         (int v) => v + e.amount,
         ifAbsent: () => e.amount,
       );
+    }
+
+    /// 고정지출을 단일 섹션으로 합산해 도넛에 포함한다.
+    if (fixedExpenses.isNotEmpty) {
+      final int fixedTotal =
+          fixedExpenses.fold(0, (int s, FixedExpense f) => s + f.amount);
+      if (fixedTotal > 0) sums[_kFixedCode] = fixedTotal;
     }
 
     final int total = sums.values.fold(0, (int a, int b) => a + b);
@@ -339,20 +365,28 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
             b.value.compareTo(a.value),
       );
 
-    return sorted.asMap().entries.map((MapEntry<int, MapEntry<String, int>> e) {
+    /// 일반 카테고리의 팔레트 인덱스를 고정지출과 독립적으로 증가시킨다.
+    int colorIndex = 0;
+    return sorted.map((MapEntry<String, int> entry) {
+      final String code = entry.key;
+      final bool isFixed = code == _kFixedCode;
+      final String label = isFixed
+          ? _text(strings, 'fixedExpenseCategoryLabel', '고정지출')
+          : _resolveTagLabel(categoryTags, code);
+      final Color color = isFixed
+          ? _kFixedColor
+          : kDonutSectionColors[colorIndex++ % kDonutSectionColors.length];
       return DonutSection(
-        categoryCode: e.value.key,
-        label: _resolveTagLabel(categoryTags, e.value.key),
-        amount: e.value.value,
-        percentage: e.value.value / total * 100,
-        color: kDonutSectionColors[e.key % kDonutSectionColors.length],
+        categoryCode: code,
+        label: label,
+        amount: entry.value,
+        percentage: entry.value / total * 100,
+        color: color,
       );
     }).toList();
   }
 
   /// 지출 목록을 일 단위로 집계해 꺾은선 그래프 점 목록을 만든다.
-  ///
-  /// [rangeStart]를 기준으로 상대 일수(1-based)를 X축 값으로 사용한다.
   List<FlSpot> _buildDailyExpenseSpots(
     List<ExpenseEntry> expenses,
     DateTime rangeStart,
@@ -419,8 +453,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
   // ─── 카테고리 상세 바텀시트 ────────────────────────────────────────
 
   /// 선택된 카테고리의 지출 내역을 바텀시트로 표시한다.
-  ///
-  /// 날짜·내용·금액을 목록 형태로 보여준다.
   void _showCategoryDetail(
     BuildContext context,
     DonutSection section,
@@ -463,14 +495,11 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                 ),
                 child: Column(
                   children: <Widget>[
-                    /// 카테고리 상세 바텀시트의 헤더 영역이다.
-                    /// 카테고리 이름, 비율, 합계 금액을 표시한다.
                     Padding(
                       padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: <Widget>[
-                          /// 드래그 핸들이다.
                           Center(
                             child: Container(
                               width: 40,
@@ -484,7 +513,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                           ),
                           Row(
                             children: <Widget>[
-                              /// 카테고리 색상 인디케이터 점이다.
                               Container(
                                 width: 14,
                                 height: 14,
@@ -497,15 +525,16 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                               Expanded(
                                 child: Text(
                                   detailTitle,
-                                  style: Theme.of(ctx2).textTheme.titleLarge
-                                      ?.copyWith(fontWeight: FontWeight.w700),
+                                  style: Theme.of(
+                                    ctx2,
+                                  ).textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                               ),
                             ],
                           ),
                           const SizedBox(height: 6),
-
-                          /// 카테고리 비율 및 합계 금액 요약 행이다.
                           Row(
                             children: <Widget>[
                               Text(
@@ -538,8 +567,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                       ),
                     ),
                     const Divider(height: 1),
-
-                    /// 카테고리 내 지출 내역 목록이다. 날짜 내림차순으로 정렬된다.
                     Expanded(
                       child: filtered.isEmpty
                           ? Center(
@@ -562,8 +589,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                               ),
                               itemBuilder: (BuildContext ctx3, int index) {
                                 final ExpenseEntry item = filtered[index];
-
-                                /// 각 지출 항목 타일이다(날짜 | 내용 | 금액).
                                 return ListTile(
                                   dense: true,
                                   leading: Text(
@@ -607,9 +632,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
 
   // ─── 빌드 헬퍼 위젯 ───────────────────────────────────────────────
 
-  /// 기간 선택 모드(월간/기간)와 날짜 내비게이션을 담은 헤더 행이다.
-  ///
-  /// "월간 ▼" 드롭다운과 "< MM.01 - MM.DD >" 내비게이션으로 구성된다.
   Widget _buildPeriodHeader(
     BuildContext context,
     Map<String, String> strings,
@@ -621,7 +643,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
 
     return Row(
       children: <Widget>[
-        /// 기간 모드 선택 버튼이다(월간 ▼ 형태).
         Builder(
           builder: (BuildContext btnCtx) {
             return GestureDetector(
@@ -654,10 +675,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
           },
         ),
         const SizedBox(width: 12),
-
-        /// 날짜 내비게이션 영역이다.
-        /// 월간 모드: 이전/다음 달 화살표 + 월 탭.
-        /// 기간 모드: 날짜 범위 선택 버튼.
         Expanded(
           child: _periodMode == _PeriodMode.monthly
               ? _buildMonthNavRow(context, strings)
@@ -667,20 +684,16 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     );
   }
 
-  /// 월간 모드의 < MM.01 - MM.DD > 내비게이션 행이다.
   Widget _buildMonthNavRow(BuildContext context, Map<String, String> strings) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.center,
       children: <Widget>[
-        /// 이전 달 이동 버튼이다.
         IconButton(
           onPressed: _prevMonth,
           icon: const Icon(Icons.chevron_left),
           visualDensity: VisualDensity.compact,
           splashRadius: 20,
         ),
-
-        /// 월 범위 텍스트다. 탭하면 월 선택 바텀시트가 열린다.
         GestureDetector(
           onTap: () => _pickMonth(context, strings),
           child: Text(
@@ -688,8 +701,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
             style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
           ),
         ),
-
-        /// 다음 달 이동 버튼이다.
         IconButton(
           onPressed: _nextMonth,
           icon: const Icon(Icons.chevron_right),
@@ -700,7 +711,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     );
   }
 
-  /// 기간 모드의 날짜 범위 선택 버튼 행이다.
   Widget _buildRangeNavRow(
     BuildContext context,
     Map<String, String> strings,
@@ -708,7 +718,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
   ) {
     return Row(
       children: <Widget>[
-        /// 날짜 범위 선택 버튼이다.
         Expanded(
           child: OutlinedButton.icon(
             style: OutlinedButton.styleFrom(
@@ -729,8 +738,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
         ),
         if (_selectedRange != null) ...<Widget>[
           const SizedBox(width: 6),
-
-          /// 기간 선택 초기화 버튼이다.
           IconButton(
             onPressed: () => setState(() {
               _selectedRange = null;
@@ -748,7 +755,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
   /// 카테고리별 지출 비율을 한 행으로 표시하는 위젯이다.
   ///
   /// 색상 점 | 카테고리명 | 비율 | 금액 | > 버튼 구성이다.
-  /// ">" 버튼을 탭하면 [onDetailTap]이 호출된다.
   Widget _buildCategoryRow({
     required BuildContext context,
     required DonutSection section,
@@ -762,7 +768,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
         padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
         child: Row(
           children: <Widget>[
-            /// 카테고리 색상 인디케이터 점이다.
             Container(
               width: 12,
               height: 12,
@@ -772,8 +777,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
               ),
             ),
             const SizedBox(width: 10),
-
-            /// 카테고리 이름이다.
             Expanded(
               flex: 4,
               child: Text(
@@ -785,8 +788,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                 overflow: TextOverflow.ellipsis,
               ),
             ),
-
-            /// 카테고리 비율(%)이다.
             Text(
               '${section.percentage.toStringAsFixed(0)}%',
               style: TextStyle(
@@ -796,14 +797,13 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
               ),
             ),
             const SizedBox(width: 12),
-
-            /// 카테고리 합계 금액이다.
             Text(
               '${section.amount.toCurrency()}$currency',
               style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
             ),
 
             /// 상세 보기 버튼(>)이다.
+            /// 고정지출이면 아래 막대그래프 섹션으로 스크롤, 그 외엔 내역 바텀시트를 연다.
             IconButton(
               onPressed: onDetailTap,
               icon: const Icon(Icons.chevron_right, size: 20),
@@ -816,76 +816,118 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     );
   }
 
-  /// 이달의 고정지출 목록을 요약 카드로 표시하는 영역이다.
-  Widget _buildFixedExpenseSection({
-    required BuildContext context,
+  /// 고정지출 항목을 가로 막대 그래프로 페이지에 직접 표시하는 카드다.
+  ///
+  /// 카테고리 목록 바로 아래에 배치되며 월간 모드에서만 표시된다.
+  /// 제목 옆에는 전체 지출 대비 고정지출의 비율을 함께 표시한다.
+  Widget _buildFixedExpenseBarSection({
     required List<FixedExpense> items,
-    required Map<String, String> strings,
     required String currency,
+    required Map<String, String> strings,
+    required int totalAmount,
   }) {
     if (items.isEmpty) return const SizedBox.shrink();
 
-    final int total = items.fold(0, (int s, FixedExpense e) => s + e.amount);
+    final int maxAmount = items
+        .map((FixedExpense f) => f.amount)
+        .reduce((int a, int b) => a > b ? a : b);
+    final int fixedTotal = items.fold(0, (int s, FixedExpense f) => s + f.amount);
+    final double fixedPercentage =
+        totalAmount > 0 ? fixedTotal / totalAmount * 100 : 0.0;
 
     return BootstrapSectionCard(
+      key: _fixedSectionKey,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          /// 고정지출 섹션 제목이다.
-          Text(
-            _text(strings, 'analysisFixedExpenseSectionTitle', '이번 달 고정지출'),
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
-          ),
-          const SizedBox(height: 12),
-
-          /// 고정지출 개별 항목 행이다.
-          ...items.map((FixedExpense item) {
-            return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 6),
-              child: Row(
-                children: <Widget>[
-                  Expanded(
-                    child: Text(
-                      item.description,
-                      style: const TextStyle(fontSize: 13),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+          /// 고정지출 섹션 제목 + 전체 대비 비율 + 합계 금액이다.
+          Row(
+            children: <Widget>[
+              Expanded(
+                child: Text(
+                  _text(
+                    strings,
+                    'analysisFixedExpenseSectionTitle',
+                    '이번 달 고정지출',
                   ),
-                  Text(
-                    '${item.amount.toCurrency()}$currency',
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                      color: Color(0xFF0D6EFD),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ),
+              Text(
+                '${fixedPercentage.toStringAsFixed(1)}%',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  color: _kFixedColor,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '${fixedTotal.toCurrency()}$currency',
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  color: Color(0xFF0D6EFD),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+
+          /// 고정지출 항목별 가로 막대 그래프 목록이다.
+          ...items.asMap().entries.map((MapEntry<int, FixedExpense> entry) {
+            final FixedExpense item = entry.value;
+            final double ratio =
+                maxAmount > 0 ? item.amount / maxAmount : 0.0;
+            final Color barColor =
+                kDonutSectionColors[entry.key % kDonutSectionColors.length];
+
+            /// 항목명 + 금액 + 가로 막대 한 행이다.
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 14),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      Expanded(
+                        child: Text(
+                          item.description,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      Text(
+                        '${item.amount.toCurrency()}$currency',
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                          color: barColor,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 6),
+
+                  /// 금액 비율을 나타내는 가로 막대 인디케이터다.
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: ratio,
+                      minHeight: 12,
+                      backgroundColor: Colors.grey.shade100,
+                      valueColor: AlwaysStoppedAnimation<Color>(barColor),
                     ),
                   ),
                 ],
               ),
             );
           }),
-          const Divider(height: 20),
-
-          /// 고정지출 합계 행이다.
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Text(
-                  _text(strings, 'fixedExpenseTotal', '고정지출 합계'),
-                  style: const TextStyle(fontWeight: FontWeight.w700),
-                ),
-              ),
-              Text(
-                '${total.toCurrency()}$currency',
-                style: const TextStyle(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 15,
-                  color: Color(0xFF0D6EFD),
-                ),
-              ),
-            ],
-          ),
         ],
       ),
     );
@@ -923,7 +965,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
         ? ref.watch(rangeExpensesProvider(rangeQuery!))
         : ref.watch(monthlyExpensesProvider(_selectedMonth));
 
-    // ── 수입 데이터 로드(월간 모드에서만) ──
+    // ── 수입 데이터 로드 ──
     final AsyncValue<List<IncomeEntry>> incomesAsync = ref.watch(
       monthlyIncomesProvider(_selectedMonth),
     );
@@ -943,9 +985,8 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
         : _formatMonth(localeCode, _selectedMonth);
 
     // ── 차트 시작 날짜 ──
-    final DateTime chartRangeStart = usingRange
-        ? _selectedRange!.start
-        : _selectedMonth;
+    final DateTime chartRangeStart =
+        usingRange ? _selectedRange!.start : _selectedMonth;
 
     return BootstrapPage(
       title: _text(strings, 'analysis', '지출 분석'),
@@ -953,7 +994,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
         child: Column(
           children: <Widget>[
             /// ── 상단 컨트롤 카드 ──
-            /// 지출/수입 탭 전환과 기간 선택 내비게이션을 포함한다.
             BootstrapSectionCard(
               padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
               child: Column(
@@ -989,12 +1029,8 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                     ),
                   ),
                   const SizedBox(height: 14),
-
-                  /// 기간 모드 선택과 날짜 내비게이션이다.
                   _buildPeriodHeader(context, strings, localeCode),
                   const SizedBox(height: 4),
-
-                  /// 현재 분석 기간을 텍스트로 요약해 보여준다.
                   Text(
                     periodSubtitle,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -1017,11 +1053,23 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                   final List<DonutSection> sections = _buildDonutSections(
                     expenses,
                     categoryTags,
+                    !usingRange ? monthlyFixed : const <FixedExpense>[],
+                    strings,
                   );
-                  final int totalAmount = expenses.fold(
+
+                  /// 도넛 총계 = 일반 지출 + 고정지출
+                  final int expenseTotal = expenses.fold(
                     0,
                     (int s, ExpenseEntry e) => s + e.amount,
                   );
+                  final int fixedTotal = !usingRange
+                      ? monthlyFixed.fold(
+                          0,
+                          (int s, FixedExpense f) => s + f.amount,
+                        )
+                      : 0;
+                  final int totalAmount = expenseTotal + fixedTotal;
+
                   final List<FlSpot> dailySpots = _buildDailyExpenseSpots(
                     expenses,
                     chartRangeStart,
@@ -1030,16 +1078,25 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                   return Column(
                     children: <Widget>[
                       /// ── 도넛 차트 카드 ──
-                      /// 카테고리별 지출 비율을 도넛 그래프로 시각화한다.
+                      /// 카테고리별 지출 비율과 고정지출을 도넛 그래프로 시각화한다.
+                      /// 고정지출 섹션을 탭하면 아래의 막대그래프 섹션으로 스크롤된다.
                       BootstrapSectionCard(
                         child: Column(
                           children: <Widget>[
-                            /// 카테고리별 지출 비율 도넛 그래프다.
                             AnalysisDonutChart(
                               sections: sections,
                               touchedIndex: _touchedIndex,
                               onTouchUpdate: (int index) {
                                 setState(() => _touchedIndex = index);
+                              },
+                              /// 고정지출 섹션을 탭하면 막대그래프 카드로 스크롤한다.
+                              onSectionTap: (int index) {
+                                if (index >= 0 &&
+                                    index < sections.length &&
+                                    sections[index].categoryCode ==
+                                        _kFixedCode) {
+                                  _scrollToFixedSection();
+                                }
                               },
                               totalLabel: _text(
                                 strings,
@@ -1048,10 +1105,9 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                               ),
                               totalAmount:
                                   '${totalAmount.toCurrency()}$currency',
+                              currency: currency,
                             ),
                             const SizedBox(height: 8),
-
-                            /// 전체 지출 합계 요약 행이다.
                             Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: <Widget>[
@@ -1078,8 +1134,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                       const SizedBox(height: 16),
 
                       /// ── 카테고리 목록 카드 ──
-                      /// 도넛 그래프 섹션과 1:1 대응되는 카테고리 항목 목록이다.
-                      /// 각 행의 ">" 버튼을 탭하면 해당 카테고리 지출 내역 상세가 열린다.
+                      /// 고정지출 행의 ">" 탭은 바텀시트 대신 막대그래프 카드로 스크롤한다.
                       if (sections.isNotEmpty)
                         BootstrapSectionCard(
                           child: Column(
@@ -1087,30 +1142,37 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                               ...sections.asMap().entries.map((
                                 MapEntry<int, DonutSection> entry,
                               ) {
+                                final bool isFixed =
+                                    entry.value.categoryCode == _kFixedCode;
                                 return Column(
                                   children: <Widget>[
-                                    /// 카테고리별 한 행이다(색상 점·이름·%·금액·>).
                                     _buildCategoryRow(
                                       context: context,
                                       section: entry.value,
                                       currency: currency,
-
-                                      /// 행 탭 시 해당 섹션을 도넛 차트에서 선택 상태로 전환한다.
-                                      onRowTap: () => setState(
-                                        () => _touchedIndex =
-                                            _touchedIndex == entry.key
-                                            ? -1
-                                            : entry.key,
-                                      ),
-
-                                      /// ">" 버튼 탭 시 카테고리 상세 바텀시트를 연다.
-                                      onDetailTap: () => _showCategoryDetail(
-                                        context,
-                                        entry.value,
-                                        expenses,
-                                        strings,
-                                        currency,
-                                      ),
+                                      onRowTap: () {
+                                        setState(
+                                          () => _touchedIndex =
+                                              _touchedIndex == entry.key
+                                              ? -1
+                                              : entry.key,
+                                        );
+                                        /// 고정지출 행 탭 시 막대그래프 카드로 스크롤한다.
+                                        if (isFixed) _scrollToFixedSection();
+                                      },
+                                      onDetailTap: () {
+                                        if (isFixed) {
+                                          _scrollToFixedSection();
+                                        } else {
+                                          _showCategoryDetail(
+                                            context,
+                                            entry.value,
+                                            expenses,
+                                            strings,
+                                            currency,
+                                          );
+                                        }
+                                      },
                                     ),
                                     if (entry.key < sections.length - 1)
                                       const Divider(height: 1),
@@ -1120,22 +1182,22 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                             ],
                           ),
                         ),
-                      const SizedBox(height: 16),
+                      if (sections.isNotEmpty) const SizedBox(height: 16),
 
-                      /// ── 이달 고정지출 카드 ──
-                      /// 월간 모드에서만 이달 고정지출 항목을 요약해 표시한다.
+                      /// ── 고정지출 가로 막대 그래프 카드 ──
+                      /// 카테고리 목록 바로 아래에 위치하며 월간 모드에서만 표시된다.
+                      /// 제목 옆에 전체 대비 비율(%)을 함께 표시한다.
                       if (!usingRange)
-                        _buildFixedExpenseSection(
-                          context: context,
+                        _buildFixedExpenseBarSection(
                           items: monthlyFixed,
-                          strings: strings,
                           currency: currency,
+                          strings: strings,
+                          totalAmount: totalAmount,
                         ),
                       if (!usingRange && monthlyFixed.isNotEmpty)
                         const SizedBox(height: 16),
 
                       /// ── 일별 지출 추이 카드 ──
-                      /// 선택 기간 내 날짜별 지출 합계를 꺾은선 그래프로 보여준다.
                       if (dailySpots.isNotEmpty)
                         BootstrapSectionCard(
                           child: AnalysisDailyChart(
@@ -1146,11 +1208,21 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                               'analysisDailyTrendTitle',
                               '일별 지출 추이',
                             ),
+                            rangeStart: chartRangeStart,
+                            maxLabel: _text(
+                              strings,
+                              'analysisDailyMaxLabel',
+                              '가장 지출이 많은 날',
+                            ),
+                            minLabel: _text(
+                              strings,
+                              'analysisDailyMinLabel',
+                              '가장 지출이 적은 날',
+                            ),
                           ),
                         ),
                       if (dailySpots.isNotEmpty) const SizedBox(height: 16),
 
-                      /// 데이터가 없을 때 표시하는 빈 상태 메시지다.
                       if (sections.isEmpty)
                         Center(
                           child: Padding(
@@ -1185,7 +1257,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
 
                   return Column(
                     children: <Widget>[
-                      /// 수입 합계 요약 카드다.
                       BootstrapSectionCard(
                         child: BootstrapSummaryTile(
                           label: _text(strings, 'analysisIncomeTotal', '수입 합계'),
@@ -1194,8 +1265,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                         ),
                       ),
                       const SizedBox(height: 16),
-
-                      /// 수입 내역 목록 카드다.
                       if (incomes.isNotEmpty)
                         BootstrapSectionCard(
                           child: Column(
@@ -1207,8 +1276,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                                     ?.copyWith(fontWeight: FontWeight.w700),
                               ),
                               const SizedBox(height: 12),
-
-                              /// 수입 개별 항목 행이다(날짜 | 내용 | 금액).
                               ...incomes.map((IncomeEntry item) {
                                 return Padding(
                                   padding: const EdgeInsets.symmetric(
@@ -1217,9 +1284,9 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                                   child: Row(
                                     children: <Widget>[
                                       Text(
-                                        DateFormat(
-                                          'MM/dd',
-                                        ).format(item.earnedAt),
+                                        DateFormat('MM/dd').format(
+                                          item.earnedAt,
+                                        ),
                                         style: TextStyle(
                                           fontSize: 12,
                                           color: Colors.grey.shade500,
@@ -1249,8 +1316,6 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                           ),
                         ),
                       if (incomes.isNotEmpty) const SizedBox(height: 16),
-
-                      /// 일별 수입 추이 꺾은선 그래프 카드다.
                       if (incomeSpots.isNotEmpty)
                         BootstrapSectionCard(
                           child: AnalysisDailyChart(
@@ -1261,10 +1326,10 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                               'analysisIncomeDailyTrendTitle',
                               '일별 수입 추이',
                             ),
+                            rangeStart: chartRangeStart,
                           ),
                         ),
                       if (incomeSpots.isNotEmpty) const SizedBox(height: 16),
-
                       if (incomes.isEmpty)
                         Center(
                           child: Padding(
