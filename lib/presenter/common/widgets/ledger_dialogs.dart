@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:household_ledger/model/expense_entry.dart';
+import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_dialog.dart';
 import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
@@ -271,6 +272,75 @@ Future<void> showExpenseDetailDialog({
                   color: entry.amount < 0
                       ? const Color(0xFF0D6EFD)
                       : const Color(0xFFDC3545),
+                ),
+              ),
+            ),
+          ],
+        ),
+        actions: <Widget>[
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(),
+            child: Text(strings['cancel'] ?? 'Close'),
+          ),
+        ],
+      );
+    },
+  );
+}
+
+Future<void> showFixedExpenseDetailDialog({
+  required BuildContext context,
+  required FixedExpense entry,
+  required List<MetadataTag> categoryTags,
+  required List<MetadataTag> paymentTags,
+  required Map<String, String> strings,
+  required String currency,
+  required String appliedMonthText,
+}) async {
+  await showDialog<void>(
+    context: context,
+    builder: (BuildContext dialogContext) {
+      return BootstrapDialog(
+        title: strings['fixedExpenseTitle'] ?? '',
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: <Widget>[
+            DetailRow(
+              label: strings['descriptionLabel'] ?? '',
+              value: entry.description,
+            ),
+            DetailRow(
+              label: strings['selectMonth'] ?? '',
+              value: appliedMonthText,
+            ),
+            DetailRow(
+              label: strings['categoryLabel'] ?? '',
+              value: _resolveTagLabel(categoryTags, entry.categoryCode),
+            ),
+            DetailRow(
+              label: strings['paymentMethodLabel'] ?? '',
+              value: _resolveTagLabel(paymentTags, entry.paymentMethodCode),
+            ),
+            if (entry.note.isNotEmpty)
+              DetailRow(label: strings['noteLabel'] ?? '', value: entry.note),
+            const SizedBox(height: 20),
+            const Divider(),
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                strings['amountLabel'] ?? '',
+                style: Theme.of(context).textTheme.labelLarge,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                '${entry.amount.toCurrency()}$currency',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFFDC3545),
                 ),
               ),
             ),

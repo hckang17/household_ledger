@@ -46,6 +46,7 @@ dependencies:
   share_plus: ^10.1.4
   file_selector: ^1.0.3
   crypto: ^3.0.3
+  fl_chart: ^0.69.0
 
 dev_dependencies:
   flutter_test:

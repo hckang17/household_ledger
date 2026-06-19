@@ -30,6 +30,7 @@ Future<void> showExpenseEditorSheet({
   final savedEntry = await showModalBottomSheet<ExpenseEntry>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (BuildContext sheetContext) {
       return _ExpenseEditorSheetBody(
         entry: entry,

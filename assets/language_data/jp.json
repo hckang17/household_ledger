@@ -129,5 +129,17 @@
   "passkeyConfirmLabel": "認証キーの確認",
   "passkeyMismatchError": "認証キーが一致しません。",
   "exportCooldownMessage": "短時間での連続操作はできません。しばらくしてから再試行してください。",
-  "passkeyRequiredError": "認証キーを入力してください。"
+  "passkeyRequiredError": "認証キーを入力してください。",
+  "monthYearLabel": "{year}年{month}月",
+  "fixedExpenseMonthlyTotalLabel": "{year}年{month}月 固定支出合計",
+  "analysisTabExpense": "支出",
+  "analysisTabIncome": "収入",
+  "analysisPeriodMonthly": "月別",
+  "analysisPeriodRange": "期間",
+  "analysisTotalLabel": "合計",
+  "analysisDailyTrendTitle": "日別支出推移",
+  "analysisCategoryDetailTitle": "{label} 詳細",
+  "analysisIncomeTotal": "収入合計",
+  "analysisIncomeDailyTrendTitle": "日別収入推移",
+  "analysisFixedExpenseSectionTitle": "今月の固定支出"
 }

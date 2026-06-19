@@ -1,5 +1,6 @@
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
@@ -19,6 +20,18 @@ Locale _flutterLocaleFromCode(String localeCode) {
 /// 앱의 시작점을 구성한다.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // 앱 콘텐츠가 시스템 상태바·하단 내비게이션바 뒤로 침범하지 않도록
+  // 두 오버레이를 모두 활성화한 manual 모드로 고정한다.
+  // edge-to-edge 기본 동작을 막아 전체 화면에서 일관된 안전 영역을 보장한다.
+  SystemChrome.setEnabledSystemUIMode(
+    SystemUiMode.manual,
+    overlays: <SystemUiOverlay>[
+      SystemUiOverlay.top,
+      SystemUiOverlay.bottom,
+    ],
+  );
+
   await initializeDateFormatting();
   runApp(const ProviderScope(child: HouseholdLedgerApp()));
 }

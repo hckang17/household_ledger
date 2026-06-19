@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
+import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
+import 'package:household_ledger/presenter/common/widgets/month_navigator_bar.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
-import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
-import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
 
 /// 고정지출 관리 페이지다.
 class FixedExpensePage extends ConsumerStatefulWidget {
@@ -16,31 +18,105 @@ class FixedExpensePage extends ConsumerStatefulWidget {
   ConsumerState<FixedExpensePage> createState() => _FixedExpensePageState();
 }
 
-/// 고정지출 관리 페이지의 입력 상태를 관리한다.
 class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
+  late DateTime _focusedMonth;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _focusedMonth = DateTime(now.year, now.month, 1);
+  }
+
+  void _prevMonth() {
+    setState(() {
+      _focusedMonth =
+          DateTime(_focusedMonth.year, _focusedMonth.month - 1, 1);
+    });
+  }
+
+  void _nextMonth() {
+    setState(() {
+      _focusedMonth =
+          DateTime(_focusedMonth.year, _focusedMonth.month + 1, 1);
+    });
+  }
+
+  Future<void> _pickMonth() async {
+    final picked = await showDatePicker(
+      context: context,
+      initialDate: _focusedMonth,
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2100),
+    );
+    if (picked == null) return;
+    setState(() {
+      _focusedMonth = DateTime(picked.year, picked.month, 1);
+    });
+  }
+
   String _text(Map<String, String> strings, String tag) {
     return strings[tag] ??
         '${strings['failedReadingData'] ?? 'ErrorCode: 4401'}+$tag';
   }
 
-  String _monthText(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}';
+  String _monthNavLabel(Map<String, String> strings) {
+    final template = strings['monthYearLabel'] ?? '{year}년 {month}월';
+    return template
+        .replaceAll('{year}', _focusedMonth.year.toString())
+        .replaceAll(
+          '{month}',
+          _focusedMonth.month.toString().padLeft(2, '0'),
+        );
   }
 
-  /// 고정지출 입력 시트를 표시한다.
+  String _totalLabel(Map<String, String> strings) {
+    final template =
+        strings['fixedExpenseMonthlyTotalLabel'] ?? '{year}년 {month}월 고정지출 합계';
+    return template
+        .replaceAll('{year}', _focusedMonth.year.toString())
+        .replaceAll(
+          '{month}',
+          _focusedMonth.month.toString().padLeft(2, '0'),
+        );
+  }
+
+  String _resolveTagLabel(List<MetadataTag> tags, String code) {
+    try {
+      return tags.firstWhere((MetadataTag tag) => tag.code == code).label;
+    } catch (_) {
+      return code;
+    }
+  }
+
+  Future<void> _showDetail({
+    required FixedExpense item,
+    required List<MetadataTag> categoryTags,
+    required List<MetadataTag> paymentTags,
+    required Map<String, String> strings,
+    required String currency,
+  }) async {
+    final monthLabel = _monthNavLabel(strings);
+    await showFixedExpenseDetailDialog(
+      context: context,
+      entry: item,
+      categoryTags: categoryTags,
+      paymentTags: paymentTags,
+      strings: strings,
+      currency: currency,
+      appliedMonthText: monthLabel,
+    );
+  }
+
   Future<void> _showEditor({FixedExpense? item}) async {
     final ledger = ref.read(ledgerProvider).asData?.value;
     final strings = ref.read(localizedStringsProvider);
-    if (ledger == null) {
-      return;
-    }
+    if (ledger == null) return;
 
-    final descriptionController = TextEditingController(
-      text: item?.description ?? '',
-    );
-    final amountController = TextEditingController(
-      text: item?.amount.toString() ?? '',
-    );
+    final descriptionController =
+        TextEditingController(text: item?.description ?? '');
+    final amountController =
+        TextEditingController(text: item?.amount.toString() ?? '');
     final noteController = TextEditingController(text: item?.note ?? '');
     String categoryCode =
         item?.categoryCode ??
@@ -48,14 +124,13 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
     String paymentCode =
         item?.paymentMethodCode ??
         ledger.tagsByType(MetadataTagType.paymentMethod).first.code;
-    DateTime appliedAt =
-        item?.appliedAt ??
-        DateTime(DateTime.now().year, DateTime.now().month, 1);
+    DateTime appliedAt = item?.appliedAt ?? _focusedMonth;
     bool isSaving = false;
 
     final savedItem = await showModalBottomSheet<FixedExpense>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (BuildContext sheetContext) {
         return SafeArea(
           child: Padding(
@@ -86,13 +161,8 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                             )
                             .toList(),
                         onChanged: (String? value) {
-                          if (value == null) {
-                            return;
-                          }
-
-                          setState(() {
-                            categoryCode = value;
-                          });
+                          if (value == null) return;
+                          setState(() => categoryCode = value);
                         },
                       ),
                       const SizedBox(height: 12),
@@ -111,13 +181,8 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                             )
                             .toList(),
                         onChanged: (String? value) {
-                          if (value == null) {
-                            return;
-                          }
-
-                          setState(() {
-                            paymentCode = value;
-                          });
+                          if (value == null) return;
+                          setState(() => paymentCode = value);
                         },
                       ),
                       const SizedBox(height: 12),
@@ -147,7 +212,8 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                         children: <Widget>[
                           Expanded(
                             child: Text(
-                              '${strings['yearLabel'] ?? '연도'}-${strings['monthLabel'] ?? '월'}: ${_monthText(appliedAt)}',
+                              '${strings['yearLabel'] ?? '연도'}-${strings['monthLabel'] ?? '월'}: '
+                              '${appliedAt.year}-${appliedAt.month.toString().padLeft(2, '0')}',
                             ),
                           ),
                           TextButton(
@@ -158,10 +224,7 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                                 firstDate: DateTime(2000),
                                 lastDate: DateTime(2100),
                               );
-                              if (picked == null) {
-                                return;
-                              }
-
+                              if (picked == null) return;
                               setState(() {
                                 appliedAt = DateTime(
                                   picked.year,
@@ -179,14 +242,8 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                         label: strings['save'] ?? '',
                         icon: Icons.save_outlined,
                         onPressed: () async {
-                          if (isSaving) {
-                            return;
-                          }
-
-                          setState(() {
-                            isSaving = true;
-                          });
-
+                          if (isSaving) return;
+                          setState(() => isSaving = true);
                           final amount =
                               int.tryParse(amountController.text.trim()) ?? 0;
                           final next = FixedExpense.create(
@@ -219,14 +276,12 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
       } else {
         await ref.read(ledgerProvider.notifier).updateFixedExpense(savedItem);
       }
-
       ref.invalidate(ledgerProvider);
+      ref.invalidate(monthlyFixedExpensesProvider);
     }
   }
 
-  /// 고정지출 삭제 여부를 확인한 뒤 삭제한다.
-  Future<void> _delete(String id) async {
-    final strings = ref.read(localizedStringsProvider);
+  Future<void> _delete(String id, Map<String, String> strings) async {
     final confirmed = await showLedgerConfirmDialog(
       context: context,
       title: _text(strings, 'confirmDelete'),
@@ -234,17 +289,11 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
       confirmLabel: _text(strings, 'delete'),
       cancelLabel: _text(strings, 'cancel'),
     );
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     await ref.read(ledgerProvider.notifier).deleteFixedExpense(id);
     ref.invalidate(ledgerProvider);
-  }
-
-  /// 코드에 해당하는 태그 이름을 반환한다.
-  String _resolveTagLabel(List<MetadataTag> tags, String code) {
-    return tags.firstWhere((MetadataTag tag) => tag.code == code).label;
+    ref.invalidate(monthlyFixedExpensesProvider);
   }
 
   @override
@@ -257,8 +306,9 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
 
     final categoryTags = ledger.tagsByType(MetadataTagType.category);
     final paymentTags = ledger.tagsByType(MetadataTagType.paymentMethod);
-    final nowMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
-    final monthlyFixedExpense = ledger.fixedExpenseTotalForMonth(nowMonth);
+    final currency = strings['currencyUnit'] ?? '';
+    final fixedExpensesAsync =
+        ref.watch(monthlyFixedExpensesProvider(_focusedMonth));
 
     return BootstrapPage(
       title: strings['fixedExpenseTitle'] ?? '',
@@ -270,72 +320,128 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
       child: Column(
         children: <Widget>[
           BootstrapSectionCard(
-            child: Row(
+            child: Column(
               children: <Widget>[
-                Expanded(
-                  child: BootstrapSummaryTile(
-                    label: strings['fixedExpenseTotal'] ?? '',
-                    value:
-                        '$monthlyFixedExpense ${strings['currencyUnit'] ?? ''}',
-                    color: const Color(0xFF0D6EFD),
-                  ),
+                MonthNavigatorBar(
+                  displayText: _monthNavLabel(strings),
+                  onPrevious: _prevMonth,
+                  onNext: _nextMonth,
+                  onTap: _pickMonth,
+                ),
+                const SizedBox(height: 12),
+                fixedExpensesAsync.when(
+                  loading: () => const LinearProgressIndicator(),
+                  error: (Object e, _) => Text(e.toString()),
+                  data: (List<FixedExpense> items) {
+                    final total = items.fold<int>(
+                      0,
+                      (int sum, FixedExpense e) => sum + e.amount,
+                    );
+                    return BootstrapSummaryTile(
+                      label: _totalLabel(strings),
+                      value: '${total.toCurrency()}$currency',
+                      color: const Color(0xFF0D6EFD),
+                    );
+                  },
                 ),
               ],
             ),
           ),
           const SizedBox(height: 16),
           Expanded(
-            child: ledger.fixedExpenses.isEmpty
-                ? Center(child: Text(strings['emptyData'] ?? ''))
-                : ListView.separated(
-                    itemCount: ledger.fixedExpenses.length,
-                    separatorBuilder: (BuildContext context, int index) =>
-                        const SizedBox(height: 12),
-                    itemBuilder: (BuildContext context, int index) {
-                      final item = ledger.fixedExpenses[index];
-                      return BootstrapSectionCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+            child: fixedExpensesAsync.when(
+              loading: () =>
+                  const Center(child: CircularProgressIndicator()),
+              error: (Object e, _) => Center(child: Text(e.toString())),
+              data: (List<FixedExpense> items) {
+                if (items.isEmpty) {
+                  return Center(child: Text(_text(strings, 'emptyData')));
+                }
+                return ListView.separated(
+                  itemCount: items.length,
+                  separatorBuilder: (BuildContext context, int index) =>
+                      const SizedBox(height: 10),
+                  itemBuilder: (BuildContext context, int index) {
+                    final item = items[index];
+                    final categoryLabel =
+                        _resolveTagLabel(categoryTags, item.categoryCode);
+                    final amountText =
+                        '${item.amount.toCurrency()}$currency';
+                    return GestureDetector(
+                      onTap: () => _showDetail(
+                        item: item,
+                        categoryTags: categoryTags,
+                        paymentTags: paymentTags,
+                        strings: strings,
+                        currency: currency,
+                      ),
+                      child: BootstrapSectionCard(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
+                        child: Row(
                           children: <Widget>[
-                            Text(
-                              item.description,
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w700),
+                            Expanded(
+                              flex: 3,
+                              child: Text(
+                                categoryLabel,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.copyWith(fontWeight: FontWeight.w700),
+                              ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '${_resolveTagLabel(categoryTags, item.categoryCode)} · ${_resolveTagLabel(paymentTags, item.paymentMethodCode)}',
+                            const SizedBox(width: 8),
+                            Expanded(
+                              flex: 4,
+                              child: Text(
+                                item.description,
+                                overflow: TextOverflow.ellipsis,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(fontWeight: FontWeight.w600),
+                              ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '${_text(strings, 'selectMonth')}: ${_monthText(item.appliedAt)}',
+                            const SizedBox(width: 8),
+                            Expanded(
+                              flex: 3,
+                              child: Text(
+                                amountText,
+                                textAlign: TextAlign.right,
+                                style: Theme.of(context)
+                                    .textTheme
+                                    .bodyMedium
+                                    ?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: const Color(0xFFDC3545),
+                                    ),
+                              ),
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '${item.amount} ${strings['currencyUnit'] ?? ''}',
+                            IconButton(
+                              visualDensity: VisualDensity.compact,
+                              icon: const Icon(Icons.edit_outlined, size: 18),
+                              onPressed: () => _showEditor(item: item),
                             ),
-                            if (item.note.isNotEmpty) ...<Widget>[
-                              const SizedBox(height: 6),
-                              Text(item.note),
-                            ],
-                            const SizedBox(height: 12),
-                            Row(
-                              children: <Widget>[
-                                TextButton(
-                                  onPressed: () => _showEditor(item: item),
-                                  child: Text(strings['edit'] ?? ''),
-                                ),
-                                TextButton(
-                                  onPressed: () => _delete(item.id),
-                                  child: Text(strings['delete'] ?? ''),
-                                ),
-                              ],
+                            IconButton(
+                              visualDensity: VisualDensity.compact,
+                              icon: const Icon(
+                                Icons.delete_outline,
+                                size: 18,
+                                color: Color(0xFFDC3545),
+                              ),
+                              onPressed: () => _delete(item.id, strings),
                             ),
                           ],
                         ),
-                      );
-                    },
-                  ),
+                      ),
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),

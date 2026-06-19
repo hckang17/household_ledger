@@ -62,6 +62,7 @@ class _IncomePageState extends ConsumerState<IncomePage> {
     final saved = await showModalBottomSheet<IncomeEntry>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (BuildContext sheetContext) {
         return SafeArea(
           child: Padding(

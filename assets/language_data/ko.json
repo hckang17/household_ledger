@@ -129,5 +129,17 @@
   "passkeyConfirmLabel": "인증 키 확인",
   "passkeyMismatchError": "인증 키가 일치하지 않습니다.",
   "passkeyRequiredError": "인증 키를 입력해주세요.",
-  "exportCooldownMessage": "잦은 조작은 불가능합니다. 잠시 후에 다시 시도해주세요."
+  "exportCooldownMessage": "잦은 조작은 불가능합니다. 잠시 후에 다시 시도해주세요.",
+  "monthYearLabel": "{year}년 {month}월",
+  "fixedExpenseMonthlyTotalLabel": "{year}년 {month}월 고정지출 합계",
+  "analysisTabExpense": "지출",
+  "analysisTabIncome": "수입",
+  "analysisPeriodMonthly": "월간",
+  "analysisPeriodRange": "기간",
+  "analysisTotalLabel": "전체",
+  "analysisDailyTrendTitle": "일별 지출 추이",
+  "analysisCategoryDetailTitle": "{label} 상세",
+  "analysisIncomeTotal": "수입 합계",
+  "analysisIncomeDailyTrendTitle": "일별 수입 추이",
+  "analysisFixedExpenseSectionTitle": "이번 달 고정지출"
 }

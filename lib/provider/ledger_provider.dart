@@ -126,6 +126,16 @@ final monthlyIncomesProvider =
       return service.loadIncomesByMonth(_monthStart(month));
     });
 
+/// 선택 월의 고정지출 목록을 DB에서 조회한다.
+final monthlyFixedExpensesProvider =
+    FutureProvider.family<List<FixedExpense>, DateTime>((
+      Ref ref,
+      DateTime month,
+    ) async {
+      final service = ref.read(fixedExpenseDatabaseServiceProvider);
+      return service.loadFixedExpensesByMonth(_monthStart(month));
+    });
+
 /// 앱 가계부 상태를 관리하는 노티파이어다.
 class LedgerNotifier extends AsyncNotifier<LedgerState> {
   /// 앱 설정 저장소 서비스를 반환한다.
