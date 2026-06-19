@@ -45,8 +45,14 @@
   "edit": "수정",
   "delete": "삭제",
   "descriptionLabel": "내용",
+  "descriptionHint": "예) 점심 · 가게이름, 가게이름 etc",
+  "descriptionRequired": "내용을 입력해주세요.",
   "amountLabel": "금액",
+  "amountHint": "숫자만 입력해주세요",
+  "amountRequired": "금액을 입력해주세요.",
+  "amountInvalid": "올바른 숫자를 입력해주세요.",
   "noteLabel": "비고",
+  "noteHint": "선택 사항",
   "categoryLabel": "소비구분",
   "subcategoryLabel": "소비 소구분",
   "paymentMethodLabel": "소비수단",
@@ -199,5 +205,6 @@
   "pdfColType": "구분",
   "pdfTypeExpense": "지출",
   "pdfTypeIncome": "수입",
-  "pdfTypeFixed": "고정지출"
+  "pdfTypeFixed": "고정지출",
+  "pdfUnsupportWarning": "* 현재 버전에서는 PDF 암호화가 지원되지 않습니다."
 }

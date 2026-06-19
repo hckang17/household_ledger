@@ -126,6 +126,8 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
         ledger.tagsByType(MetadataTagType.paymentMethod).first.code;
     DateTime appliedAt = item?.appliedAt ?? _focusedMonth;
     bool isSaving = false;
+    String? descriptionError;
+    String? amountError;
 
     final savedItem = await showModalBottomSheet<FixedExpense>(
       context: context,
@@ -190,7 +192,14 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                         controller: descriptionController,
                         decoration: InputDecoration(
                           labelText: strings['descriptionLabel'],
+                          hintText: strings['descriptionHint'],
+                          errorText: descriptionError,
                         ),
+                        onChanged: (_) {
+                          if (descriptionError != null) {
+                            setState(() => descriptionError = null);
+                          }
+                        },
                       ),
                       const SizedBox(height: 12),
                       TextField(
@@ -198,7 +207,14 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           labelText: strings['amountLabel'],
+                          hintText: strings['amountHint'],
+                          errorText: amountError,
                         ),
+                        onChanged: (_) {
+                          if (amountError != null) {
+                            setState(() => amountError = null);
+                          }
+                        },
                       ),
                       const SizedBox(height: 12),
                       TextField(
@@ -243,16 +259,49 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                         icon: Icons.save_outlined,
                         onPressed: () async {
                           if (isSaving) return;
+
+                          final String rawDesc =
+                              descriptionController.text.trim();
+                          final String rawAmount =
+                              amountController.text.trim();
+                          final int? parsedAmount =
+                              int.tryParse(rawAmount);
+
+                          String? newDescError;
+                          String? newAmountError;
+
+                          if (rawDesc.isEmpty) {
+                            newDescError =
+                                strings['descriptionRequired'] ??
+                                '내용을 입력해주세요.';
+                          }
+                          if (rawAmount.isEmpty) {
+                            newAmountError =
+                                strings['amountRequired'] ??
+                                '금액을 입력해주세요.';
+                          } else if (parsedAmount == null) {
+                            newAmountError =
+                                strings['amountInvalid'] ??
+                                '올바른 숫자를 입력해주세요.';
+                          }
+
+                          if (newDescError != null ||
+                              newAmountError != null) {
+                            setState(() {
+                              descriptionError = newDescError;
+                              amountError = newAmountError;
+                            });
+                            return;
+                          }
+
                           setState(() => isSaving = true);
-                          final amount =
-                              int.tryParse(amountController.text.trim()) ?? 0;
                           final next = FixedExpense.create(
                             id: item?.id,
                             appliedAt: appliedAt,
                             categoryCode: categoryCode,
                             paymentMethodCode: paymentCode,
                             description: descriptionController.text,
-                            amount: amount,
+                            amount: parsedAmount!,
                             note: noteController.text,
                           );
                           if (sheetContext.mounted) {
