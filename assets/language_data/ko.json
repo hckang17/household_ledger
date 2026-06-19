@@ -145,5 +145,9 @@
   "fixedExpenseCategoryLabel": "고정지출",
   "analysisDailyMaxLabel": "가장 지출이 많은 날",
   "analysisDailyMinLabel": "가장 지출이 적은 날",
-  "analysisFixedExpenseBarTitle": "고정지출 항목별 내역"
+  "analysisFixedExpenseBarTitle": "고정지출 항목별 내역",
+  "chartUnitWan": "만",
+  "chartDateYearSuffix": "년",
+  "chartDateMonthSuffix": "월",
+  "chartDateDaySuffix": "일"
 }

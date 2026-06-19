@@ -145,5 +145,9 @@
   "fixedExpenseCategoryLabel": "固定支出",
   "analysisDailyMaxLabel": "最も支出が多い日",
   "analysisDailyMinLabel": "最も支出が少ない日",
-  "analysisFixedExpenseBarTitle": "固定支出項目別内訳"
+  "analysisFixedExpenseBarTitle": "固定支出項目別内訳",
+  "chartUnitWan": "万",
+  "chartDateYearSuffix": "年",
+  "chartDateMonthSuffix": "月",
+  "chartDateDaySuffix": "日"
 }
