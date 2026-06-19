@@ -47,6 +47,9 @@ dependencies:
   file_selector: ^1.0.3
   crypto: ^3.0.3
   fl_chart: ^0.69.0
+  pdf: ^3.13.0
+  printing: ^5.15.0
+  open_file: ^4.0.0
 
 dev_dependencies:
   flutter_test:

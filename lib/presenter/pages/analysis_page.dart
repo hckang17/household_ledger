@@ -11,6 +11,7 @@ import 'package:household_ledger/presenter/common/widgets/analysis_daily_chart.d
 import 'package:household_ledger/presenter/common/widgets/analysis_donut_chart.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
+import 'package:household_ledger/router/app_router.dart';
 import 'package:intl/intl.dart';
 
 /// 고정지출 섹션을 도넛 차트에서 구분하기 위한 내부 카테고리 코드다.
@@ -1040,6 +1041,29 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
             // ─────────────────────────────────────────
             // 수입 탭
             // ─────────────────────────────────────────
+            // ── PDF 출력 버튼 (지출 탭에서만 표시) ──
+            if (_showExpense)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.of(context)
+                        .pushNamed(AppRouter.generatingReportRoute),
+                    icon: const Icon(Icons.picture_as_pdf_rounded,
+                        color: Color(0xFFDC3545)),
+                    label: Text(
+                      _text(strings, 'analysisExportPdf', 'PDF로 출력하기'),
+                      style: const TextStyle(color: Color(0xFFDC3545)),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Color(0xFFDC3545)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                  ),
+                ),
+              ),
+
             if (!_showExpense)
               incomesAsync.when(
                 loading: () => const Center(child: CircularProgressIndicator()),
