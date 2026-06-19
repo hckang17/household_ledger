@@ -166,7 +166,7 @@ class BootstrapPage extends StatelessWidget {
     return Scaffold(
       /// 앱바는 페이지마다 일관된 스타일을 유지하되, 제목과 액션은 페이지별로 다르게 설정할 수 있도록 한다.
       appBar: AppBar(
-        titleSpacing: 24,
+        titleSpacing: 0,
         scrolledUnderElevation: 0,
         actionsPadding: const EdgeInsets.only(right: 16),
         title: Text(

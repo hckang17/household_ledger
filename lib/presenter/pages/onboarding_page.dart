@@ -26,7 +26,8 @@ class OnboardingPage extends ConsumerWidget {
     return ledgerState.when(
       data: (state) {
         return BootstrapPage(
-          title: strings['appTitle'] ?? '',
+          /// 타이틀에 좌측 여백을 추가하여 앱 아이콘과의 간격을 확보한다.
+          title: "    ${strings['appTitle'] ?? ''}",
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 720),

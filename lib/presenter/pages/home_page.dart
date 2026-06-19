@@ -48,7 +48,7 @@ class HomePage extends ConsumerWidget {
           );
 
     return BootstrapPage(
-      title: strings['homeTitle'] ?? '',
+      title: "    ${strings['homeTitle'] ?? ''}",
       actions: <Widget>[
         IconButton(
           onPressed: () => _push(context, AppRouter.settingsRoute),
