@@ -6,7 +6,7 @@ import 'package:household_ledger/presenter/pages/generating_report_page.dart';
 import 'package:household_ledger/presenter/pages/expense_management_page.dart';
 import 'package:household_ledger/presenter/pages/expense_record_page.dart';
 import 'package:household_ledger/presenter/pages/fixed_expense_page.dart';
-import 'package:household_ledger/presenter/pages/home_page.dart';
+import 'package:household_ledger/presenter/pages/main_shell_page.dart';
 import 'package:household_ledger/presenter/pages/import_data_page.dart';
 import 'package:household_ledger/presenter/pages/income_page.dart';
 import 'package:household_ledger/presenter/pages/onboarding_page.dart';
@@ -64,7 +64,7 @@ class AppRouter {
       case setupRoute:
         return _buildRoute(const SetupPage(), settings);
       case homeRoute:
-        return _buildRoute(const HomePage(), settings);
+        return _buildRoute(const MainShellPage(), settings);
       case expenseManagementRoute:
         return _buildRoute(const ExpenseManagementPage(), settings);
       case fixedExpenseRoute:

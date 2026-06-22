@@ -5,7 +5,6 @@ import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
-import 'package:household_ledger/presenter/common/bottom_navigation_bar.dart';
 import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
 import 'package:household_ledger/presenter/common/widgets/analysis_daily_chart.dart';
@@ -819,7 +818,12 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
 
     return BootstrapPage(
       title: _text(strings, 'analysis', '지출 분석'),
-      bottomNavigationBar: const LedgerBottomNavBar(),
+      actions: <Widget>[
+        IconButton(
+          onPressed: () => Navigator.of(context).pushNamed(AppRouter.settingsRoute),
+          icon: const Icon(Icons.settings_outlined),
+        ),
+      ],
       child: SingleChildScrollView(
         child: Column(
           children: <Widget>[

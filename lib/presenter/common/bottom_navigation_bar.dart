@@ -1,60 +1,36 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
-import 'package:household_ledger/router/app_router.dart';
+import 'package:household_ledger/provider/nav_tab_provider.dart';
 
 /// 앱 하단 공통 내비게이션 바다.
 ///
-/// [수입] [분석] [홈] [소비기록] [고정지출] 다섯 항목을 제공하며,
-/// 현재 라우트를 자동으로 감지해 해당 탭을 활성화한다.
-/// 탭 전환은 [Navigator.pushReplacementNamed]로 처리하므로
-/// 기존 라우팅 스택과 충돌하지 않는다.
+/// [수입] [분석] [홈] [소비기록] [고정지출] 다섯 항목을 제공한다.
+/// [currentNavTabProvider]를 읽어 현재 탭을 표시하고,
+/// 탭 전환 시 동일 프로바이더를 업데이트하여 [MainShellPage]의
+/// [IndexedStack] 인덱스만 바꾼다 — 전체 화면 재생성 없음.
 class LedgerBottomNavBar extends ConsumerWidget {
   /// [LedgerBottomNavBar]를 생성한다.
   const LedgerBottomNavBar({super.key});
 
   static const List<_NavItem> _items = <_NavItem>[
-    _NavItem(
-      route: AppRouter.incomeRoute,
-      icon: Icons.trending_up_rounded,
-      labelKey: 'navIncome',
-    ),
-    _NavItem(
-      route: AppRouter.analysisRoute,
-      icon: Icons.insights_rounded,
-      labelKey: 'navAnalysis',
-    ),
-    _NavItem(
-      route: AppRouter.homeRoute,
-      icon: Icons.home_rounded,
-      labelKey: 'navHome',
-    ),
-    _NavItem(
-      route: AppRouter.expenseRecordRoute,
-      icon: Icons.calendar_month_rounded,
-      labelKey: 'navExpenseRecord',
-    ),
-    _NavItem(
-      route: AppRouter.fixedExpenseRoute,
-      icon: Icons.account_balance_wallet_outlined,
-      labelKey: 'navFixedExpense',
-    ),
+    _NavItem(icon: Icons.trending_up_rounded,          labelKey: 'navIncome'),
+    _NavItem(icon: Icons.insights_rounded,             labelKey: 'navAnalysis'),
+    _NavItem(icon: Icons.home_rounded,                 labelKey: 'navHome'),
+    _NavItem(icon: Icons.calendar_month_rounded,       labelKey: 'navExpenseRecord'),
+    _NavItem(icon: Icons.account_balance_wallet_outlined, labelKey: 'navFixedExpense'),
   ];
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final strings = ref.watch(localizedStringsProvider);
-    final currentRoute = ModalRoute.of(context)?.settings.name;
-    final selectedIndex = _items.indexWhere(
-      (_NavItem item) => item.route == currentRoute,
-    );
+    final Map<String, String> strings = ref.watch(localizedStringsProvider);
+    final int selectedIndex = ref.watch(currentNavTabProvider);
 
     return NavigationBar(
-      selectedIndex: selectedIndex < 0 ? 2 : selectedIndex,
+      selectedIndex: selectedIndex,
       onDestinationSelected: (int index) {
-        final String targetRoute = _items[index].route;
-        if (targetRoute == currentRoute) return;
-        Navigator.of(context).pushReplacementNamed(targetRoute);
+        if (index == selectedIndex) return;
+        ref.read(currentNavTabProvider.notifier).setTab(index);
       },
       destinations: _items.map((_NavItem item) {
         return NavigationDestination(
@@ -67,13 +43,8 @@ class LedgerBottomNavBar extends ConsumerWidget {
 }
 
 class _NavItem {
-  const _NavItem({
-    required this.route,
-    required this.icon,
-    required this.labelKey,
-  });
+  const _NavItem({required this.icon, required this.labelKey});
 
-  final String route;
   final IconData icon;
   final String labelKey;
 }

@@ -5,7 +5,6 @@ import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
-import 'package:household_ledger/presenter/common/bottom_navigation_bar.dart';
 import 'package:household_ledger/presenter/common/widgets/expense_editor_sheet.dart';
 import 'package:household_ledger/presenter/common/widgets/expense_entry_tile.dart';
 import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
@@ -104,7 +103,6 @@ class HomePage extends ConsumerWidget {
           icon: const Icon(Icons.settings_outlined),
         ),
       ],
-      bottomNavigationBar: const LedgerBottomNavBar(),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,

@@ -6,8 +6,8 @@ import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
-import 'package:household_ledger/presenter/common/bottom_navigation_bar.dart';
 import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/router/app_router.dart';
 import 'package:household_ledger/presenter/common/widgets/expense_entry_tile.dart';
 import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
 import 'package:household_ledger/presenter/common/widgets/expense_editor_sheet.dart';
@@ -258,7 +258,12 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     /// 페이지를 렌더링한다.
     return BootstrapPage(
       title: _text(strings, 'expenseRecordTitle'),
-      bottomNavigationBar: const LedgerBottomNavBar(),
+      actions: <Widget>[
+        IconButton(
+          onPressed: () => Navigator.of(context).pushNamed(AppRouter.settingsRoute),
+          icon: const Icon(Icons.settings_outlined),
+        ),
+      ],
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => showExpenseEditorSheet(
           context: context,
