@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/presenter/pages/analysis_page.dart';
+import 'package:household_ledger/presenter/pages/data_managing_page.dart';
 import 'package:household_ledger/presenter/pages/export_data_page.dart';
 import 'package:household_ledger/presenter/pages/generating_report_page.dart';
 import 'package:household_ledger/presenter/pages/expense_management_page.dart';
@@ -56,6 +57,9 @@ class AppRouter {
   /// PDF 리포트 생성 라우트 이름을 정의한다.
   static const String generatingReportRoute = '/generating-report';
 
+  /// 데이터 관리 라우트 이름을 정의한다.
+  static const String dataManageRoute = '/data-manage';
+
   /// 이름 기반 라우팅을 생성한다.
   Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -85,6 +89,8 @@ class AppRouter {
         return _buildRoute(ImportDataPage(fromSetup: fromSetup), settings);
       case generatingReportRoute:
         return _buildRoute(const GeneratingReportPage(), settings);
+      case dataManageRoute:
+        return _buildRoute(const DataManagingPage(), settings);
       default:
         return _buildRoute(const OnboardingPage(), settings);
     }

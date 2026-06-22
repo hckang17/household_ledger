@@ -99,6 +99,11 @@ class HomePage extends ConsumerWidget {
       title: strings['homeTitle'] ?? '',
       actions: <Widget>[
         IconButton(
+          onPressed: () => _push(context, AppRouter.dataManageRoute),
+          icon: const Icon(Icons.manage_search_rounded),
+          tooltip: strings['dataManageTitle'] ?? '데이터 관리',
+        ),
+        IconButton(
           onPressed: () => _push(context, AppRouter.settingsRoute),
           icon: const Icon(Icons.settings_outlined),
         ),

@@ -364,6 +364,12 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
       title: strings['fixedExpenseTitle'] ?? '',
       actions: <Widget>[
         IconButton(
+          onPressed: () =>
+              Navigator.of(context).pushNamed(AppRouter.dataManageRoute),
+          icon: const Icon(Icons.manage_search_rounded),
+          tooltip: strings['dataManageTitle'] ?? '데이터 관리',
+        ),
+        IconButton(
           onPressed: () => Navigator.of(context).pushNamed(AppRouter.settingsRoute),
           icon: const Icon(Icons.settings_outlined),
         ),
