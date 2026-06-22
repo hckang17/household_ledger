@@ -65,7 +65,7 @@ class _SetupPageState extends ConsumerState<SetupPage> {
     final strings = ref.watch(localizedStringsProvider);
 
     return BootstrapPage(
-      title: strings['setupTitle'] ?? '',
+      title: "    ${strings['setupTitle'] ?? ''}",
       child: Center(
         child: ConstrainedBox(
           constraints: const BoxConstraints(maxWidth: 720),

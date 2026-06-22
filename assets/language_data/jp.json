@@ -157,6 +157,10 @@
   "chartDateMonthSuffix": "月",
   "chartDateDaySuffix": "日",
 
+  "homeRecentExpensesTitle": "最近の支出履歴",
+  "homeViewAll": "もっと見る",
+  "receiptFooterMessage": "記録いただきありがとうございます。",
+
   "analysisExportPdf": "PDFで出力する",
 
   "reportPageTitle": "PDFレポート生成",
@@ -206,6 +210,9 @@
   "pdfTypeExpense": "支出",
   "pdfTypeIncome": "収入",
   "pdfTypeFixed": "固定支出",
+  "closeLabel" : "閉じる",
+  "confirmOk": "確認",
+  "importRestartMessage": "データが正常に読み込まれました。\nアプリを再起動します。",
 
   "pdfUnsupportWarning": "* 現在のバージョンではPDFの暗号化がサポートされていません。"
 }

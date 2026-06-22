@@ -7,7 +7,7 @@ import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widg
 import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
-import 'package:household_ledger/router/app_router.dart';
+import 'package:household_ledger/main.dart';
 import 'package:household_ledger/services/data_im_export_service.dart';
 
 /// CSV 파일을 선택해 가계부 데이터를 복원하는 화면이다.
@@ -120,16 +120,29 @@ class _ImportDataPageState extends ConsumerState<ImportDataPage> {
       if (!mounted) {
         return;
       }
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_text(strings, 'importSuccessMessage'))),
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: true,
+        builder: (BuildContext dialogContext) {
+          return AlertDialog(
+            icon: const Icon(
+              Icons.check_circle_outline_rounded,
+              color: Color(0xFF198754),
+              size: 40,
+            ),
+            title: Text(_text(strings, 'importSuccessMessage')),
+            content: Text(_text(strings, 'importRestartMessage')),
+            actions: <Widget>[
+              FilledButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                child: Text(_text(strings, 'confirmOk')),
+              ),
+            ],
+          );
+        },
       );
-      if (widget.fromSetup) {
-        Navigator.of(context).pushNamedAndRemoveUntil(
-          AppRouter.homeRoute,
-          (Route<dynamic> route) => false,
-        );
-      } else {
-        Navigator.of(context).pop();
+      if (mounted) {
+        AppRestartWidget.restartApp(context);
       }
     } catch (_) {
       if (!mounted) {

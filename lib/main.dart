@@ -33,7 +33,47 @@ Future<void> main() async {
   );
 
   await initializeDateFormatting();
-  runApp(const ProviderScope(child: HouseholdLedgerApp()));
+  runApp(const AppRestartWidget(child: ProviderScope(child: HouseholdLedgerApp())));
+}
+
+// ── App restart support ──────────────────────────────────────────────────────
+
+/// 앱 전체를 키 교체로 완전히 재시작할 수 있는 래퍼 위젯이다.
+///
+/// [ProviderScope]를 포함한 전체 위젯 트리를 재생성하므로
+/// 모든 Riverpod 프로바이더가 스토리지에서 새로 로드된다.
+///
+/// 사용법:
+/// ```dart
+/// AppRestartWidget.restartApp(context);
+/// ```
+class AppRestartWidget extends StatefulWidget {
+  /// [AppRestartWidget]을 생성한다.
+  const AppRestartWidget({super.key, required this.child});
+
+  /// 래핑할 자식 위젯.
+  final Widget child;
+
+  /// 위젯 트리를 완전히 재생성하여 앱을 재시작한다.
+  static void restartApp(BuildContext context) {
+    context.findAncestorStateOfType<_AppRestartWidgetState>()?.restartApp();
+  }
+
+  @override
+  State<AppRestartWidget> createState() => _AppRestartWidgetState();
+}
+
+class _AppRestartWidgetState extends State<AppRestartWidget> {
+  Key _key = UniqueKey();
+
+  void restartApp() {
+    setState(() => _key = UniqueKey());
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return KeyedSubtree(key: _key, child: widget.child);
+  }
 }
 
 /// 앱 생명주기와 루트 테마를 담당한다.

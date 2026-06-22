@@ -7,6 +7,7 @@ import 'package:household_ledger/presenter/common/extension/currency_extension.d
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/presenter/common/widgets/expense_entry_tile.dart';
 import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
 import 'package:household_ledger/presenter/common/widgets/expense_editor_sheet.dart';
 import 'package:intl/intl.dart';
@@ -526,7 +527,15 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
                             ...sectionItems.map((ExpenseEntry entry) {
                               return Padding(
                                 padding: const EdgeInsets.only(bottom: 10),
-                                child: GestureDetector(
+                                child: ExpenseEntryTile(
+                                  entry: entry,
+                                  categoryLabel: _resolveTagLabel(
+                                    categoryTags,
+                                    entry.categoryCode,
+                                  ),
+                                  currency: currency,
+                                  editTooltip: _text(strings, 'edit'),
+                                  deleteTooltip: _text(strings, 'delete'),
                                   onTap: () => _showDetail(
                                     entry,
                                     categoryTags,
@@ -534,86 +543,13 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
                                     paymentTags,
                                     strings,
                                   ),
-                                  child: BootstrapSectionCard(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 14,
-                                      vertical: 10,
-                                    ),
-                                    child: Row(
-                                      children: <Widget>[
-                                        Expanded(
-                                          flex: 3,
-                                          child: Text(
-                                            _resolveTagLabel(
-                                              categoryTags,
-                                              entry.categoryCode,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall
-                                                ?.copyWith(
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          flex: 4,
-                                          child: Text(
-                                            entry.description,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.copyWith(
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-
-                                        /// 소비내역 기록 파일
-                                        Expanded(
-                                          flex: 3,
-                                          child: Text(
-                                            '${entry.amount.toCurrency()}$currency',
-                                            textAlign: TextAlign.right,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.copyWith(
-                                                  fontWeight: FontWeight.w700,
-                                                  color: entry.amount < 0
-                                                      ? const Color(0xFF0D6EFD)
-                                                      : const Color(0xFFDC3545),
-                                                ),
-                                          ),
-                                        ),
-                                        IconButton(
-                                          visualDensity: VisualDensity.compact,
-                                          onPressed: () =>
-                                              showExpenseEditorSheet(
-                                                context: context,
-                                                ref: ref,
-                                                entry: entry,
-                                                initialDate: _selectedDay,
-                                              ),
-                                          icon: const Icon(Icons.edit_outlined),
-                                          tooltip: _text(strings, 'edit'),
-                                        ),
-                                        IconButton(
-                                          visualDensity: VisualDensity.compact,
-                                          onPressed: () => _delete(entry),
-                                          icon: const Icon(
-                                            Icons.delete_outline,
-                                          ),
-                                          tooltip: _text(strings, 'delete'),
-                                        ),
-                                      ],
-                                    ),
+                                  onEdit: () => showExpenseEditorSheet(
+                                    context: context,
+                                    ref: ref,
+                                    entry: entry,
+                                    initialDate: _selectedDay,
                                   ),
+                                  onDelete: () => _delete(entry),
                                 ),
                               );
                             }),

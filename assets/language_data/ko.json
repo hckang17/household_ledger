@@ -24,7 +24,7 @@
   "settings": "설정",
   "expenseTopTitle": "지출 관리",
   "fixedExpenseManage": "고정지출 관리",
-  "expenseRecord": "소비내역 기록",
+  "expenseRecord": "소비내역",
   "fixedExpenseTitle": "고정지출 관리",
   "expenseRecordTitle": "소비내역 기록",
   "totalSpent": "총 지출금액",
@@ -157,6 +157,10 @@
   "chartDateMonthSuffix": "월",
   "chartDateDaySuffix": "일",
 
+  "homeRecentExpensesTitle": "최근 소비 기록",
+  "homeViewAll": "더보기",
+  "receiptFooterMessage": "기록해주셔서 감사합니다.",
+
   "analysisExportPdf": "PDF로 출력하기",
 
   "reportPageTitle": "PDF 리포트 생성",
@@ -206,5 +210,9 @@
   "pdfTypeExpense": "지출",
   "pdfTypeIncome": "수입",
   "pdfTypeFixed": "고정지출",
+  "closeLabel": "닫기",
+  "confirmOk": "확인",
+  "importRestartMessage": "정상적으로 데이터를 불러왔습니다.\n앱을 재실행 하겠습니다.",
+
   "pdfUnsupportWarning": "* 현재 버전에서는 PDF 암호화가 지원되지 않습니다."
 }
