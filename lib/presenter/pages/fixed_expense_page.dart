@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/presenter/common/bottom_navigation_bar.dart';
 import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
 import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
@@ -361,6 +362,7 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
 
     return BootstrapPage(
       title: strings['fixedExpenseTitle'] ?? '',
+      bottomNavigationBar: const LedgerBottomNavBar(),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showEditor(),
         label: Text(strings['addFixedExpense'] ?? ''),

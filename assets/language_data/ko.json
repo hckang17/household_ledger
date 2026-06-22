@@ -157,6 +157,12 @@
   "chartDateMonthSuffix": "월",
   "chartDateDaySuffix": "일",
 
+  "navIncome": "수입",
+  "navAnalysis": "분석",
+  "navHome": "홈",
+  "navExpenseRecord": "소비기록",
+  "navFixedExpense": "고정지출",
+
   "homeRecentExpensesTitle": "최근 소비 기록",
   "homeViewAll": "더보기",
   "receiptFooterMessage": "기록해주셔서 감사합니다.",

@@ -157,6 +157,12 @@
   "chartDateMonthSuffix": "月",
   "chartDateDaySuffix": "日",
 
+  "navIncome": "収入",
+  "navAnalysis": "分析",
+  "navHome": "ホーム",
+  "navExpenseRecord": "支出記録",
+  "navFixedExpense": "固定支出",
+
   "homeRecentExpensesTitle": "最近の支出履歴",
   "homeViewAll": "もっと見る",
   "receiptFooterMessage": "記録いただきありがとうございます。",

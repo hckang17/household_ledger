@@ -6,6 +6,7 @@ import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
+import 'package:household_ledger/presenter/common/bottom_navigation_bar.dart';
 import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/presenter/common/widgets/expense_entry_tile.dart';
 import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
@@ -257,6 +258,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     /// 페이지를 렌더링한다.
     return BootstrapPage(
       title: _text(strings, 'expenseRecordTitle'),
+      bottomNavigationBar: const LedgerBottomNavBar(),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => showExpenseEditorSheet(
           context: context,
@@ -308,7 +310,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
                   child: _isCalendarExpanded
                       ? Column(
                           children: <Widget>[
-                            const SizedBox(height: 12),
+                            // const SizedBox(height: 12),
                             Row(
                               children: <Widget>[
                                 IconButton(
@@ -336,7 +338,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 8),
+                            // const SizedBox(height: 8),
                             Row(
                               children: const <Widget>[
                                 Expanded(child: Center(child: Text('Sun'))),
@@ -429,7 +431,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
                                 );
                               },
                             ),
-                            const SizedBox(height: 12),
+                            const SizedBox(height: 4),
                             Row(
                               children: <Widget>[
                                 Expanded(
@@ -443,7 +445,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
                                     },
                                   ),
                                 ),
-                                const SizedBox(width: 12),
+                                const SizedBox(width: 4),
                                 Expanded(
                                   child: BootstrapActionButton(
                                     label: strings['viewMonthly'] ?? '월 전체 보기',
@@ -462,7 +464,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
                         )
                       : const SizedBox.shrink(),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 4),
                 Row(
                   children: <Widget>[
                     /// 월 총 지출 표시 타일
@@ -488,7 +490,8 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
               ],
             ),
           ),
-          const SizedBox(height: 16),
+
+          const SizedBox(height: 4),
 
           /// 소비 기록 리스트를 렌더링한다. 기록이 없으면 안내 메시지를 표시한다.
           Expanded(
@@ -506,7 +509,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
                       );
 
                       return Padding(
-                        padding: const EdgeInsets.only(bottom: 14),
+                        padding: const EdgeInsets.only(bottom: 7),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: <Widget>[
@@ -526,7 +529,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
                             ),
                             ...sectionItems.map((ExpenseEntry entry) {
                               return Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
+                                padding: const EdgeInsets.only(bottom: 5),
                                 child: ExpenseEntryTile(
                                   entry: entry,
                                   categoryLabel: _resolveTagLabel(

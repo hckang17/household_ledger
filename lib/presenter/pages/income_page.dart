@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
+import 'package:household_ledger/presenter/common/bottom_navigation_bar.dart';
 import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
 import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
@@ -228,6 +229,7 @@ class _IncomePageState extends ConsumerState<IncomePage> {
 
     return BootstrapPage(
       title: strings['incomeManage'] ?? '',
+      bottomNavigationBar: const LedgerBottomNavBar(),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showEditor(strings),
         label: Text(_text(strings, 'addIncome', '소득 추가')),

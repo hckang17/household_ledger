@@ -5,6 +5,7 @@ import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
+import 'package:household_ledger/presenter/common/bottom_navigation_bar.dart';
 import 'package:household_ledger/presenter/common/widgets/expense_editor_sheet.dart';
 import 'package:household_ledger/presenter/common/widgets/expense_entry_tile.dart';
 import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
@@ -96,14 +97,14 @@ class HomePage extends ConsumerWidget {
         const <MetadataTag>[];
 
     return BootstrapPage(
-      /// 타이틀에 좌측 여백을 추가하여 앱 아이콘과의 간격을 확보한다.
-      title: "    ${strings['homeTitle'] ?? ''}",
+      title: strings['homeTitle'] ?? '',
       actions: <Widget>[
         IconButton(
           onPressed: () => _push(context, AppRouter.settingsRoute),
           icon: const Icon(Icons.settings_outlined),
         ),
       ],
+      bottomNavigationBar: const LedgerBottomNavBar(),
       child: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -146,34 +147,8 @@ class HomePage extends ConsumerWidget {
                 ],
               ),
             ),
-            const SizedBox(height: 20),
 
-            /// 주요 기능 버튼들
-            /// 각 버튼은 라우터를 통해 해당 기능 페이지로 이동한다.
-            BootstrapActionButton(
-              label: strings['incomeManage'] ?? '',
-              icon: Icons.trending_up_rounded,
-              onPressed: () => _push(context, AppRouter.incomeRoute),
-              backgroundColor: const Color(0xFF6C757D),
-            ),
-            const SizedBox(height: 12),
-
-            /// 고정지출 관리 버튼
-            BootstrapActionButton(
-              label: strings['fixedExpenseManage'] ?? '',
-              icon: Icons.account_balance_wallet_outlined,
-              onPressed: () => _push(context, AppRouter.fixedExpenseRoute),
-            ),
-            const SizedBox(height: 12),
-
-            /// 지출 기록 버튼
-            BootstrapActionButton(
-              label: strings['expenseRecord'] ?? '',
-              icon: Icons.calendar_month_rounded,
-              onPressed: () => _push(context, AppRouter.expenseRecordRoute),
-              backgroundColor: const Color(0xFF20C997),
-            ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
 
             /// 빠른 지출 기록 버튼 (홈 화면에서 바로 지출 기록으로)
             BootstrapActionButton(
@@ -187,16 +162,8 @@ class HomePage extends ConsumerWidget {
               backgroundColor: const Color(0xFFFFC107),
               foregroundColor: const Color(0xFF102A43),
             ),
-            const SizedBox(height: 12),
 
-            /// 지출 분석 버튼
-            BootstrapActionButton(
-              label: strings['analysis'] ?? '',
-              icon: Icons.insights_rounded,
-              onPressed: () => _push(context, AppRouter.analysisRoute),
-              backgroundColor: const Color(0xFF198754),
-            ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 10),
 
             /// 최근 소비 기록 섹션 헤더
             Row(
@@ -244,8 +211,11 @@ class HomePage extends ConsumerWidget {
 
                 final grouped = <DateTime, List<ExpenseEntry>>{};
                 for (final ExpenseEntry e in recent) {
-                  final day =
-                      DateTime(e.spentAt.year, e.spentAt.month, e.spentAt.day);
+                  final day = DateTime(
+                    e.spentAt.year,
+                    e.spentAt.month,
+                    e.spentAt.day,
+                  );
                   grouped.putIfAbsent(day, () => <ExpenseEntry>[]).add(e);
                 }
                 final groupedList = grouped.entries.toList()
@@ -257,7 +227,8 @@ class HomePage extends ConsumerWidget {
                   );
 
                 final daySectionTemplate =
-                    strings['expenseRecordDaySectionLabel'] ?? '{month}월 {day}일';
+                    strings['expenseRecordDaySectionLabel'] ??
+                    '{month}월 {day}일';
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
