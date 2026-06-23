@@ -61,6 +61,8 @@ class AnalysisDonutChart extends StatelessWidget {
     required this.totalAmount,
     this.currency = '',
     this.onSectionTap,
+    this.totalDiffText,
+    this.totalDiffColor,
     super.key,
   });
 
@@ -84,6 +86,12 @@ class AnalysisDonutChart extends StatelessWidget {
 
   /// 외부 뱃지 라벨에 표시할 통화 기호다(예: "₩").
   final String currency;
+
+  /// 전월동기 대비 차액 텍스트다(예: "▲1,234₩"). null이면 표시하지 않는다.
+  final String? totalDiffText;
+
+  /// 전월동기 차액 텍스트의 색상이다.
+  final Color? totalDiffColor;
 
   @override
   Widget build(BuildContext context) {
@@ -209,6 +217,18 @@ class AnalysisDonutChart extends StatelessWidget {
                   ),
                   textAlign: TextAlign.center,
                 ),
+                if (touched == null && totalDiffText != null) ...<Widget>[
+                  const SizedBox(height: 2),
+                  Text(
+                    totalDiffText!,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: totalDiffColor ?? Colors.grey.shade500,
+                      fontSize: 11,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
               ],
             ),
           ),

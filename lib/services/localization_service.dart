@@ -90,6 +90,19 @@ class LocalizationService {
     'incomeTotal': '월 소득 합계',
     'emptyData': '아직 입력된 데이터가 없습니다.',
     'incomePlaceholder': '수입 관리 기능은 다음 단계에서 확장할 수 있도록 자리만 준비했습니다.',
+    'homeCompPrevPeriodTitle': '지난달 동기 대비',
+    'homeCompMorePercent': '{percent}% 더 사용하셨네요!',
+    'homeCompLessPercent': '{percent}% 덜 사용하셨네요!',
+    'homeCompMoreAmountMsg': '지난달 보다 {amount} 더 사용하셨어요.',
+    'homeCompMoreCategoryMsg': '지난달 보다 {category}에서 {amount} 더 지출이 많아요.',
+    'homeCompLessCategoryAmountMsg': '지난달 보다 {category}에서 {amount} 지출이 줄었어요.',
+    'homeCompMoreAdviceMsg': '이번달은 {category}의 소비를 줄여볼까요?',
+    'homeCompMoreAdviceMsg2': '{category} 지출이 늘었어요. 조금씩 아껴봐요!',
+    'homeCompMoreAdviceMsg3': '{category}에서 아끼면 더 여유로워질 수 있어요!',
+    'homeCompLessAmountMsg': '지난달 보다 {amount} 덜 사용하고 있어요!! 이대로 관리해볼까요?',
+    'homeCompLessCategoryMsg': '지난달 보다 {category}의 지출이 적은것 같아요.',
+    'analysisPrevMonthDiff': '전월동기 대비',
+    'analysisPrevRangeDiff': '1개월전 동기 대비',
   };
 
   /// 선택한 로케일 파일을 읽어 문자열 맵으로 반환한다.

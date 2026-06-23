@@ -291,6 +291,56 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     _ChartMode.paymentMethod => _text(strings, 'paymentMethodLabel', '소비수단'),
   };
 
+  // ─── 전월동기 비교 헬퍼 ──────────────────────────────────────────
+
+  DateTime _shiftOneMonthBack(DateTime d) {
+    final int year = d.month == 1 ? d.year - 1 : d.year;
+    final int month = d.month == 1 ? 12 : d.month - 1;
+    final int lastDay = DateTime(year, month + 1, 0).day;
+    return DateTime(year, month, d.day < lastDay ? d.day : lastDay);
+  }
+
+  /// 현재 선택 모드·기간을 기준으로 전월동기 쿼리를 계산한다.
+  ExpenseRangeQuery _computeAnalysisPrevQuery() {
+    final DateTime now = DateTime.now();
+    final bool usingRange =
+        _periodMode == _PeriodMode.range && _selectedRange != null;
+    if (!usingRange) {
+      final bool isCurrentMonth = _selectedMonth.year == now.year &&
+          _selectedMonth.month == now.month;
+      final DateTime refDate = isCurrentMonth
+          ? now
+          : DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0);
+      return computePrevSamePeriodQuery(refDate);
+    }
+    return ExpenseRangeQuery(
+      start: _shiftOneMonthBack(_selectedRange!.start),
+      endInclusive: _shiftOneMonthBack(_selectedRange!.end),
+    );
+  }
+
+  /// 카테고리 전월동기 차액 텍스트를 반환한다. 데이터 없거나 diff=0이면 null.
+  String? _categoryDiffText(
+    int currentAmount,
+    String categoryCode,
+    Map<String, int> prevTotals,
+    String currency,
+  ) {
+    if (prevTotals.isEmpty) return null;
+    final int diff = currentAmount - (prevTotals[categoryCode] ?? 0);
+    if (diff == 0) return null;
+    return '${diff > 0 ? '▲' : '▼'}${diff.abs().toCurrency()}$currency';
+  }
+
+  Color _categoryDiffColor(
+    int currentAmount,
+    String categoryCode,
+    Map<String, int> prevTotals,
+  ) {
+    final int diff = currentAmount - (prevTotals[categoryCode] ?? 0);
+    return diff > 0 ? const Color(0xFFDC3545) : const Color(0xFF198754);
+  }
+
   // ─── 스크롤 ─────────────────────────────────────────────────────
 
   void _scrollToFixedSection() {
@@ -780,6 +830,8 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     required String currency,
     required VoidCallback onDetailTap,
     required VoidCallback onRowTap,
+    String? prevDiffText,
+    Color? prevDiffColor,
   }) => GestureDetector(
     onTap: onRowTap,
     child: Padding(
@@ -812,9 +864,24 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
             ),
           ),
           const SizedBox(width: 12),
-          Text(
-            '${section.amount.toCurrency()}$currency',
-            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            mainAxisSize: MainAxisSize.min,
+            children: <Widget>[
+              Text(
+                '${section.amount.toCurrency()}$currency',
+                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+              ),
+              if (prevDiffText != null)
+                Text(
+                  prevDiffText,
+                  style: TextStyle(
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                    color: prevDiffColor ?? Colors.grey.shade500,
+                  ),
+                ),
+            ],
           ),
           IconButton(
             onPressed: onDetailTap,
@@ -972,6 +1039,11 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
         ? ref.watch(rangeExpensesProvider(rangeQuery!))
         : ref.watch(monthlyExpensesProvider(_selectedMonth));
 
+    // 소비구분 도넛 차트 전월동기 비교용 데이터
+    final ExpenseRangeQuery analysisPrevQuery = _computeAnalysisPrevQuery();
+    final AsyncValue<List<ExpenseEntry>> prevCategoryExpensesAsync =
+        ref.watch(rangeExpensesProvider(analysisPrevQuery));
+
     final AsyncValue<List<IncomeEntry>> incomesAsync = ref.watch(
       monthlyIncomesProvider(_selectedMonth),
     );
@@ -1080,6 +1152,42 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                   );
                   final int totalAmount = expenseTotal + fixedTotal;
 
+                  // 소비소구분/소비수단 차트는 일반지출만 집계하므로 표시 합계도 분리한다.
+                  final int chartDisplayTotal = _chartMode == _ChartMode.category
+                      ? totalAmount
+                      : expenseTotal;
+
+                  // 소비구분 모드 전월동기 비교 데이터
+                  final List<ExpenseEntry> prevExpenses =
+                      _chartMode == _ChartMode.category
+                          ? (prevCategoryExpensesAsync.value ??
+                              const <ExpenseEntry>[])
+                          : const <ExpenseEntry>[];
+                  final Map<String, int> prevCategoryTotals = <String, int>{};
+                  for (final ExpenseEntry e in prevExpenses) {
+                    prevCategoryTotals.update(
+                      e.categoryCode,
+                      (int v) => v + e.amount,
+                      ifAbsent: () => e.amount,
+                    );
+                  }
+                  final int prevExpensesTotal = prevExpenses.fold(
+                    0,
+                    (int s, ExpenseEntry e) => s + e.amount,
+                  );
+                  String? totalDiffText;
+                  Color? totalDiffColor;
+                  if (_chartMode == _ChartMode.category &&
+                      prevExpenses.isNotEmpty) {
+                    final int totalDiff = expenseTotal - prevExpensesTotal;
+                    final bool isIncrease = totalDiff > 0;
+                    totalDiffText =
+                        '${isIncrease ? '▲' : '▼'}${totalDiff.abs().toCurrency()}$currency';
+                    totalDiffColor = isIncrease
+                        ? const Color(0xFFDC3545)
+                        : const Color(0xFF198754);
+                  }
+
                   // 현재 캐러샐 모드에 맞는 섹션 목록
                   final List<DonutSection> sections = switch (_chartMode) {
                     _ChartMode.category => _buildCategoryDonutSections(
@@ -1146,8 +1254,9 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                               onTouchUpdate: (int index) =>
                                   setState(() => _touchedIndex = index),
                               onSectionTap: (int index) {
-                                if (index < 0 || index >= sections.length)
+                                if (index < 0 || index >= sections.length) {
                                   return;
+                                }
                                 final DonutSection tapped = sections[index];
                                 // 소비구분 모드의 고정지출 → 스크롤
                                 if (_chartMode == _ChartMode.category &&
@@ -1169,8 +1278,10 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                                 '전체',
                               ),
                               totalAmount:
-                                  '${totalAmount.toCurrency()}$currency',
+                                  '${chartDisplayTotal.toCurrency()}$currency',
                               currency: currency,
+                              totalDiffText: totalDiffText,
+                              totalDiffColor: totalDiffColor,
                             ),
                             const SizedBox(height: 8),
                             Row(
@@ -1185,7 +1296,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                                 ),
                                 const SizedBox(width: 12),
                                 Text(
-                                  '${totalAmount.toCurrency()}$currency',
+                                  '${chartDisplayTotal.toCurrency()}$currency',
                                   style: const TextStyle(
                                     fontWeight: FontWeight.w700,
                                     fontSize: 16,
@@ -1236,6 +1347,21 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                                         currency,
                                       );
                                     },
+                                    prevDiffText: !isFixed
+                                        ? _categoryDiffText(
+                                            entry.value.amount,
+                                            entry.value.categoryCode,
+                                            prevCategoryTotals,
+                                            currency,
+                                          )
+                                        : null,
+                                    prevDiffColor: !isFixed
+                                        ? _categoryDiffColor(
+                                            entry.value.amount,
+                                            entry.value.categoryCode,
+                                            prevCategoryTotals,
+                                          )
+                                        : null,
                                   ),
                                   if (entry.key < sections.length - 1)
                                     const Divider(height: 1),

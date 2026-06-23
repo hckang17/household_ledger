@@ -92,10 +92,8 @@
   "incomePlaceholder": "収入管理機能は次の段階で拡張できるようにプレースホルダーだけ用意しています。",
   "dateLabel": "日付",
   "deleteAlertCaution": "削除すると元に戻すことはできません。",
-
   "tagDuplicationAlert": "ご記入のコードは既に使用中です。ほかのコードを入力してください。",
   "failedReadingData": "データの読み込みに失敗しました。 ErrorCode: 4401",
-
   "dataManagementSectionTitle": "データ管理",
   "exportDataMenuLabel": "家計簿データを出力する",
   "importDataMenuLabel": "家計簿データを取り込む",
@@ -156,19 +154,15 @@
   "chartDateYearSuffix": "年",
   "chartDateMonthSuffix": "月",
   "chartDateDaySuffix": "日",
-
   "navIncome": "収入",
   "navAnalysis": "分析",
   "navHome": "ホーム",
   "navExpenseRecord": "支出記録",
   "navFixedExpense": "固定支出",
-
   "homeRecentExpensesTitle": "最近の支出履歴",
   "homeViewAll": "もっと見る",
   "receiptFooterMessage": "記録いただきありがとうございます。",
-
   "analysisExportPdf": "PDFで出力する",
-
   "reportPageTitle": "PDFレポート生成",
   "reportPeriodLabel": "期間設定 (必須)",
   "reportEmailLabel": "メールアドレス (必須)",
@@ -189,7 +183,6 @@
   "reportOpenFile": "開く",
   "reportShareFile": "共有",
   "reportFailed": "PDFの生成に失敗しました。",
-
   "pdfCoverSubtitle": "家計簿レポート",
   "pdfName": "氏名",
   "pdfEmail": "メール",
@@ -216,12 +209,10 @@
   "pdfTypeExpense": "支出",
   "pdfTypeIncome": "収入",
   "pdfTypeFixed": "固定支出",
-  "closeLabel" : "閉じる",
+  "closeLabel": "閉じる",
   "confirmOk": "確認",
   "importRestartMessage": "データが正常に読み込まれました。\nアプリを再起動します。",
-
   "pdfUnsupportWarning": "* 現在のバージョンではPDFの暗号化がサポートされていません。",
-
   "dataManageTitle": "データ管理",
   "dataManageFilterTitle": "検索条件",
   "dataManageTableExpense": "支出記録",
@@ -253,5 +244,18 @@
   "dataManageChangeSuccess": "{count}件のタグが変更されました。",
   "dataManageEmptyResult": "検索結果がありません。",
   "dataManageOperating": "処理中",
-  "dataManageOperatingWarn": "処理中です。完了してから移動してください。"
+  "dataManageOperatingWarn": "処理中です。完了してから移動してください。",
+  "homeCompPrevPeriodTitle": "先月同期比",
+  "homeCompMorePercent": "{percent}%多く使っています！",
+  "homeCompLessPercent": "{percent}%節約できていますよ。",
+  "homeCompMoreAmountMsg": "先月同日までより{amount}多く使っています。",
+  "homeCompMoreCategoryMsg": "先月同日までより{category}で{amount}多く支出しています。",
+  "homeCompLessCategoryAmountMsg": "先月同日までより{category}で{amount}支出が減りました。",
+  "homeCompMoreAdviceMsg": "今月は{category}の支出を減らしてみませんか？",
+  "homeCompMoreAdviceMsg2": "{category}の支出が増えています。少しずつ節約しましょう！",
+  "homeCompMoreAdviceMsg3": "{category}を節約すれば、もっと余裕が生まれますよ！",
+  "homeCompLessAmountMsg": "先月同日までより{amount}少なく使っています！このまま管理を続けましょう！",
+  "homeCompLessCategoryMsg": "先月同日までより{category}の支出が少ないようです。",
+  "analysisPrevMonthDiff": "前月同期比",
+  "analysisPrevRangeDiff": "1ヶ月前同期比"
 }

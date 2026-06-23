@@ -69,6 +69,31 @@ DateTime _monthStart(DateTime month) {
   return DateTime(month.year, month.month, 1);
 }
 
+/// 기준일로부터 전월동기 기간 쿼리를 계산한다.
+///
+/// - 기준일이 해당 월의 마지막 날이면 전월 전체를 집계한다.
+/// - 그 외에는 min(기준일, 전월의 마지막 날)까지 집계한다.
+ExpenseRangeQuery computePrevSamePeriodQuery(DateTime referenceDate) {
+  final int currentMonthLastDay =
+      DateTime(referenceDate.year, referenceDate.month + 1, 0).day;
+  final bool isLastDay = referenceDate.day >= currentMonthLastDay;
+
+  final int prevYear =
+      referenceDate.month == 1 ? referenceDate.year - 1 : referenceDate.year;
+  final int prevMonthNum =
+      referenceDate.month == 1 ? 12 : referenceDate.month - 1;
+  final int prevLastDay = DateTime(prevYear, prevMonthNum + 1, 0).day;
+
+  final int prevEndDay = isLastDay
+      ? prevLastDay
+      : (referenceDate.day < prevLastDay ? referenceDate.day : prevLastDay);
+
+  return ExpenseRangeQuery(
+    start: DateTime(prevYear, prevMonthNum, 1),
+    endInclusive: DateTime(prevYear, prevMonthNum, prevEndDay),
+  );
+}
+
 /// 기간 조회 파라미터를 담는 값 객체다.
 class ExpenseRangeQuery {
   const ExpenseRangeQuery({required this.start, required this.endInclusive});
@@ -168,7 +193,7 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
     _logLedgerProvider('build', '앱 상태 초기 로드 시작');
     final settingsState = await _localStorageService.loadState();
     final nowMonth = DateTime.now();
-    final currentMonthExpenses = await _expenseDatabaseService
+    var currentMonthExpenses = await _expenseDatabaseService
         .loadExpensesByMonth(nowMonth);
     var allFixedExpenses = await _fixedExpenseDatabaseService
         .loadAllFixedExpenses();
@@ -177,21 +202,8 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
     if (currentMonthExpenses.isEmpty && settingsState.expenses.isNotEmpty) {
       _logLedgerProvider('build', '구버전 지출내역 SQLite 마이그레이션 수행');
       await _expenseDatabaseService.upsertExpenses(settingsState.expenses);
-      final migratedMonthExpenses = await _expenseDatabaseService
+      currentMonthExpenses = await _expenseDatabaseService
           .loadExpensesByMonth(nowMonth);
-      if (allFixedExpenses.isEmpty && settingsState.fixedExpenses.isNotEmpty) {
-        _logLedgerProvider('build', '구버전 고정지출 SQLite 마이그레이션 수행');
-        await _fixedExpenseDatabaseService.upsertFixedExpenses(
-          settingsState.fixedExpenses,
-        );
-        allFixedExpenses = await _fixedExpenseDatabaseService
-            .loadAllFixedExpenses();
-      }
-      _logLedgerProvider('build', '초기 상태 반환(마이그레이션 데이터 포함)');
-      return settingsState.copyWith(
-        expenses: migratedMonthExpenses,
-        fixedExpenses: allFixedExpenses,
-      );
     }
 
     if (allFixedExpenses.isEmpty && settingsState.fixedExpenses.isNotEmpty) {
@@ -203,10 +215,18 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
           .loadAllFixedExpenses();
     }
 
-    _logLedgerProvider('build', '초기 상태 반환(이번 달 지출내역 적용)');
+    // 홈화면 전월동기 비교를 위해 전월 데이터를 미리 로드한다.
+    final prevQuery = computePrevSamePeriodQuery(nowMonth);
+    final prevPeriodExpenses = await _expenseDatabaseService.loadExpensesByRange(
+      start: prevQuery.start,
+      endExclusive: prevQuery.endExclusive,
+    );
+
+    _logLedgerProvider('build', '초기 상태 반환(이번 달 지출내역 + 전월 동기 데이터 적용)');
     return settingsState.copyWith(
       expenses: currentMonthExpenses,
       fixedExpenses: allFixedExpenses,
+      prevPeriodExpenses: prevPeriodExpenses,
     );
   }
 
@@ -493,9 +513,15 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
         )
         .toList();
 
+    final prevQuery = computePrevSamePeriodQuery(nowMonth);
+    final prevPeriodExpenses = await _expenseDatabaseService.loadExpensesByRange(
+      start: prevQuery.start,
+      endExclusive: prevQuery.endExclusive,
+    );
     final next = importedState.copyWith(
       expenses: currentMonthExpenses,
       fixedExpenses: fixedExpenses,
+      prevPeriodExpenses: prevPeriodExpenses,
     );
     await _commit(next);
     _logLedgerProvider('importAllData', '데이터 전체 가져오기 완료');

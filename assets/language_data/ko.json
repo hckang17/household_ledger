@@ -253,5 +253,18 @@
   "dataManageChangeSuccess": "{count}건의 태그가 변경되었습니다.",
   "dataManageEmptyResult": "검색 결과가 없습니다.",
   "dataManageOperating": "처리중",
-  "dataManageOperatingWarn": "작업이 진행 중입니다. 완료 후 이동하세요."
+  "dataManageOperatingWarn": "작업이 진행 중입니다. 완료 후 이동하세요.",
+  "homeCompPrevPeriodTitle": "지난달 동기 대비",
+  "homeCompMorePercent": "{percent}% 더 사용하셨네요!",
+  "homeCompLessPercent": "{percent}% 덜 사용하셨네요!",
+  "homeCompMoreAmountMsg": "지난달 보다 {amount} 더 사용하셨어요.",
+  "homeCompMoreCategoryMsg": "지난달 보다 {category}에서 {amount} 더 지출이 많아요.",
+  "homeCompLessCategoryAmountMsg": "지난달 보다 {category}에서 {amount} 지출이 줄었어요.",
+  "homeCompMoreAdviceMsg": "이번달은 {category}의 소비를 줄여볼까요?",
+  "homeCompMoreAdviceMsg2": "{category} 지출이 늘었어요. 조금씩 아껴봐요!",
+  "homeCompMoreAdviceMsg3": "{category}에서 아끼면 더 여유로워질 수 있어요!",
+  "homeCompLessAmountMsg": "지난달 보다 {amount} 덜 사용하고 있어요!! 이대로 관리해볼까요?",
+  "homeCompLessCategoryMsg": "지난달 보다 {category}의 지출이 적은것 같아요.",
+  "analysisPrevMonthDiff": "전월동기 대비",
+  "analysisPrevRangeDiff": "1개월전 동기 대비"
 }

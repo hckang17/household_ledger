@@ -15,6 +15,7 @@ class LedgerState {
     required this.metadataTags,
     required this.expenses,
     required this.fixedExpenses,
+    this.prevPeriodExpenses = const <ExpenseEntry>[],
   });
 
   /// 앱 전역 설정을 보관한다.
@@ -31,6 +32,9 @@ class LedgerState {
 
   /// 고정지출 목록을 보관한다.
   final List<FixedExpense> fixedExpenses;
+
+  /// 전월동기 지출내역을 보관한다 (런타임 전용, 영속화 불필요).
+  final List<ExpenseEntry> prevPeriodExpenses;
 
   /// 기본 상태를 생성한다.
   ///
@@ -164,6 +168,7 @@ class LedgerState {
     List<MetadataTag>? metadataTags,
     List<ExpenseEntry>? expenses,
     List<FixedExpense>? fixedExpenses,
+    List<ExpenseEntry>? prevPeriodExpenses,
   }) {
     return LedgerState(
       settings: settings ?? this.settings,
@@ -171,6 +176,7 @@ class LedgerState {
       metadataTags: metadataTags ?? this.metadataTags,
       expenses: expenses ?? this.expenses,
       fixedExpenses: fixedExpenses ?? this.fixedExpenses,
+      prevPeriodExpenses: prevPeriodExpenses ?? this.prevPeriodExpenses,
     );
   }
 
