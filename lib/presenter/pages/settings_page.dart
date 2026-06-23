@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
+import 'package:household_ledger/presenter/common/widgets/tag_management_section.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/router/app_router.dart';
@@ -20,10 +21,6 @@ class SettingsPage extends ConsumerStatefulWidget {
 class _SettingsPageState extends ConsumerState<SettingsPage> {
   late final TextEditingController _nameController;
   late final TextEditingController _ageController;
-  bool _isCategoryExpanded = false;
-  bool _isSubcategoryExpanded = false;
-  bool _isPaymentExpanded = false;
-
   String _text(Map<String, String> strings, String tag) {
     return strings[tag] ??
         '${strings['failedReadingData'] ?? 'ErrorCode: 4401'}+$tag';
@@ -242,118 +239,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     }
   }
 
-  bool _isSectionExpanded(MetadataTagType type) {
-    switch (type) {
-      case MetadataTagType.category:
-        return _isCategoryExpanded;
-      case MetadataTagType.subcategory:
-        return _isSubcategoryExpanded;
-      case MetadataTagType.paymentMethod:
-        return _isPaymentExpanded;
-    }
-  }
-
-  void _toggleSection(MetadataTagType type) {
-    setState(() {
-      switch (type) {
-        case MetadataTagType.category:
-          _isCategoryExpanded = !_isCategoryExpanded;
-        case MetadataTagType.subcategory:
-          _isSubcategoryExpanded = !_isSubcategoryExpanded;
-        case MetadataTagType.paymentMethod:
-          _isPaymentExpanded = !_isPaymentExpanded;
-      }
-    });
-  }
-
-  /// 태그 관리 섹션을 렌더링한다.
-  Widget _buildTagSection({
-    required BuildContext context,
-    required String title,
-    required List<MetadataTag> tags,
-    required MetadataTagType type,
-    required Map<String, String> strings,
-  }) {
-    final expanded = _isSectionExpanded(type);
-    return BootstrapSectionCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => _toggleSection(type),
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: () => _addTag(type),
-                icon: const Icon(Icons.add_circle_outline),
-              ),
-              IconButton(
-                onPressed: () => _toggleSection(type),
-                icon: Icon(expanded ? Icons.expand_less : Icons.expand_more),
-              ),
-            ],
-          ),
-          if (expanded) const SizedBox(height: 12),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeInOut,
-            child: !expanded
-                ? const SizedBox.shrink()
-                : Column(
-                    children: tags.map((MetadataTag tag) {
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF6F9FF),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: Text(
-                                '${tag.code} : ${tag.label}',
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                            IconButton(
-                              visualDensity: VisualDensity.compact,
-                              tooltip: _text(strings, 'edit'),
-                              onPressed: () => _editTag(tag),
-                              icon: const Icon(Icons.edit_outlined),
-                            ),
-                            IconButton(
-                              visualDensity: VisualDensity.compact,
-                              tooltip: _text(strings, 'delete'),
-                              onPressed: tags.length > 1
-                                  ? () => _deleteTag(tag)
-                                  : null,
-                              icon: const Icon(Icons.delete_outline),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   void dispose() {
     _nameController.dispose();
@@ -460,28 +345,31 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             const SizedBox(height: 16),
 
             /// 태그 관리 섹션
-            _buildTagSection(
-              context: context,
+            TagManagementSection(
               title: _sectionTitle(MetadataTagType.category, strings),
               tags: ledger.tagsByType(MetadataTagType.category),
-              type: MetadataTagType.category,
               strings: strings,
+              onAdd: () => _addTag(MetadataTagType.category),
+              onEdit: _editTag,
+              onDelete: _deleteTag,
             ),
             const SizedBox(height: 16),
-            _buildTagSection(
-              context: context,
+            TagManagementSection(
               title: _sectionTitle(MetadataTagType.subcategory, strings),
               tags: ledger.tagsByType(MetadataTagType.subcategory),
-              type: MetadataTagType.subcategory,
               strings: strings,
+              onAdd: () => _addTag(MetadataTagType.subcategory),
+              onEdit: _editTag,
+              onDelete: _deleteTag,
             ),
             const SizedBox(height: 16),
-            _buildTagSection(
-              context: context,
+            TagManagementSection(
               title: _sectionTitle(MetadataTagType.paymentMethod, strings),
               tags: ledger.tagsByType(MetadataTagType.paymentMethod),
-              type: MetadataTagType.paymentMethod,
               strings: strings,
+              onAdd: () => _addTag(MetadataTagType.paymentMethod),
+              onEdit: _editTag,
+              onDelete: _deleteTag,
             ),
             const SizedBox(height: 16),
             _buildDataManagementSection(context, strings),

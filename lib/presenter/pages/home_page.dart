@@ -7,8 +7,8 @@ import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widg
 import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
 import 'package:household_ledger/presenter/common/widgets/comparison_card.dart';
 import 'package:household_ledger/presenter/common/widgets/expense_editor_sheet.dart';
-import 'package:household_ledger/presenter/common/widgets/expense_entry_tile.dart';
 import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
+import 'package:household_ledger/presenter/common/widgets/recent_expenses_list.dart';
 import 'package:household_ledger/provider/comparison_provider.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
@@ -191,110 +191,36 @@ class HomePage extends ConsumerWidget {
                 child: Center(child: CircularProgressIndicator()),
               ),
               error: (Object e, _) => const SizedBox.shrink(),
-              data: (List<ExpenseEntry> entries) {
-                if (ledger == null || entries.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 12),
-                    child: Center(
-                      child: Text(strings['emptyData'] ?? '데이터가 없습니다.'),
-                    ),
-                  );
-                }
-
-                final sorted = entries.toList()
-                  ..sort(
-                    (ExpenseEntry a, ExpenseEntry b) =>
-                        b.spentAt.compareTo(a.spentAt),
-                  );
-                final recent = sorted.take(5).toList();
-
-                final grouped = <DateTime, List<ExpenseEntry>>{};
-                for (final ExpenseEntry e in recent) {
-                  final day = DateTime(
-                    e.spentAt.year,
-                    e.spentAt.month,
-                    e.spentAt.day,
-                  );
-                  grouped.putIfAbsent(day, () => <ExpenseEntry>[]).add(e);
-                }
-                final groupedList = grouped.entries.toList()
-                  ..sort(
-                    (
-                      MapEntry<DateTime, List<ExpenseEntry>> a,
-                      MapEntry<DateTime, List<ExpenseEntry>> b,
-                    ) => b.key.compareTo(a.key),
-                  );
-
-                final daySectionTemplate =
-                    strings['expenseRecordDaySectionLabel'] ?? '{month}월 {day}일';
-
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    for (final MapEntry<DateTime, List<ExpenseEntry>> section
-                        in groupedList) ...<Widget>[
-                      Padding(
-                        padding: const EdgeInsets.only(
-                          left: 4,
-                          top: 4,
-                          bottom: 8,
-                        ),
-                        child: Text(
-                          daySectionTemplate
-                              .replaceAll(
-                                '{month}',
-                                section.key.month.toString().padLeft(2, '0'),
-                              )
-                              .replaceAll(
-                                '{day}',
-                                section.key.day.toString().padLeft(2, '0'),
-                              ),
-                          style: Theme.of(context).textTheme.titleSmall
-                              ?.copyWith(
-                                fontWeight: FontWeight.w800,
-                                color: const Color(0xFF1F3A5F),
-                              ),
-                        ),
-                      ),
-                      for (final ExpenseEntry entry in section.value)
-                        Padding(
-                          padding: const EdgeInsets.only(bottom: 10),
-                          child: ExpenseEntryTile(
-                            entry: entry,
-                            categoryLabel: categoryTags.labelFor(
-                              entry.categoryCode,
-                            ),
-                            currency: currency,
-                            editTooltip: strings['edit'] ?? '수정',
-                            deleteTooltip: strings['delete'] ?? '삭제',
-                            onTap: () => showExpenseDetailDialog(
-                              context: context,
-                              entry: entry,
-                              categoryTags: categoryTags,
-                              subcategoryTags: subcategoryTags,
-                              paymentTags: paymentTags,
-                              strings: strings,
-                              currency: currency,
-                            ),
-                            onEdit: () => showExpenseEditorSheet(
-                              context: context,
-                              ref: ref,
-                              entry: entry,
-                              initialDate: entry.spentAt,
-                            ),
-                            onDelete: () => _deleteExpense(
-                              context,
-                              ref,
-                              strings,
-                              entry,
-                              currency,
-                            ),
-                          ),
-                        ),
-                    ],
-                  ],
-                );
-              },
+              data: (List<ExpenseEntry> entries) => RecentExpensesList(
+                entries: entries,
+                categoryTags: categoryTags,
+                subcategoryTags: subcategoryTags,
+                paymentTags: paymentTags,
+                currency: currency,
+                strings: strings,
+                onTap: (ExpenseEntry entry) => showExpenseDetailDialog(
+                  context: context,
+                  entry: entry,
+                  categoryTags: categoryTags,
+                  subcategoryTags: subcategoryTags,
+                  paymentTags: paymentTags,
+                  strings: strings,
+                  currency: currency,
+                ),
+                onEdit: (ExpenseEntry entry) => showExpenseEditorSheet(
+                  context: context,
+                  ref: ref,
+                  entry: entry,
+                  initialDate: entry.spentAt,
+                ),
+                onDelete: (ExpenseEntry entry) => _deleteExpense(
+                  context,
+                  ref,
+                  strings,
+                  entry,
+                  currency,
+                ),
+              ),
             ),
           ],
         ),
