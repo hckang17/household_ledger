@@ -4,7 +4,7 @@ import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_dialog.dart';
 import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
-import 'package:household_ledger/services/generating_png_service.dart';
+import 'package:household_ledger/services/imexporting_file/generating_png_service.dart';
 
 // ── Public dialog functions ──────────────────────────────────────────────────
 

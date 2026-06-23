@@ -57,8 +57,11 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
 
   // ─── 로케일 헬퍼 ────────────────────────────────────────────────
 
-  String _text(Map<String, String> strings, String key, [String fallback = '']) =>
-      strings[key] ?? fallback;
+  String _text(
+    Map<String, String> strings,
+    String key, [
+    String fallback = '',
+  ]) => strings[key] ?? fallback;
 
   String _intlLocale(String localeCode) => localeCode == 'jp' ? 'ja' : 'ko';
 
@@ -82,16 +85,19 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
   // ─── 기간 내비게이션 ─────────────────────────────────────────────
 
   void _prevMonth() => setState(() {
-        _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
-        _touchedIndex = -1;
-      });
+    _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month - 1);
+    _touchedIndex = -1;
+  });
 
   void _nextMonth() => setState(() {
-        _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
-        _touchedIndex = -1;
-      });
+    _selectedMonth = DateTime(_selectedMonth.year, _selectedMonth.month + 1);
+    _touchedIndex = -1;
+  });
 
-  Future<void> _pickMonth(BuildContext context, Map<String, String> strings) async {
+  Future<void> _pickMonth(
+    BuildContext context,
+    Map<String, String> strings,
+  ) async {
     int year = _selectedMonth.year;
     int month = _selectedMonth.month;
 
@@ -107,7 +113,9 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
               children: <Widget>[
                 Text(
                   _text(strings, 'selectMonth', '달 선택'),
-                  style: Theme.of(ctx).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                  style: Theme.of(
+                    ctx,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 16),
                 Row(
@@ -115,14 +123,18 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                     Expanded(
                       child: DropdownButtonFormField<int>(
                         initialValue: year,
-                        decoration: InputDecoration(labelText: _text(strings, 'yearLabel', '연도')),
-                        items: List<DropdownMenuItem<int>>.generate(
-                          11,
-                          (int i) {
-                            final int y = DateTime.now().year - 5 + i;
-                            return DropdownMenuItem<int>(value: y, child: Text('$y'));
-                          },
+                        decoration: InputDecoration(
+                          labelText: _text(strings, 'yearLabel', '연도'),
                         ),
+                        items: List<DropdownMenuItem<int>>.generate(11, (
+                          int i,
+                        ) {
+                          final int y = DateTime.now().year - 5 + i;
+                          return DropdownMenuItem<int>(
+                            value: y,
+                            child: Text('$y'),
+                          );
+                        }),
                         onChanged: (int? v) {
                           if (v != null) setModal(() => year = v);
                         },
@@ -132,10 +144,15 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                     Expanded(
                       child: DropdownButtonFormField<int>(
                         initialValue: month,
-                        decoration: InputDecoration(labelText: _text(strings, 'monthLabel', '월')),
+                        decoration: InputDecoration(
+                          labelText: _text(strings, 'monthLabel', '월'),
+                        ),
                         items: List<DropdownMenuItem<int>>.generate(
                           12,
-                          (int i) => DropdownMenuItem<int>(value: i + 1, child: Text('${i + 1}')),
+                          (int i) => DropdownMenuItem<int>(
+                            value: i + 1,
+                            child: Text('${i + 1}'),
+                          ),
                         ),
                         onChanged: (int? v) {
                           if (v != null) setModal(() => month = v);
@@ -154,7 +171,8 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                     ),
                     const SizedBox(width: 8),
                     FilledButton(
-                      onPressed: () => Navigator.of(ctx).pop(DateTime(year, month)),
+                      onPressed: () =>
+                          Navigator.of(ctx).pop(DateTime(year, month)),
                       child: Text(_text(strings, 'apply', '적용')),
                     ),
                   ],
@@ -193,7 +211,11 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     if (picked != null) {
       setState(() {
         _selectedRange = DateTimeRange(
-          start: DateTime(picked.start.year, picked.start.month, picked.start.day),
+          start: DateTime(
+            picked.start.year,
+            picked.start.month,
+            picked.start.day,
+          ),
           end: DateTime(picked.end.year, picked.end.month, picked.end.day),
         );
         _touchedIndex = -1;
@@ -201,11 +223,17 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     }
   }
 
-  Future<void> _showPeriodModeMenu(BuildContext context, Map<String, String> strings) async {
+  Future<void> _showPeriodModeMenu(
+    BuildContext context,
+    Map<String, String> strings,
+  ) async {
     final RenderBox button = context.findRenderObject()! as RenderBox;
     final RenderBox overlay =
         Navigator.of(context).overlay!.context.findRenderObject()! as RenderBox;
-    final Offset offset = button.localToGlobal(Offset(0, button.size.height), ancestor: overlay);
+    final Offset offset = button.localToGlobal(
+      Offset(0, button.size.height),
+      ancestor: overlay,
+    );
     final RelativeRect position = RelativeRect.fromLTRB(
       offset.dx,
       offset.dy,
@@ -229,7 +257,9 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     );
     if (selected == null) return;
     setState(() {
-      _periodMode = selected == 'monthly' ? _PeriodMode.monthly : _PeriodMode.range;
+      _periodMode = selected == 'monthly'
+          ? _PeriodMode.monthly
+          : _PeriodMode.range;
       _selectedRange = null;
       _touchedIndex = -1;
     });
@@ -238,35 +268,39 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
   // ─── 캐러샐 내비게이션 ──────────────────────────────────────────
 
   void _prevChart() => setState(() {
-        _touchedIndex = -1;
-        _chartMode = switch (_chartMode) {
-          _ChartMode.category => _ChartMode.paymentMethod,
-          _ChartMode.subcategory => _ChartMode.category,
-          _ChartMode.paymentMethod => _ChartMode.subcategory,
-        };
-      });
+    _touchedIndex = -1;
+    _chartMode = switch (_chartMode) {
+      _ChartMode.category => _ChartMode.paymentMethod,
+      _ChartMode.subcategory => _ChartMode.category,
+      _ChartMode.paymentMethod => _ChartMode.subcategory,
+    };
+  });
 
   void _nextChart() => setState(() {
-        _touchedIndex = -1;
-        _chartMode = switch (_chartMode) {
-          _ChartMode.category => _ChartMode.subcategory,
-          _ChartMode.subcategory => _ChartMode.paymentMethod,
-          _ChartMode.paymentMethod => _ChartMode.category,
-        };
-      });
+    _touchedIndex = -1;
+    _chartMode = switch (_chartMode) {
+      _ChartMode.category => _ChartMode.subcategory,
+      _ChartMode.subcategory => _ChartMode.paymentMethod,
+      _ChartMode.paymentMethod => _ChartMode.category,
+    };
+  });
 
   String _chartModeTitle(Map<String, String> strings) => switch (_chartMode) {
-        _ChartMode.category => _text(strings, 'categoryLabel', '소비구분'),
-        _ChartMode.subcategory => _text(strings, 'subcategoryLabel', '소비 소구분'),
-        _ChartMode.paymentMethod => _text(strings, 'paymentMethodLabel', '소비수단'),
-      };
+    _ChartMode.category => _text(strings, 'categoryLabel', '소비구분'),
+    _ChartMode.subcategory => _text(strings, 'subcategoryLabel', '소비 소구분'),
+    _ChartMode.paymentMethod => _text(strings, 'paymentMethodLabel', '소비수단'),
+  };
 
   // ─── 스크롤 ─────────────────────────────────────────────────────
 
   void _scrollToFixedSection() {
     final BuildContext? ctx = _fixedSectionKey.currentContext;
     if (ctx == null) return;
-    Scrollable.ensureVisible(ctx, duration: const Duration(milliseconds: 400), curve: Curves.easeInOut);
+    Scrollable.ensureVisible(
+      ctx,
+      duration: const Duration(milliseconds: 400),
+      curve: Curves.easeInOut,
+    );
   }
 
   // ─── 데이터 계산 ─────────────────────────────────────────────────
@@ -288,10 +322,17 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
   ) {
     final Map<String, int> sums = <String, int>{};
     for (final ExpenseEntry e in expenses) {
-      sums.update(e.categoryCode, (int v) => v + e.amount, ifAbsent: () => e.amount);
+      sums.update(
+        e.categoryCode,
+        (int v) => v + e.amount,
+        ifAbsent: () => e.amount,
+      );
     }
     if (fixedExpenses.isNotEmpty) {
-      final int fixedTotal = fixedExpenses.fold(0, (int s, FixedExpense f) => s + f.amount);
+      final int fixedTotal = fixedExpenses.fold(
+        0,
+        (int s, FixedExpense f) => s + f.amount,
+      );
       if (fixedTotal > 0) sums[_kFixedCode] = fixedTotal;
     }
     return _toSortedSections(
@@ -312,7 +353,11 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     final Map<String, int> sums = <String, int>{};
     for (final ExpenseEntry e in expenses) {
       if (e.subcategoryCode.isEmpty) continue;
-      sums.update(e.subcategoryCode, (int v) => v + e.amount, ifAbsent: () => e.amount);
+      sums.update(
+        e.subcategoryCode,
+        (int v) => v + e.amount,
+        ifAbsent: () => e.amount,
+      );
     }
     return _toSortedSections(
       sums,
@@ -329,7 +374,11 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     final Map<String, int> sums = <String, int>{};
     for (final ExpenseEntry e in expenses) {
       if (e.paymentMethodCode.isEmpty) continue;
-      sums.update(e.paymentMethodCode, (int v) => v + e.amount, ifAbsent: () => e.amount);
+      sums.update(
+        e.paymentMethodCode,
+        (int v) => v + e.amount,
+        ifAbsent: () => e.amount,
+      );
     }
     return _toSortedSections(
       sums,
@@ -348,7 +397,10 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     if (total == 0) return <DonutSection>[];
 
     final List<MapEntry<String, int>> sorted = sums.entries.toList()
-      ..sort((MapEntry<String, int> a, MapEntry<String, int> b) => b.value.compareTo(a.value));
+      ..sort(
+        (MapEntry<String, int> a, MapEntry<String, int> b) =>
+            b.value.compareTo(a.value),
+      );
 
     int colorIndex = 0;
     return sorted.map((MapEntry<String, int> entry) {
@@ -366,34 +418,62 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     }).toList();
   }
 
-  List<FlSpot> _buildDailyExpenseSpots(List<ExpenseEntry> expenses, DateTime rangeStart) {
+  List<FlSpot> _buildDailyExpenseSpots(
+    List<ExpenseEntry> expenses,
+    DateTime rangeStart,
+  ) {
     if (expenses.isEmpty) return <FlSpot>[];
-    final DateTime base = DateTime(rangeStart.year, rangeStart.month, rangeStart.day);
+    final DateTime base = DateTime(
+      rangeStart.year,
+      rangeStart.month,
+      rangeStart.day,
+    );
     final Map<int, int> daily = <int, int>{};
     for (final ExpenseEntry e in expenses) {
       final int offset =
-          DateTime(e.spentAt.year, e.spentAt.month, e.spentAt.day).difference(base).inDays + 1;
+          DateTime(
+            e.spentAt.year,
+            e.spentAt.month,
+            e.spentAt.day,
+          ).difference(base).inDays +
+          1;
       if (offset < 1) continue;
       daily.update(offset, (int v) => v + e.amount, ifAbsent: () => e.amount);
     }
     if (daily.isEmpty) return <FlSpot>[];
     final List<int> sorted = daily.keys.toList()..sort();
-    return sorted.map((int k) => FlSpot(k.toDouble(), daily[k]!.toDouble())).toList();
+    return sorted
+        .map((int k) => FlSpot(k.toDouble(), daily[k]!.toDouble()))
+        .toList();
   }
 
-  List<FlSpot> _buildDailyIncomeSpots(List<IncomeEntry> incomes, DateTime rangeStart) {
+  List<FlSpot> _buildDailyIncomeSpots(
+    List<IncomeEntry> incomes,
+    DateTime rangeStart,
+  ) {
     if (incomes.isEmpty) return <FlSpot>[];
-    final DateTime base = DateTime(rangeStart.year, rangeStart.month, rangeStart.day);
+    final DateTime base = DateTime(
+      rangeStart.year,
+      rangeStart.month,
+      rangeStart.day,
+    );
     final Map<int, int> daily = <int, int>{};
     for (final IncomeEntry e in incomes) {
       final int offset =
-          DateTime(e.earnedAt.year, e.earnedAt.month, e.earnedAt.day).difference(base).inDays + 1;
+          DateTime(
+            e.earnedAt.year,
+            e.earnedAt.month,
+            e.earnedAt.day,
+          ).difference(base).inDays +
+          1;
       if (offset < 1) continue;
       daily.update(offset, (int v) => v + e.amount, ifAbsent: () => e.amount);
     }
     if (daily.isEmpty) return <FlSpot>[];
     final List<int> sorted = daily.keys.toList()..sort();
-    return sorted.map((int k) => FlSpot(k.toDouble(), daily[k]!.toDouble())).toList();
+    return sorted
+        .map((int k) => FlSpot(k.toDouble(), daily[k]!.toDouble()))
+        .toList();
   }
 
   // ─── 상세 바텀시트 ────────────────────────────────────────────────
@@ -405,8 +485,11 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     Map<String, String> strings,
     String currency,
   ) {
-    final String detailTitle = _text(strings, 'analysisCategoryDetailTitle', '{label} 상세')
-        .replaceAll('{label}', section.label);
+    final String detailTitle = _text(
+      strings,
+      'analysisCategoryDetailTitle',
+      '{label} 상세',
+    ).replaceAll('{label}', section.label);
 
     showModalBottomSheet<void>(
       context: context,
@@ -448,13 +531,17 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                           Container(
                             width: 14,
                             height: 14,
-                            decoration: BoxDecoration(color: section.color, shape: BoxShape.circle),
+                            decoration: BoxDecoration(
+                              color: section.color,
+                              shape: BoxShape.circle,
+                            ),
                           ),
                           const SizedBox(width: 8),
                           Expanded(
                             child: Text(
                               detailTitle,
-                              style: Theme.of(ctx).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                              style: Theme.of(ctx).textTheme.titleLarge
+                                  ?.copyWith(fontWeight: FontWeight.w700),
                             ),
                           ),
                         ],
@@ -464,17 +551,27 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                         children: <Widget>[
                           Text(
                             '${section.percentage.toStringAsFixed(1)}%',
-                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15, color: section.color),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                              color: section.color,
+                            ),
                           ),
                           const SizedBox(width: 8),
                           Text(
                             '${section.amount.toCurrency()}$currency',
-                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 15,
+                            ),
                           ),
                           const Spacer(),
                           Text(
                             '${filteredExpenses.length}${_text(strings, 'entryCountUnit', '건')}',
-                            style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                            style: TextStyle(
+                              color: Colors.grey.shade500,
+                              fontSize: 13,
+                            ),
                           ),
                         ],
                       ),
@@ -484,13 +581,20 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                 const Divider(height: 1),
                 Expanded(
                   child: filteredExpenses.isEmpty
-                      ? Center(child: Text(_text(strings, 'emptyData', '아직 입력된 데이터가 없습니다.')))
+                      ? Center(
+                          child: Text(
+                            _text(strings, 'emptyData', '아직 입력된 데이터가 없습니다.'),
+                          ),
+                        )
                       : ListView.separated(
                           controller: controller,
                           padding: const EdgeInsets.symmetric(vertical: 8),
                           itemCount: filteredExpenses.length,
-                          separatorBuilder: (_, _) =>
-                              const Divider(height: 1, indent: 16, endIndent: 16),
+                          separatorBuilder: (_, _) => const Divider(
+                            height: 1,
+                            indent: 16,
+                            endIndent: 16,
+                          ),
                           itemBuilder: (_, int i) {
                             final ExpenseEntry item = filteredExpenses[i];
                             return ListTile(
@@ -498,22 +602,27 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                               leading: Text(
                                 DateFormat('MM/dd').format(item.spentAt),
                                 style: TextStyle(
-                                    fontSize: 12,
-                                    color: Colors.grey.shade500,
-                                    fontWeight: FontWeight.w600),
+                                  fontSize: 12,
+                                  color: Colors.grey.shade500,
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                               title: Text(
                                 item.description,
-                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+                                style: const TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w500,
+                                ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                               trailing: Text(
                                 '${item.amount.toCurrency()}$currency',
                                 style: const TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 14,
-                                    color: Color(0xFFDC3545)),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 14,
+                                  color: Color(0xFFDC3545),
+                                ),
                               ),
                             );
                           },
@@ -529,7 +638,11 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
 
   // ─── 빌드 헬퍼 ──────────────────────────────────────────────────
 
-  Widget _buildPeriodHeader(BuildContext context, Map<String, String> strings, String localeCode) {
+  Widget _buildPeriodHeader(
+    BuildContext context,
+    Map<String, String> strings,
+    String localeCode,
+  ) {
     final String modeLabel = _periodMode == _PeriodMode.monthly
         ? _text(strings, 'analysisPeriodMonthly', '월간')
         : _text(strings, 'analysisPeriodRange', '기간');
@@ -549,8 +662,13 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: <Widget>[
-                  Text(modeLabel,
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13)),
+                  Text(
+                    modeLabel,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 13,
+                    ),
+                  ),
                   const Icon(Icons.keyboard_arrow_down_rounded, size: 16),
                 ],
               ),
@@ -567,7 +685,8 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     );
   }
 
-  Widget _buildMonthNavRow(BuildContext context, Map<String, String> strings) => Row(
+  Widget _buildMonthNavRow(BuildContext context, Map<String, String> strings) =>
+      Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
           IconButton(
@@ -593,57 +712,67 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
       );
 
   Widget _buildRangeNavRow(
-      BuildContext context, Map<String, String> strings, String localeCode) =>
-      Row(
-        children: <Widget>[
-          Expanded(
-            child: OutlinedButton.icon(
-              style: OutlinedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-              ),
-              onPressed: () => _pickDateRange(context, strings, localeCode),
-              icon: const Icon(Icons.date_range_outlined, size: 16),
-              label: Text(
-                _selectedRange == null
-                    ? _text(strings, 'selectDateRange', '기간 선택')
-                    : _formatRange(localeCode, _selectedRange!),
-                style: const TextStyle(fontSize: 13),
-              ),
+    BuildContext context,
+    Map<String, String> strings,
+    String localeCode,
+  ) => Row(
+    children: <Widget>[
+      Expanded(
+        child: OutlinedButton.icon(
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
             ),
           ),
-          if (_selectedRange != null) ...<Widget>[
-            const SizedBox(width: 6),
-            IconButton(
-              onPressed: () => setState(() {
-                _selectedRange = null;
-                _touchedIndex = -1;
-              }),
-              icon: const Icon(Icons.close, size: 18),
-              visualDensity: VisualDensity.compact,
-              tooltip: _text(strings, 'clearSelection', '선택 초기화'),
-            ),
-          ],
-        ],
-      );
+          onPressed: () => _pickDateRange(context, strings, localeCode),
+          icon: const Icon(Icons.date_range_outlined, size: 16),
+          label: Text(
+            _selectedRange == null
+                ? _text(strings, 'selectDateRange', '기간 선택')
+                : _formatRange(localeCode, _selectedRange!),
+            style: const TextStyle(fontSize: 13),
+          ),
+        ),
+      ),
+      if (_selectedRange != null) ...<Widget>[
+        const SizedBox(width: 6),
+        IconButton(
+          onPressed: () => setState(() {
+            _selectedRange = null;
+            _touchedIndex = -1;
+          }),
+          icon: const Icon(Icons.close, size: 18),
+          visualDensity: VisualDensity.compact,
+          tooltip: _text(strings, 'clearSelection', '선택 초기화'),
+        ),
+      ],
+    ],
+  );
 
   /// 캐러샐 네비게이션 헤더다(< 현재모드 >).
   Widget _buildCarouselHeader(Map<String, String> strings) => Padding(
-        padding: const EdgeInsets.only(bottom: 12),
-        child: Row(
-          children: <Widget>[
-            _CarouselArrowButton(icon: Icons.chevron_left_rounded, onTap: _prevChart),
-            Expanded(
-              child: Text(
-                _chartModeTitle(strings),
-                textAlign: TextAlign.center,
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
-              ),
-            ),
-            _CarouselArrowButton(icon: Icons.chevron_right_rounded, onTap: _nextChart),
-          ],
+    padding: const EdgeInsets.only(bottom: 12),
+    child: Row(
+      children: <Widget>[
+        _CarouselArrowButton(
+          icon: Icons.chevron_left_rounded,
+          onTap: _prevChart,
         ),
-      );
+        Expanded(
+          child: Text(
+            _chartModeTitle(strings),
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+          ),
+        ),
+        _CarouselArrowButton(
+          icon: Icons.chevron_right_rounded,
+          onTap: _nextChart,
+        ),
+      ],
+    ),
+  );
 
   Widget _buildSectionRow({
     required BuildContext context,
@@ -651,46 +780,52 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     required String currency,
     required VoidCallback onDetailTap,
     required VoidCallback onRowTap,
-  }) =>
-      GestureDetector(
-        onTap: onRowTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
-          child: Row(
-            children: <Widget>[
-              Container(
-                width: 12,
-                height: 12,
-                decoration: BoxDecoration(color: section.color, shape: BoxShape.circle),
-              ),
-              const SizedBox(width: 10),
-              Expanded(
-                flex: 4,
-                child: Text(
-                  section.label,
-                  style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              Text(
-                '${section.percentage.toStringAsFixed(0)}%',
-                style: TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: section.color),
-              ),
-              const SizedBox(width: 12),
-              Text(
-                '${section.amount.toCurrency()}$currency',
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
-              ),
-              IconButton(
-                onPressed: onDetailTap,
-                icon: const Icon(Icons.chevron_right, size: 20),
-                visualDensity: VisualDensity.compact,
-                color: Colors.grey.shade400,
-              ),
-            ],
+  }) => GestureDetector(
+    onTap: onRowTap,
+    child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+      child: Row(
+        children: <Widget>[
+          Container(
+            width: 12,
+            height: 12,
+            decoration: BoxDecoration(
+              color: section.color,
+              shape: BoxShape.circle,
+            ),
           ),
-        ),
-      );
+          const SizedBox(width: 10),
+          Expanded(
+            flex: 4,
+            child: Text(
+              section.label,
+              style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          Text(
+            '${section.percentage.toStringAsFixed(0)}%',
+            style: TextStyle(
+              fontWeight: FontWeight.w600,
+              fontSize: 13,
+              color: section.color,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            '${section.amount.toCurrency()}$currency',
+            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+          ),
+          IconButton(
+            onPressed: onDetailTap,
+            icon: const Icon(Icons.chevron_right, size: 20),
+            visualDensity: VisualDensity.compact,
+            color: Colors.grey.shade400,
+          ),
+        ],
+      ),
+    ),
+  );
 
   Widget _buildFixedExpenseBarSection({
     required List<FixedExpense> items,
@@ -703,8 +838,13 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     final int maxAmount = items
         .map((FixedExpense f) => f.amount)
         .reduce((int a, int b) => a > b ? a : b);
-    final int fixedTotal = items.fold(0, (int s, FixedExpense f) => s + f.amount);
-    final double fixedPercentage = totalAmount > 0 ? fixedTotal / totalAmount * 100 : 0.0;
+    final int fixedTotal = items.fold(
+      0,
+      (int s, FixedExpense f) => s + f.amount,
+    );
+    final double fixedPercentage = totalAmount > 0
+        ? fixedTotal / totalAmount * 100
+        : 0.0;
 
     return BootstrapSectionCard(
       key: _fixedSectionKey,
@@ -715,19 +855,32 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
             children: <Widget>[
               Expanded(
                 child: Text(
-                  _text(strings, 'analysisFixedExpenseSectionTitle', '이번 달 고정지출'),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                  _text(
+                    strings,
+                    'analysisFixedExpenseSectionTitle',
+                    '이번 달 고정지출',
+                  ),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
               Text(
                 '${fixedPercentage.toStringAsFixed(1)}%',
-                style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: _kFixedColor),
+                style: const TextStyle(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 13,
+                  color: _kFixedColor,
+                ),
               ),
               const SizedBox(width: 8),
               Text(
                 '${fixedTotal.toCurrency()}$currency',
                 style: const TextStyle(
-                    fontWeight: FontWeight.w700, fontSize: 14, color: Color(0xFF0D6EFD)),
+                  fontWeight: FontWeight.w700,
+                  fontSize: 14,
+                  color: Color(0xFF0D6EFD),
+                ),
               ),
             ],
           ),
@@ -735,7 +888,8 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
           ...items.asMap().entries.map((MapEntry<int, FixedExpense> entry) {
             final FixedExpense item = entry.value;
             final double ratio = maxAmount > 0 ? item.amount / maxAmount : 0.0;
-            final Color barColor = kDonutSectionColors[entry.key % kDonutSectionColors.length];
+            final Color barColor =
+                kDonutSectionColors[entry.key % kDonutSectionColors.length];
             return Padding(
               padding: const EdgeInsets.only(bottom: 14),
               child: Column(
@@ -746,13 +900,20 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                       Expanded(
                         child: Text(
                           item.description,
-                          style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w600,
+                            fontSize: 13,
+                          ),
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
                       Text(
                         '${item.amount.toCurrency()}$currency',
-                        style: TextStyle(fontWeight: FontWeight.w700, fontSize: 13, color: barColor),
+                        style: TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 13,
+                          color: barColor,
+                        ),
                       ),
                     ],
                   ),
@@ -787,34 +948,49 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
 
     final String localeCode = ledger.settings.localeCode;
     final String currency = strings['currencyUnit'] ?? '₩';
-    final List<MetadataTag> categoryTags = ledger.tagsByType(MetadataTagType.category);
-    final List<MetadataTag> subcategoryTags = ledger.tagsByType(MetadataTagType.subcategory);
-    final List<MetadataTag> paymentTags = ledger.tagsByType(MetadataTagType.paymentMethod);
+    final List<MetadataTag> categoryTags = ledger.tagsByType(
+      MetadataTagType.category,
+    );
+    final List<MetadataTag> subcategoryTags = ledger.tagsByType(
+      MetadataTagType.subcategory,
+    );
+    final List<MetadataTag> paymentTags = ledger.tagsByType(
+      MetadataTagType.paymentMethod,
+    );
 
-    final bool usingRange = _periodMode == _PeriodMode.range && _selectedRange != null;
+    final bool usingRange =
+        _periodMode == _PeriodMode.range && _selectedRange != null;
 
     final ExpenseRangeQuery? rangeQuery = usingRange
-        ? ExpenseRangeQuery(start: _selectedRange!.start, endInclusive: _selectedRange!.end)
+        ? ExpenseRangeQuery(
+            start: _selectedRange!.start,
+            endInclusive: _selectedRange!.end,
+          )
         : null;
 
     final AsyncValue<List<ExpenseEntry>> expensesAsync = usingRange
         ? ref.watch(rangeExpensesProvider(rangeQuery!))
         : ref.watch(monthlyExpensesProvider(_selectedMonth));
 
-    final AsyncValue<List<IncomeEntry>> incomesAsync =
-        ref.watch(monthlyIncomesProvider(_selectedMonth));
+    final AsyncValue<List<IncomeEntry>> incomesAsync = ref.watch(
+      monthlyIncomesProvider(_selectedMonth),
+    );
 
     final List<FixedExpense> monthlyFixed = ledger.fixedExpenses
-        .where((FixedExpense f) =>
-            f.appliedAt.year == _selectedMonth.year &&
-            f.appliedAt.month == _selectedMonth.month)
+        .where(
+          (FixedExpense f) =>
+              f.appliedAt.year == _selectedMonth.year &&
+              f.appliedAt.month == _selectedMonth.month,
+        )
         .toList();
 
     final String periodSubtitle = usingRange
         ? _formatRange(localeCode, _selectedRange!)
         : _formatMonth(localeCode, _selectedMonth);
 
-    final DateTime chartRangeStart = usingRange ? _selectedRange!.start : _selectedMonth;
+    final DateTime chartRangeStart = usingRange
+        ? _selectedRange!.start
+        : _selectedMonth;
 
     return BootstrapPage(
       title: _text(strings, 'analysis', '지출 분석'),
@@ -826,7 +1002,8 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
           tooltip: strings['dataManageTitle'] ?? '데이터 관리',
         ),
         IconButton(
-          onPressed: () => Navigator.of(context).pushNamed(AppRouter.settingsRoute),
+          onPressed: () =>
+              Navigator.of(context).pushNamed(AppRouter.settingsRoute),
           icon: const Icon(Icons.settings_outlined),
         ),
       ],
@@ -846,12 +1023,16 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                       segments: <ButtonSegment<bool>>[
                         ButtonSegment<bool>(
                           value: true,
-                          label: Text(_text(strings, 'analysisTabExpense', '지출')),
+                          label: Text(
+                            _text(strings, 'analysisTabExpense', '지출'),
+                          ),
                           icon: const Icon(Icons.trending_down_rounded),
                         ),
                         ButtonSegment<bool>(
                           value: false,
-                          label: Text(_text(strings, 'analysisTabIncome', '수입')),
+                          label: Text(
+                            _text(strings, 'analysisTabIncome', '수입'),
+                          ),
                           icon: const Icon(Icons.trending_up_rounded),
                         ),
                       ],
@@ -868,10 +1049,9 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                   const SizedBox(height: 4),
                   Text(
                     periodSubtitle,
-                    style: Theme.of(context)
-                        .textTheme
-                        .bodySmall
-                        ?.copyWith(color: Colors.grey.shade500),
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Colors.grey.shade500,
+                    ),
                   ),
                 ],
               ),
@@ -886,42 +1066,71 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (Object e, _) => Center(child: Text(e.toString())),
                 data: (List<ExpenseEntry> expenses) {
-                  final List<FixedExpense> activeFixed =
-                      !usingRange ? monthlyFixed : const <FixedExpense>[];
+                  final List<FixedExpense> activeFixed = !usingRange
+                      ? monthlyFixed
+                      : const <FixedExpense>[];
 
-                  final int expenseTotal =
-                      expenses.fold(0, (int s, ExpenseEntry e) => s + e.amount);
-                  final int fixedTotal =
-                      activeFixed.fold(0, (int s, FixedExpense f) => s + f.amount);
+                  final int expenseTotal = expenses.fold(
+                    0,
+                    (int s, ExpenseEntry e) => s + e.amount,
+                  );
+                  final int fixedTotal = activeFixed.fold(
+                    0,
+                    (int s, FixedExpense f) => s + f.amount,
+                  );
                   final int totalAmount = expenseTotal + fixedTotal;
 
                   // 현재 캐러샐 모드에 맞는 섹션 목록
                   final List<DonutSection> sections = switch (_chartMode) {
                     _ChartMode.category => _buildCategoryDonutSections(
-                        expenses, categoryTags, activeFixed, strings),
-                    _ChartMode.subcategory =>
-                      _buildSubcategoryDonutSections(expenses, subcategoryTags),
-                    _ChartMode.paymentMethod =>
-                      _buildPaymentDonutSections(expenses, paymentTags),
+                      expenses,
+                      categoryTags,
+                      activeFixed,
+                      strings,
+                    ),
+                    _ChartMode.subcategory => _buildSubcategoryDonutSections(
+                      expenses,
+                      subcategoryTags,
+                    ),
+                    _ChartMode.paymentMethod => _buildPaymentDonutSections(
+                      expenses,
+                      paymentTags,
+                    ),
                   };
 
-                  final List<FlSpot> dailySpots =
-                      _buildDailyExpenseSpots(expenses, chartRangeStart);
+                  final List<FlSpot> dailySpots = _buildDailyExpenseSpots(
+                    expenses,
+                    chartRangeStart,
+                  );
 
                   List<ExpenseEntry> filteredFor(DonutSection section) {
                     final List<ExpenseEntry> list = switch (_chartMode) {
-                      _ChartMode.category => expenses
-                          .where((ExpenseEntry e) => e.categoryCode == section.categoryCode)
-                          .toList(),
-                      _ChartMode.subcategory => expenses
-                          .where((ExpenseEntry e) => e.subcategoryCode == section.categoryCode)
-                          .toList(),
-                      _ChartMode.paymentMethod => expenses
-                          .where((ExpenseEntry e) => e.paymentMethodCode == section.categoryCode)
-                          .toList(),
+                      _ChartMode.category =>
+                        expenses
+                            .where(
+                              (ExpenseEntry e) =>
+                                  e.categoryCode == section.categoryCode,
+                            )
+                            .toList(),
+                      _ChartMode.subcategory =>
+                        expenses
+                            .where(
+                              (ExpenseEntry e) =>
+                                  e.subcategoryCode == section.categoryCode,
+                            )
+                            .toList(),
+                      _ChartMode.paymentMethod =>
+                        expenses
+                            .where(
+                              (ExpenseEntry e) =>
+                                  e.paymentMethodCode == section.categoryCode,
+                            )
+                            .toList(),
                     };
-                    return list
-                      ..sort((ExpenseEntry a, ExpenseEntry b) => b.spentAt.compareTo(a.spentAt));
+                    return list..sort(
+                      (ExpenseEntry a, ExpenseEntry b) =>
+                          b.spentAt.compareTo(a.spentAt),
+                    );
                   }
 
                   return Column(
@@ -937,7 +1146,8 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                               onTouchUpdate: (int index) =>
                                   setState(() => _touchedIndex = index),
                               onSectionTap: (int index) {
-                                if (index < 0 || index >= sections.length) return;
+                                if (index < 0 || index >= sections.length)
+                                  return;
                                 final DonutSection tapped = sections[index];
                                 // 소비구분 모드의 고정지출 → 스크롤
                                 if (_chartMode == _ChartMode.category &&
@@ -946,10 +1156,20 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                                   return;
                                 }
                                 _showGroupDetail(
-                                    context, tapped, filteredFor(tapped), strings, currency);
+                                  context,
+                                  tapped,
+                                  filteredFor(tapped),
+                                  strings,
+                                  currency,
+                                );
                               },
-                              totalLabel: _text(strings, 'analysisTotalLabel', '전체'),
-                              totalAmount: '${totalAmount.toCurrency()}$currency',
+                              totalLabel: _text(
+                                strings,
+                                'analysisTotalLabel',
+                                '전체',
+                              ),
+                              totalAmount:
+                                  '${totalAmount.toCurrency()}$currency',
                               currency: currency,
                             ),
                             const SizedBox(height: 8),
@@ -958,13 +1178,18 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                               children: <Widget>[
                                 Text(
                                   _text(strings, 'analysisTotalLabel', '전체'),
-                                  style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
+                                  style: TextStyle(
+                                    color: Colors.grey.shade500,
+                                    fontSize: 13,
+                                  ),
                                 ),
                                 const SizedBox(width: 12),
                                 Text(
                                   '${totalAmount.toCurrency()}$currency',
                                   style: const TextStyle(
-                                      fontWeight: FontWeight.w700, fontSize: 16),
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 16,
+                                  ),
                                 ),
                               ],
                             ),
@@ -977,11 +1202,11 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                       if (sections.isNotEmpty)
                         BootstrapSectionCard(
                           child: Column(
-                            children: sections
-                                .asMap()
-                                .entries
-                                .map((MapEntry<int, DonutSection> entry) {
-                              final bool isFixed = _chartMode == _ChartMode.category &&
+                            children: sections.asMap().entries.map((
+                              MapEntry<int, DonutSection> entry,
+                            ) {
+                              final bool isFixed =
+                                  _chartMode == _ChartMode.category &&
                                   entry.value.categoryCode == _kFixedCode;
                               return Column(
                                 children: <Widget>[
@@ -990,8 +1215,12 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                                     section: entry.value,
                                     currency: currency,
                                     onRowTap: () {
-                                      setState(() => _touchedIndex =
-                                          _touchedIndex == entry.key ? -1 : entry.key);
+                                      setState(
+                                        () => _touchedIndex =
+                                            _touchedIndex == entry.key
+                                            ? -1
+                                            : entry.key,
+                                      );
                                       if (isFixed) _scrollToFixedSection();
                                     },
                                     onDetailTap: () {
@@ -999,8 +1228,13 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                                         _scrollToFixedSection();
                                         return;
                                       }
-                                      _showGroupDetail(context, entry.value,
-                                          filteredFor(entry.value), strings, currency);
+                                      _showGroupDetail(
+                                        context,
+                                        entry.value,
+                                        filteredFor(entry.value),
+                                        strings,
+                                        currency,
+                                      );
                                     },
                                   ),
                                   if (entry.key < sections.length - 1)
@@ -1020,7 +1254,8 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                           strings: strings,
                           totalAmount: totalAmount,
                         ),
-                      if (!usingRange && monthlyFixed.isNotEmpty) const SizedBox(height: 16),
+                      if (!usingRange && monthlyFixed.isNotEmpty)
+                        const SizedBox(height: 16),
 
                       // ── 일별 지출 추이 카드 ──
                       if (dailySpots.isNotEmpty)
@@ -1028,7 +1263,11 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                           child: AnalysisDailyChart(
                             spots: dailySpots,
                             currency: currency,
-                            title: _text(strings, 'analysisDailyTrendTitle', '일별 지출 추이'),
+                            title: _text(
+                              strings,
+                              'analysisDailyTrendTitle',
+                              '일별 지출 추이',
+                            ),
                             rangeStart: chartRangeStart,
                             showDayStats: true,
                           ),
@@ -1060,10 +1299,13 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                 child: SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: () => Navigator.of(context)
-                        .pushNamed(AppRouter.generatingReportRoute),
-                    icon: const Icon(Icons.picture_as_pdf_rounded,
-                        color: Color(0xFFDC3545)),
+                    onPressed: () => Navigator.of(
+                      context,
+                    ).pushNamed(AppRouter.generatingReportRoute),
+                    icon: const Icon(
+                      Icons.picture_as_pdf_rounded,
+                      color: Color(0xFFDC3545),
+                    ),
                     label: Text(
                       _text(strings, 'analysisExportPdf', 'PDF로 출력하기'),
                       style: const TextStyle(color: Color(0xFFDC3545)),
@@ -1081,10 +1323,14 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                 loading: () => const Center(child: CircularProgressIndicator()),
                 error: (Object e, _) => Center(child: Text(e.toString())),
                 data: (List<IncomeEntry> incomes) {
-                  final int incomeTotal =
-                      incomes.fold(0, (int s, IncomeEntry e) => s + e.amount);
-                  final List<FlSpot> incomeSpots =
-                      _buildDailyIncomeSpots(incomes, chartRangeStart);
+                  final int incomeTotal = incomes.fold(
+                    0,
+                    (int s, IncomeEntry e) => s + e.amount,
+                  );
+                  final List<FlSpot> incomeSpots = _buildDailyIncomeSpots(
+                    incomes,
+                    chartRangeStart,
+                  );
 
                   return Column(
                     children: <Widget>[
@@ -1103,33 +1349,41 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                             children: <Widget>[
                               Text(
                                 _text(strings, 'incomeTotal', '수입 내역'),
-                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.w700),
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w700),
                               ),
                               const SizedBox(height: 12),
                               ...incomes.map(
                                 (IncomeEntry item) => Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 7),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 7,
+                                  ),
                                   child: Row(
                                     children: <Widget>[
                                       Text(
-                                        DateFormat('MM/dd').format(item.earnedAt),
+                                        DateFormat(
+                                          'MM/dd',
+                                        ).format(item.earnedAt),
                                         style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.grey.shade500,
-                                            fontWeight: FontWeight.w600),
+                                          fontSize: 12,
+                                          color: Colors.grey.shade500,
+                                          fontWeight: FontWeight.w600,
+                                        ),
                                       ),
                                       const SizedBox(width: 10),
                                       Expanded(
-                                        child: Text(item.description,
-                                            style: const TextStyle(fontSize: 13),
-                                            overflow: TextOverflow.ellipsis),
+                                        child: Text(
+                                          item.description,
+                                          style: const TextStyle(fontSize: 13),
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
                                       ),
                                       Text(
                                         '${item.amount.toCurrency()}$currency',
                                         style: const TextStyle(
-                                            fontWeight: FontWeight.w700,
-                                            color: Color(0xFF198754)),
+                                          fontWeight: FontWeight.w700,
+                                          color: Color(0xFF198754),
+                                        ),
                                       ),
                                     ],
                                   ),
@@ -1144,8 +1398,11 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                           child: AnalysisDailyChart(
                             spots: incomeSpots,
                             currency: currency,
-                            title:
-                                _text(strings, 'analysisIncomeDailyTrendTitle', '일별 수입 추이'),
+                            title: _text(
+                              strings,
+                              'analysisIncomeDailyTrendTitle',
+                              '일별 수입 추이',
+                            ),
                             rangeStart: chartRangeStart,
                           ),
                         ),

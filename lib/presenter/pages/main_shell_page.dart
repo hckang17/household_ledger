@@ -20,11 +20,11 @@ class MainShellPage extends ConsumerWidget {
   const MainShellPage({super.key});
 
   static const List<Widget> _pages = <Widget>[
-    IncomePage(),        // 0: 수입
-    AnalysisPage(),      // 1: 분석
-    HomePage(),          // 2: 홈
+    IncomePage(), // 0: 수입
+    AnalysisPage(), // 1: 분석
+    HomePage(), // 2: 홈
     ExpenseRecordPage(), // 3: 소비기록
-    FixedExpensePage(),  // 4: 고정지출
+    FixedExpensePage(), // 4: 고정지출
   ];
 
   @override

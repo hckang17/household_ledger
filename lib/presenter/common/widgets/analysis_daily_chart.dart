@@ -47,7 +47,9 @@ class AnalysisDailyChart extends ConsumerWidget {
     final String wan = strings['chartUnitWan'] ?? '만';
     if (v >= 10000) {
       final double w = v / 10000;
-      return w == w.truncateToDouble() ? '${w.toInt()}$wan' : '${w.toStringAsFixed(1)}$wan';
+      return w == w.truncateToDouble()
+          ? '${w.toInt()}$wan'
+          : '${w.toStringAsFixed(1)}$wan';
     }
     if (v >= 1000) return '${(v / 1000).toStringAsFixed(0)}K';
     return v.toInt().toString();
@@ -69,26 +71,29 @@ class AnalysisDailyChart extends ConsumerWidget {
     FlSpot spot,
     Color color,
     Map<String, String> strings,
-  ) =>
-      Row(
-        children: <Widget>[
-          Expanded(
-            child: Text(
-              '$label : ${_formatDayLabel(spot, strings)}',
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade600,
-                fontWeight: FontWeight.w500,
-              ),
-              overflow: TextOverflow.ellipsis,
-            ),
+  ) => Row(
+    children: <Widget>[
+      Expanded(
+        child: Text(
+          '$label : ${_formatDayLabel(spot, strings)}',
+          style: TextStyle(
+            fontSize: 12,
+            color: Colors.grey.shade600,
+            fontWeight: FontWeight.w500,
           ),
-          Text(
-            '${spot.y.toInt().toCurrency()}$currency',
-            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: color),
-          ),
-        ],
-      );
+          overflow: TextOverflow.ellipsis,
+        ),
+      ),
+      Text(
+        '${spot.y.toInt().toCurrency()}$currency',
+        style: TextStyle(
+          fontSize: 12,
+          fontWeight: FontWeight.w700,
+          color: color,
+        ),
+      ),
+    ],
+  );
 
   // ─── 빌드 ───────────────────────────────────────────────────────
 
@@ -100,17 +105,26 @@ class AnalysisDailyChart extends ConsumerWidget {
     if (spots.every((FlSpot s) => s.y == 0)) return const SizedBox.shrink();
 
     final double maxY =
-        spots.map((FlSpot s) => s.y).reduce((double a, double b) => a > b ? a : b) * 1.3;
+        spots
+            .map((FlSpot s) => s.y)
+            .reduce((double a, double b) => a > b ? a : b) *
+        1.3;
 
-    final FlSpot maxSpot = spots.reduce((FlSpot a, FlSpot b) => a.y >= b.y ? a : b);
-    final FlSpot minSpot = spots.reduce((FlSpot a, FlSpot b) => a.y <= b.y ? a : b);
+    final FlSpot maxSpot = spots.reduce(
+      (FlSpot a, FlSpot b) => a.y >= b.y ? a : b,
+    );
+    final FlSpot minSpot = spots.reduce(
+      (FlSpot a, FlSpot b) => a.y <= b.y ? a : b,
+    );
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
         Text(
           title,
-          style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+          style: Theme.of(
+            context,
+          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
         ),
         const SizedBox(height: 16),
 
@@ -152,26 +166,37 @@ class AnalysisDailyChart extends ConsumerWidget {
                         axisSide: meta.axisSide,
                         child: Text(
                           _yLabel(value, strings),
-                          style: TextStyle(fontSize: 9, color: Colors.grey.shade500),
+                          style: TextStyle(
+                            fontSize: 9,
+                            color: Colors.grey.shade500,
+                          ),
                         ),
                       );
                     },
                   ),
                 ),
-                rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
+                topTitles: const AxisTitles(
+                  sideTitles: SideTitles(showTitles: false),
+                ),
                 bottomTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
                     interval: 5,
                     reservedSize: 22,
-                    getTitlesWidget: (double value, TitleMeta meta) => SideTitleWidget(
-                      axisSide: meta.axisSide,
-                      child: Text(
-                        '${value.toInt()}',
-                        style: TextStyle(fontSize: 10, color: Colors.grey.shade500),
-                      ),
-                    ),
+                    getTitlesWidget: (double value, TitleMeta meta) =>
+                        SideTitleWidget(
+                          axisSide: meta.axisSide,
+                          child: Text(
+                            '${value.toInt()}',
+                            style: TextStyle(
+                              fontSize: 10,
+                              color: Colors.grey.shade500,
+                            ),
+                          ),
+                        ),
                   ),
                 ),
               ),
@@ -190,15 +215,18 @@ class AnalysisDailyChart extends ConsumerWidget {
               lineTouchData: LineTouchData(
                 touchTooltipData: LineTouchTooltipData(
                   getTooltipColor: (_) => const Color(0xFF222222),
-                  getTooltipItems: (List<LineBarSpot> touchedSpots) =>
-                      touchedSpots.map((LineBarSpot spot) => LineTooltipItem(
-                            '${spot.x.toInt()}\n${spot.y.toInt().toCurrency()}$currency',
-                            const TextStyle(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          )).toList(),
+                  getTooltipItems: (List<LineBarSpot> touchedSpots) => touchedSpots
+                      .map(
+                        (LineBarSpot spot) => LineTooltipItem(
+                          '${spot.x.toInt()}\n${spot.y.toInt().toCurrency()}$currency',
+                          const TextStyle(
+                            color: Colors.white,
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      )
+                      .toList(),
                 ),
               ),
             ),

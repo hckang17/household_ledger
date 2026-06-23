@@ -293,15 +293,15 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
                   String? newAmountError;
 
                   if (rawDesc.isEmpty) {
-                    newDescError = widget.strings['descriptionRequired'] ??
-                        '내용을 입력해주세요.';
+                    newDescError =
+                        widget.strings['descriptionRequired'] ?? '내용을 입력해주세요.';
                   }
                   if (rawAmount.isEmpty) {
-                    newAmountError = widget.strings['amountRequired'] ??
-                        '금액을 입력해주세요.';
+                    newAmountError =
+                        widget.strings['amountRequired'] ?? '금액을 입력해주세요.';
                   } else if (parsedAmount == null) {
-                    newAmountError = widget.strings['amountInvalid'] ??
-                        '올바른 숫자를 입력해주세요.';
+                    newAmountError =
+                        widget.strings['amountInvalid'] ?? '올바른 숫자를 입력해주세요.';
                   }
 
                   if (newDescError != null || newAmountError != null) {

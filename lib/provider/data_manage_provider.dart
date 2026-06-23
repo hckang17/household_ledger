@@ -89,7 +89,9 @@ class DataManageNotifier extends Notifier<DataManageState> {
 
   Future<void> search() async {
     final DataTableType? tableType = state.filter.tableType;
-    if (tableType == null) { return; }
+    if (tableType == null) {
+      return;
+    }
 
     state = state.copyWith(
       status: DataManageStatus.searching,
@@ -98,10 +100,13 @@ class DataManageNotifier extends Notifier<DataManageState> {
 
     switch (tableType) {
       case DataTableType.expense:
-        final List<ExpenseEntry> all =
-            await ref.read(expenseDatabaseServiceProvider).loadAllExpenses();
-        final List<ExpenseEntry> filtered =
-            DataSearchService.filterExpenses(all, state.filter);
+        final List<ExpenseEntry> all = await ref
+            .read(expenseDatabaseServiceProvider)
+            .loadAllExpenses();
+        final List<ExpenseEntry> filtered = DataSearchService.filterExpenses(
+          all,
+          state.filter,
+        );
         state = state.copyWith(
           expenses: filtered,
           searchedTableType: tableType,
@@ -119,10 +124,13 @@ class DataManageNotifier extends Notifier<DataManageState> {
           status: DataManageStatus.found,
         );
       case DataTableType.income:
-        final List<IncomeEntry> all =
-            await ref.read(incomeDatabaseServiceProvider).loadAllIncomes();
-        final List<IncomeEntry> filtered =
-            DataSearchService.filterIncomes(all, state.filter);
+        final List<IncomeEntry> all = await ref
+            .read(incomeDatabaseServiceProvider)
+            .loadAllIncomes();
+        final List<IncomeEntry> filtered = DataSearchService.filterIncomes(
+          all,
+          state.filter,
+        );
         state = state.copyWith(
           incomes: filtered,
           searchedTableType: tableType,
@@ -147,10 +155,11 @@ class DataManageNotifier extends Notifier<DataManageState> {
         state.expenses.map((ExpenseEntry e) => e.id).toSet(),
       DataTableType.fixedExpense =>
         state.fixedExpenses.map((FixedExpense e) => e.id).toSet(),
-      DataTableType.income => state.incomes
-          .where((IncomeEntry e) => e.id != null)
-          .map((IncomeEntry e) => e.id.toString())
-          .toSet(),
+      DataTableType.income =>
+        state.incomes
+            .where((IncomeEntry e) => e.id != null)
+            .map((IncomeEntry e) => e.id.toString())
+            .toSet(),
       null => const <String>{},
     };
     state = state.copyWith(selectedIds: all);
@@ -161,7 +170,9 @@ class DataManageNotifier extends Notifier<DataManageState> {
   }
 
   Future<void> deleteSelected() async {
-    if (state.selectedIds.isEmpty || state.searchedTableType == null) { return; }
+    if (state.selectedIds.isEmpty || state.searchedTableType == null) {
+      return;
+    }
     final Set<String> ids = Set<String>.from(state.selectedIds);
 
     state = state.copyWith(
@@ -175,7 +186,9 @@ class DataManageNotifier extends Notifier<DataManageState> {
         final db = ref.read(expenseDatabaseServiceProvider);
         for (final String id in ids) {
           await db.deleteExpense(id);
-          state = state.copyWith(operationCompleted: state.operationCompleted + 1);
+          state = state.copyWith(
+            operationCompleted: state.operationCompleted + 1,
+          );
         }
         state = state.copyWith(
           expenses: state.expenses
@@ -191,7 +204,9 @@ class DataManageNotifier extends Notifier<DataManageState> {
         final db = ref.read(fixedExpenseDatabaseServiceProvider);
         for (final String id in ids) {
           await db.deleteFixedExpense(id);
-          state = state.copyWith(operationCompleted: state.operationCompleted + 1);
+          state = state.copyWith(
+            operationCompleted: state.operationCompleted + 1,
+          );
         }
         state = state.copyWith(
           fixedExpenses: state.fixedExpenses
@@ -231,8 +246,12 @@ class DataManageNotifier extends Notifier<DataManageState> {
     String? paymentMethodCode,
     String? categoryCode,
   }) async {
-    if (state.selectedIds.isEmpty || state.searchedTableType == null) { return; }
-    if (paymentMethodCode == null && categoryCode == null) { return; }
+    if (state.selectedIds.isEmpty || state.searchedTableType == null) {
+      return;
+    }
+    if (paymentMethodCode == null && categoryCode == null) {
+      return;
+    }
 
     final Set<String> ids = Set<String>.from(state.selectedIds);
 
@@ -246,7 +265,9 @@ class DataManageNotifier extends Notifier<DataManageState> {
       case DataTableType.expense:
         final db = ref.read(expenseDatabaseServiceProvider);
         for (final ExpenseEntry e in state.expenses) {
-          if (!ids.contains(e.id)) { continue; }
+          if (!ids.contains(e.id)) {
+            continue;
+          }
           ExpenseEntry updated = e;
           if (paymentMethodCode != null) {
             updated = updated.copyWith(paymentMethodCode: paymentMethodCode);
@@ -255,11 +276,15 @@ class DataManageNotifier extends Notifier<DataManageState> {
             updated = updated.copyWith(categoryCode: categoryCode);
           }
           await db.upsertExpense(updated);
-          state = state.copyWith(operationCompleted: state.operationCompleted + 1);
+          state = state.copyWith(
+            operationCompleted: state.operationCompleted + 1,
+          );
         }
         state = state.copyWith(
           expenses: state.expenses.map((ExpenseEntry e) {
-            if (!ids.contains(e.id)) { return e; }
+            if (!ids.contains(e.id)) {
+              return e;
+            }
             ExpenseEntry updated = e;
             if (paymentMethodCode != null) {
               updated = updated.copyWith(paymentMethodCode: paymentMethodCode);
@@ -278,7 +303,9 @@ class DataManageNotifier extends Notifier<DataManageState> {
       case DataTableType.fixedExpense:
         final db = ref.read(fixedExpenseDatabaseServiceProvider);
         for (final FixedExpense e in state.fixedExpenses) {
-          if (!ids.contains(e.id)) { continue; }
+          if (!ids.contains(e.id)) {
+            continue;
+          }
           FixedExpense updated = e;
           if (paymentMethodCode != null) {
             updated = updated.copyWith(paymentMethodCode: paymentMethodCode);
@@ -287,11 +314,15 @@ class DataManageNotifier extends Notifier<DataManageState> {
             updated = updated.copyWith(categoryCode: categoryCode);
           }
           await db.upsertFixedExpense(updated);
-          state = state.copyWith(operationCompleted: state.operationCompleted + 1);
+          state = state.copyWith(
+            operationCompleted: state.operationCompleted + 1,
+          );
         }
         state = state.copyWith(
           fixedExpenses: state.fixedExpenses.map((FixedExpense e) {
-            if (!ids.contains(e.id)) { return e; }
+            if (!ids.contains(e.id)) {
+              return e;
+            }
             FixedExpense updated = e;
             if (paymentMethodCode != null) {
               updated = updated.copyWith(paymentMethodCode: paymentMethodCode);
@@ -315,5 +346,5 @@ class DataManageNotifier extends Notifier<DataManageState> {
 
 final dataManageProvider =
     NotifierProvider<DataManageNotifier, DataManageState>(
-  DataManageNotifier.new,
-);
+      DataManageNotifier.new,
+    );

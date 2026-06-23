@@ -8,7 +8,7 @@ import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
-import 'package:household_ledger/services/export_pdf_report_service.dart';
+import 'package:household_ledger/services/imexporting_file/export_pdf_report_service.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
 import 'package:share_plus/share_plus.dart';
@@ -210,22 +210,30 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
       if (usingRange && _selectedRange != null) {
         final List<IncomeEntry> merged = <IncomeEntry>[];
         DateTime cursor = DateTime(
-            _selectedRange!.start.year, _selectedRange!.start.month);
+          _selectedRange!.start.year,
+          _selectedRange!.start.month,
+        );
         final DateTime endMonth = DateTime(
-            _selectedRange!.end.year, _selectedRange!.end.month);
+          _selectedRange!.end.year,
+          _selectedRange!.end.month,
+        );
         while (!cursor.isAfter(endMonth)) {
-          final List<IncomeEntry> monthData =
-              await ref.read(monthlyIncomesProvider(cursor).future);
+          final List<IncomeEntry> monthData = await ref.read(
+            monthlyIncomesProvider(cursor).future,
+          );
           // 선택 범위 내 날짜의 항목만 포함한다.
-          merged.addAll(monthData.where((IncomeEntry i) =>
-              !i.earnedAt.isBefore(_selectedRange!.start) &&
-              !i.earnedAt.isAfter(_selectedRange!.end)));
+          merged.addAll(
+            monthData.where(
+              (IncomeEntry i) =>
+                  !i.earnedAt.isBefore(_selectedRange!.start) &&
+                  !i.earnedAt.isAfter(_selectedRange!.end),
+            ),
+          );
           cursor = DateTime(cursor.year, cursor.month + 1);
         }
         incomes = merged;
       } else {
-        incomes =
-            await ref.read(monthlyIncomesProvider(_selectedMonth).future);
+        incomes = await ref.read(monthlyIncomesProvider(_selectedMonth).future);
       }
 
       // 고정지출은 월간 모드에서만 포함한다 (분석 페이지와 동일한 정책).

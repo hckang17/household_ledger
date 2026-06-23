@@ -51,8 +51,7 @@ class DataSearchFilter {
     String? noteQuery,
   }) {
     return DataSearchFilter(
-      tableType:
-          clearTableType ? null : (tableType ?? this.tableType),
+      tableType: clearTableType ? null : (tableType ?? this.tableType),
       dateRangeType: dateRangeType ?? this.dateRangeType,
       selectedMonth: clearSelectedMonth
           ? null
@@ -62,8 +61,7 @@ class DataSearchFilter {
       paymentMethodCode: clearPaymentMethod
           ? null
           : (paymentMethodCode ?? this.paymentMethodCode),
-      categoryCode:
-          clearCategory ? null : (categoryCode ?? this.categoryCode),
+      categoryCode: clearCategory ? null : (categoryCode ?? this.categoryCode),
       descriptionQuery: descriptionQuery ?? this.descriptionQuery,
       noteQuery: noteQuery ?? this.noteQuery,
     );

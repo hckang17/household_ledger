@@ -12,19 +12,27 @@ class DataSearchService {
     DataSearchFilter filter,
   ) {
     return all.where((ExpenseEntry e) {
-      if (!_matchDate(e.spentAt, filter)) { return false; }
+      if (!_matchDate(e.spentAt, filter)) {
+        return false;
+      }
       if (filter.paymentMethodCode != null &&
-          e.paymentMethodCode != filter.paymentMethodCode) { return false; }
+          e.paymentMethodCode != filter.paymentMethodCode) {
+        return false;
+      }
       if (filter.categoryCode != null &&
-          e.categoryCode != filter.categoryCode) { return false; }
+          e.categoryCode != filter.categoryCode) {
+        return false;
+      }
       if (filter.descriptionQuery.isNotEmpty &&
           !e.description.toLowerCase().contains(
             filter.descriptionQuery.toLowerCase(),
-          )) { return false; }
+          )) {
+        return false;
+      }
       if (filter.noteQuery.isNotEmpty &&
-          !e.note.toLowerCase().contains(
-            filter.noteQuery.toLowerCase(),
-          )) { return false; }
+          !e.note.toLowerCase().contains(filter.noteQuery.toLowerCase())) {
+        return false;
+      }
       return true;
     }).toList();
   }
@@ -34,19 +42,27 @@ class DataSearchService {
     DataSearchFilter filter,
   ) {
     return all.where((FixedExpense e) {
-      if (!_matchDate(e.appliedAt, filter)) { return false; }
+      if (!_matchDate(e.appliedAt, filter)) {
+        return false;
+      }
       if (filter.paymentMethodCode != null &&
-          e.paymentMethodCode != filter.paymentMethodCode) { return false; }
+          e.paymentMethodCode != filter.paymentMethodCode) {
+        return false;
+      }
       if (filter.categoryCode != null &&
-          e.categoryCode != filter.categoryCode) { return false; }
+          e.categoryCode != filter.categoryCode) {
+        return false;
+      }
       if (filter.descriptionQuery.isNotEmpty &&
           !e.description.toLowerCase().contains(
             filter.descriptionQuery.toLowerCase(),
-          )) { return false; }
+          )) {
+        return false;
+      }
       if (filter.noteQuery.isNotEmpty &&
-          !e.note.toLowerCase().contains(
-            filter.noteQuery.toLowerCase(),
-          )) { return false; }
+          !e.note.toLowerCase().contains(filter.noteQuery.toLowerCase())) {
+        return false;
+      }
       return true;
     }).toList();
   }
@@ -56,11 +72,15 @@ class DataSearchService {
     DataSearchFilter filter,
   ) {
     return all.where((IncomeEntry e) {
-      if (!_matchDate(e.earnedAt, filter)) { return false; }
+      if (!_matchDate(e.earnedAt, filter)) {
+        return false;
+      }
       if (filter.descriptionQuery.isNotEmpty &&
           !e.description.toLowerCase().contains(
             filter.descriptionQuery.toLowerCase(),
-          )) { return false; }
+          )) {
+        return false;
+      }
       return true;
     }).toList();
   }
@@ -70,20 +90,23 @@ class DataSearchService {
       case DateRangeType.all:
         return true;
       case DateRangeType.month:
-        if (filter.selectedMonth == null) { return true; }
+        if (filter.selectedMonth == null) {
+          return true;
+        }
         return date.year == filter.selectedMonth!.year &&
             date.month == filter.selectedMonth!.month;
       case DateRangeType.period:
         final DateTime? start = filter.startDate;
         final DateTime? end = filter.endDate;
-        if (start == null && end == null) { return true; }
+        if (start == null && end == null) {
+          return true;
+        }
         final DateTime d = DateTime(date.year, date.month, date.day);
         if (start != null &&
             d.isBefore(DateTime(start.year, start.month, start.day))) {
           return false;
         }
-        if (end != null &&
-            d.isAfter(DateTime(end.year, end.month, end.day))) {
+        if (end != null && d.isAfter(DateTime(end.year, end.month, end.day))) {
           return false;
         }
         return true;

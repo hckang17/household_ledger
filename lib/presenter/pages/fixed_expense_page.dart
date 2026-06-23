@@ -31,15 +31,13 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
 
   void _prevMonth() {
     setState(() {
-      _focusedMonth =
-          DateTime(_focusedMonth.year, _focusedMonth.month - 1, 1);
+      _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month - 1, 1);
     });
   }
 
   void _nextMonth() {
     setState(() {
-      _focusedMonth =
-          DateTime(_focusedMonth.year, _focusedMonth.month + 1, 1);
+      _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month + 1, 1);
     });
   }
 
@@ -65,10 +63,7 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
     final template = strings['monthYearLabel'] ?? '{year}년 {month}월';
     return template
         .replaceAll('{year}', _focusedMonth.year.toString())
-        .replaceAll(
-          '{month}',
-          _focusedMonth.month.toString().padLeft(2, '0'),
-        );
+        .replaceAll('{month}', _focusedMonth.month.toString().padLeft(2, '0'));
   }
 
   String _totalLabel(Map<String, String> strings) {
@@ -76,10 +71,7 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
         strings['fixedExpenseMonthlyTotalLabel'] ?? '{year}년 {month}월 고정지출 합계';
     return template
         .replaceAll('{year}', _focusedMonth.year.toString())
-        .replaceAll(
-          '{month}',
-          _focusedMonth.month.toString().padLeft(2, '0'),
-        );
+        .replaceAll('{month}', _focusedMonth.month.toString().padLeft(2, '0'));
   }
 
   String _resolveTagLabel(List<MetadataTag> tags, String code) {
@@ -114,10 +106,12 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
     final strings = ref.read(localizedStringsProvider);
     if (ledger == null) return;
 
-    final descriptionController =
-        TextEditingController(text: item?.description ?? '');
-    final amountController =
-        TextEditingController(text: item?.amount.toString() ?? '');
+    final descriptionController = TextEditingController(
+      text: item?.description ?? '',
+    );
+    final amountController = TextEditingController(
+      text: item?.amount.toString() ?? '',
+    );
     final noteController = TextEditingController(text: item?.note ?? '');
     String categoryCode =
         item?.categoryCode ??
@@ -261,33 +255,27 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                         onPressed: () async {
                           if (isSaving) return;
 
-                          final String rawDesc =
-                              descriptionController.text.trim();
-                          final String rawAmount =
-                              amountController.text.trim();
-                          final int? parsedAmount =
-                              int.tryParse(rawAmount);
+                          final String rawDesc = descriptionController.text
+                              .trim();
+                          final String rawAmount = amountController.text.trim();
+                          final int? parsedAmount = int.tryParse(rawAmount);
 
                           String? newDescError;
                           String? newAmountError;
 
                           if (rawDesc.isEmpty) {
                             newDescError =
-                                strings['descriptionRequired'] ??
-                                '내용을 입력해주세요.';
+                                strings['descriptionRequired'] ?? '내용을 입력해주세요.';
                           }
                           if (rawAmount.isEmpty) {
                             newAmountError =
-                                strings['amountRequired'] ??
-                                '금액을 입력해주세요.';
+                                strings['amountRequired'] ?? '금액을 입력해주세요.';
                           } else if (parsedAmount == null) {
                             newAmountError =
-                                strings['amountInvalid'] ??
-                                '올바른 숫자를 입력해주세요.';
+                                strings['amountInvalid'] ?? '올바른 숫자를 입력해주세요.';
                           }
 
-                          if (newDescError != null ||
-                              newAmountError != null) {
+                          if (newDescError != null || newAmountError != null) {
                             setState(() {
                               descriptionError = newDescError;
                               amountError = newAmountError;
@@ -357,8 +345,9 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
     final categoryTags = ledger.tagsByType(MetadataTagType.category);
     final paymentTags = ledger.tagsByType(MetadataTagType.paymentMethod);
     final currency = strings['currencyUnit'] ?? '';
-    final fixedExpensesAsync =
-        ref.watch(monthlyFixedExpensesProvider(_focusedMonth));
+    final fixedExpensesAsync = ref.watch(
+      monthlyFixedExpensesProvider(_focusedMonth),
+    );
 
     return BootstrapPage(
       title: strings['fixedExpenseTitle'] ?? '',
@@ -370,7 +359,8 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
           tooltip: strings['dataManageTitle'] ?? '데이터 관리',
         ),
         IconButton(
-          onPressed: () => Navigator.of(context).pushNamed(AppRouter.settingsRoute),
+          onPressed: () =>
+              Navigator.of(context).pushNamed(AppRouter.settingsRoute),
           icon: const Icon(Icons.settings_outlined),
         ),
       ],
@@ -412,8 +402,7 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
           const SizedBox(height: 16),
           Expanded(
             child: fixedExpensesAsync.when(
-              loading: () =>
-                  const Center(child: CircularProgressIndicator()),
+              loading: () => const Center(child: CircularProgressIndicator()),
               error: (Object e, _) => Center(child: Text(e.toString())),
               data: (List<FixedExpense> items) {
                 if (items.isEmpty) {
@@ -425,10 +414,11 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                       const SizedBox(height: 10),
                   itemBuilder: (BuildContext context, int index) {
                     final item = items[index];
-                    final categoryLabel =
-                        _resolveTagLabel(categoryTags, item.categoryCode);
-                    final amountText =
-                        '${item.amount.toCurrency()}$currency';
+                    final categoryLabel = _resolveTagLabel(
+                      categoryTags,
+                      item.categoryCode,
+                    );
+                    final amountText = '${item.amount.toCurrency()}$currency';
                     return GestureDetector(
                       onTap: () => _showDetail(
                         item: item,
@@ -449,9 +439,7 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                               child: Text(
                                 categoryLabel,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodySmall
+                                style: Theme.of(context).textTheme.bodySmall
                                     ?.copyWith(fontWeight: FontWeight.w700),
                               ),
                             ),
@@ -461,9 +449,7 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                               child: Text(
                                 item.description,
                                 overflow: TextOverflow.ellipsis,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
+                                style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(fontWeight: FontWeight.w600),
                               ),
                             ),
@@ -473,9 +459,7 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                               child: Text(
                                 amountText,
                                 textAlign: TextAlign.right,
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
+                                style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(
                                       fontWeight: FontWeight.w700,
                                       color: const Color(0xFFDC3545),

@@ -1,3 +1,5 @@
+import 'dart:ui' show PlatformDispatcher;
+
 /// 앱 전역 설정을 표현한다.
 class AppSettings {
   /// 앱 설정을 생성한다.
@@ -20,11 +22,24 @@ class AppSettings {
   /// 초기 설정 완료 여부를 보관한다.
   final bool onboardingCompleted;
 
-  /// 기본 앱 설정을 생성한다.
+  /// 기기 언어 설정을 감지해 기본 앱 설정을 생성한다.
+  ///
+  /// 일본어(ja) → localeCode: 'jp', currencyUnit: '¥'
+  /// 그 외(한국어 포함, 영어 등 미대응) → localeCode: 'ko', currencyUnit: '₩'
   factory AppSettings.initial() {
-    return const AppSettings(
-      localeCode: 'ko',
-      currencyUnit: '₩',
+    String deviceLang = 'ko';
+    try {
+      deviceLang = PlatformDispatcher.instance.locale.languageCode;
+    } catch (_) {
+      // 로케일 감지 실패 시 한국어로 폴백
+    }
+
+    final String localeCode = deviceLang == 'ja' ? 'jp' : 'ko';
+    final String currencyUnit = deviceLang == 'ja' ? '¥' : '₩';
+
+    return AppSettings(
+      localeCode: localeCode,
+      currencyUnit: currencyUnit,
       monthlyBudget: 0,
       onboardingCompleted: false,
     );

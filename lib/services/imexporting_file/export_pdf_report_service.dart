@@ -52,8 +52,7 @@ PdfColor _paletteColor(int index) => _kPalette[index % _kPalette.length];
 String _fmtAmount(int amount) => NumberFormat('#,###').format(amount.abs());
 
 /// 텍스트 스타일 생성 함수의 타입 별칭이다.
-typedef _TsFn = pw.TextStyle Function(
-    {double size, bool bold, PdfColor color});
+typedef _TsFn = pw.TextStyle Function({double size, bool bold, PdfColor color});
 
 /// PDF 가계부 리포트를 생성하고 파일을 관리하는 서비스다.
 class ExportPdfReportService {
@@ -79,13 +78,19 @@ class ExportPdfReportService {
     return dir
         .listSync()
         .whereType<File>()
-        .where((File f) =>
-            f.path.endsWith('.pdf') &&
-            f.path.split(Platform.pathSeparator).last
-                .startsWith('Household_ledger_report_'))
+        .where(
+          (File f) =>
+              f.path.endsWith('.pdf') &&
+              f.path
+                  .split(Platform.pathSeparator)
+                  .last
+                  .startsWith('Household_ledger_report_'),
+        )
         .toList()
-      ..sort((File a, File b) =>
-          b.lastModifiedSync().compareTo(a.lastModifiedSync()));
+      ..sort(
+        (File a, File b) =>
+            b.lastModifiedSync().compareTo(a.lastModifiedSync()),
+      );
   }
 
   // ─── 폰트 로딩 ──────────────────────────────────────────────────
@@ -142,66 +147,82 @@ class ExportPdfReportService {
 
     // ── 데이터 폰트: 사용자 입력 한국어 콘텐츠(설명·태그명·이름)용 ──
     // JP 로케일에서도 데이터는 한국어이므로 KR 폰트를 별도 로드한다.
-    final pw.Font dataFont =
-        localeCode == 'jp' ? await _loadFont('ko') : uiFont;
-    final pw.Font dataBoldFont =
-        localeCode == 'jp' ? await _loadBoldFont('ko') : uiBoldFont;
+    final pw.Font dataFont = localeCode == 'jp'
+        ? await _loadFont('ko')
+        : uiFont;
+    final pw.Font dataBoldFont = localeCode == 'jp'
+        ? await _loadBoldFont('ko')
+        : uiBoldFont;
 
     // ts : UI 문자열(언어팩, 컬럼 헤더, 섹션 제목)에 사용하는 스타일 팩토리
     pw.TextStyle ts({
       double size = 10,
       bool bold = false,
       PdfColor color = _kDark,
-    }) =>
-        pw.TextStyle(
-          font: bold ? uiBoldFont : uiFont,
-          fontSize: size,
-          color: color,
-        );
+    }) => pw.TextStyle(
+      font: bold ? uiBoldFont : uiFont,
+      fontSize: size,
+      color: color,
+    );
 
     // tsD : 사용자 입력 데이터(한국어 설명·카테고리명·이름)에 사용하는 스타일 팩토리
     pw.TextStyle tsD({
       double size = 10,
       bool bold = false,
       PdfColor color = _kDark,
-    }) =>
-        pw.TextStyle(
-          font: bold ? dataBoldFont : dataFont,
-          fontSize: size,
-          color: color,
-        );
+    }) => pw.TextStyle(
+      font: bold ? dataBoldFont : dataFont,
+      fontSize: size,
+      color: color,
+    );
 
     // ── 집계 ──
-    final int expenseTotal =
-        expenses.fold(0, (int s, ExpenseEntry e) => s + e.amount);
-    final int fixedTotal =
-        fixedExpenses.fold(0, (int s, FixedExpense f) => s + f.amount);
-    final int incomeTotal =
-        incomes.fold(0, (int s, IncomeEntry i) => s + i.amount);
+    final int expenseTotal = expenses.fold(
+      0,
+      (int s, ExpenseEntry e) => s + e.amount,
+    );
+    final int fixedTotal = fixedExpenses.fold(
+      0,
+      (int s, FixedExpense f) => s + f.amount,
+    );
+    final int incomeTotal = incomes.fold(
+      0,
+      (int s, IncomeEntry i) => s + i.amount,
+    );
     final int combinedExpense = expenseTotal + fixedTotal;
     final int balance = incomeTotal - combinedExpense;
 
     // ── 카테고리 집계 ──
     final Map<String, int> catSums = <String, int>{};
     for (final ExpenseEntry e in expenses) {
-      catSums.update(e.categoryCode, (int v) => v + e.amount,
-          ifAbsent: () => e.amount);
+      catSums.update(
+        e.categoryCode,
+        (int v) => v + e.amount,
+        ifAbsent: () => e.amount,
+      );
     }
     final List<MapEntry<String, int>> catSorted = catSums.entries.toList()
-      ..sort((MapEntry<String, int> a, MapEntry<String, int> b) =>
-          b.value.compareTo(a.value));
+      ..sort(
+        (MapEntry<String, int> a, MapEntry<String, int> b) =>
+            b.value.compareTo(a.value),
+      );
 
     // ── 소비수단 집계 ──
     final Map<String, int> pmSums = <String, int>{};
     for (final ExpenseEntry e in expenses) {
       if (e.paymentMethodCode.isNotEmpty) {
-        pmSums.update(e.paymentMethodCode, (int v) => v + e.amount,
-            ifAbsent: () => e.amount);
+        pmSums.update(
+          e.paymentMethodCode,
+          (int v) => v + e.amount,
+          ifAbsent: () => e.amount,
+        );
       }
     }
     final List<MapEntry<String, int>> pmSorted = pmSums.entries.toList()
-      ..sort((MapEntry<String, int> a, MapEntry<String, int> b) =>
-          b.value.compareTo(a.value));
+      ..sort(
+        (MapEntry<String, int> a, MapEntry<String, int> b) =>
+            b.value.compareTo(a.value),
+      );
 
     // ── 태그 라벨 조회 ──
     String tagLabel(MetadataTagType type, String code) {
@@ -223,94 +244,104 @@ class ExportPdfReportService {
     );
 
     // 1. 표지 (단일 페이지)
-    pdf.addPage(_buildCoverPage(
-      name: name,
-      email: email,
-      period: periodLabel,
-      strings: strings,
-      ts: ts,
-      tsD: tsD,
-    ));
-
-    // 2. 개요 (멀티페이지)
-    pdf.addPage(pw.MultiPage(
-      pageFormat: PdfPageFormat.a4,
-      margin: const pw.EdgeInsets.all(36),
-      header: (pw.Context ctx) => _pageHeader(name, periodLabel, ts, tsD),
-      footer: (pw.Context ctx) => _pageFooter(ctx, ts),
-      build: (pw.Context ctx) => _buildOverviewWidgets(
-        expenses: expenses,
-        fixedExpenses: fixedExpenses,
-        expenseTotal: expenseTotal,
-        fixedTotal: fixedTotal,
-        incomeTotal: incomeTotal,
-        combinedExpense: combinedExpense,
-        balance: balance,
-        catSorted: catSorted,
-        pmSorted: pmSorted,
-        currency: currency,
-        tagLabel: tagLabel,
-        options: options,
+    pdf.addPage(
+      _buildCoverPage(
+        name: name,
+        email: email,
+        period: periodLabel,
         strings: strings,
         ts: ts,
         tsD: tsD,
       ),
-    ));
+    );
 
-    // 3. Top 10
-    if (options.includeTop10) {
-      final List<ExpenseEntry> top10 = (List<ExpenseEntry>.from(expenses)
-            ..sort((ExpenseEntry a, ExpenseEntry b) =>
-                b.amount.compareTo(a.amount)))
-          .take(10)
-          .toList();
-      pdf.addPage(pw.MultiPage(
+    // 2. 개요 (멀티페이지)
+    pdf.addPage(
+      pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(36),
         header: (pw.Context ctx) => _pageHeader(name, periodLabel, ts, tsD),
         footer: (pw.Context ctx) => _pageFooter(ctx, ts),
-        build: (pw.Context ctx) => _buildTop10Widgets(
-          top10: top10,
+        build: (pw.Context ctx) => _buildOverviewWidgets(
+          expenses: expenses,
+          fixedExpenses: fixedExpenses,
+          expenseTotal: expenseTotal,
+          fixedTotal: fixedTotal,
+          incomeTotal: incomeTotal,
+          combinedExpense: combinedExpense,
+          balance: balance,
+          catSorted: catSorted,
+          pmSorted: pmSorted,
           currency: currency,
           tagLabel: tagLabel,
+          options: options,
           strings: strings,
           ts: ts,
           tsD: tsD,
         ),
-      ));
+      ),
+    );
+
+    // 3. Top 10
+    if (options.includeTop10) {
+      final List<ExpenseEntry> top10 =
+          (List<ExpenseEntry>.from(expenses)..sort(
+                (ExpenseEntry a, ExpenseEntry b) =>
+                    b.amount.compareTo(a.amount),
+              ))
+              .take(10)
+              .toList();
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(36),
+          header: (pw.Context ctx) => _pageHeader(name, periodLabel, ts, tsD),
+          footer: (pw.Context ctx) => _pageFooter(ctx, ts),
+          build: (pw.Context ctx) => _buildTop10Widgets(
+            top10: top10,
+            currency: currency,
+            tagLabel: tagLabel,
+            strings: strings,
+            ts: ts,
+            tsD: tsD,
+          ),
+        ),
+      );
     }
 
     // 4. 전체 거래내역 (부록)
     if (options.includeDetailedData) {
-      pdf.addPage(pw.MultiPage(
-        pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(36),
-        header: (pw.Context ctx) => _pageHeader(name, periodLabel, ts, tsD),
-        footer: (pw.Context ctx) => _pageFooter(ctx, ts),
-        build: (pw.Context ctx) => _buildAllTransactionsWidgets(
-          expenses: expenses,
-          fixedExpenses: fixedExpenses,
-          incomes: incomes,
-          currency: currency,
-          tagLabel: tagLabel,
-          strings: strings,
-          ts: ts,
-          tsD: tsD,
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(36),
+          header: (pw.Context ctx) => _pageHeader(name, periodLabel, ts, tsD),
+          footer: (pw.Context ctx) => _pageFooter(ctx, ts),
+          build: (pw.Context ctx) => _buildAllTransactionsWidgets(
+            expenses: expenses,
+            fixedExpenses: fixedExpenses,
+            incomes: incomes,
+            currency: currency,
+            tagLabel: tagLabel,
+            strings: strings,
+            ts: ts,
+            tsD: tsD,
+          ),
         ),
-      ));
+      );
     }
 
     // ── 저장 ──
     final List<int> bytes = await pdf.save();
-    final String safeName =
-        name.replaceAll(RegExp(r'[/\\:*?"<>|]'), '_');
-    final String safePeriod =
-        periodLabel.replaceAll(RegExp(r'[/\\:*?"<>| ]'), '_');
+    final String safeName = name.replaceAll(RegExp(r'[/\\:*?"<>|]'), '_');
+    final String safePeriod = periodLabel.replaceAll(
+      RegExp(r'[/\\:*?"<>| ]'),
+      '_',
+    );
     final String fileName =
         'Household_ledger_report_${safeName}_$safePeriod.pdf';
     final Directory dir = await _getReportDirectory();
-    final File file =
-        File('${dir.path}${Platform.pathSeparator}$fileName');
+    final File file = File('${dir.path}${Platform.pathSeparator}$fileName');
     await file.writeAsBytes(bytes);
     return file.path;
   }
@@ -340,9 +371,11 @@ class ExportPdfReportService {
             child: pw.Column(
               mainAxisAlignment: pw.MainAxisAlignment.center,
               children: <pw.Widget>[
-                pw.Text('Household Ledger',
-                    style: ts(size: 28, bold: true, color: _kWhite),
-                    textAlign: pw.TextAlign.center),
+                pw.Text(
+                  'Household Ledger',
+                  style: ts(size: 28, bold: true, color: _kWhite),
+                  textAlign: pw.TextAlign.center,
+                ),
                 pw.SizedBox(height: 8),
                 pw.Text(
                   strings['pdfCoverSubtitle'] ?? '가계부 리포트',
@@ -357,7 +390,9 @@ class ExportPdfReportService {
           pw.Expanded(
             child: pw.Container(
               padding: const pw.EdgeInsets.symmetric(
-                  horizontal: 56, vertical: 48),
+                horizontal: 56,
+                vertical: 48,
+              ),
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 mainAxisAlignment: pw.MainAxisAlignment.center,
@@ -368,8 +403,7 @@ class ExportPdfReportService {
                   pw.SizedBox(height: 20),
                   _coverRow(strings['pdfPeriod'] ?? '기간', period, ts, tsD),
                   pw.SizedBox(height: 20),
-                  _coverRow(
-                      strings['pdfGeneratedAt'] ?? '생성 일시', now, ts, tsD),
+                  _coverRow(strings['pdfGeneratedAt'] ?? '생성 일시', now, ts, tsD),
                 ],
               ),
             ),
@@ -379,12 +413,16 @@ class ExportPdfReportService {
             height: 44,
             color: _kLightGrey,
             padding: const pw.EdgeInsets.symmetric(
-                horizontal: 48, vertical: 10),
+              horizontal: 48,
+              vertical: 10,
+            ),
             child: pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: <pw.Widget>[
-                pw.Text('Household Ledger App',
-                    style: ts(size: 8, color: _kGrey)),
+                pw.Text(
+                  'Household Ledger App',
+                  style: ts(size: 8, color: _kGrey),
+                ),
                 pw.Text(now, style: ts(size: 8, color: _kGrey)),
               ],
             ),
@@ -397,22 +435,17 @@ class ExportPdfReportService {
   /// 표지의 라벨-값 한 행을 생성한다.
   ///
   /// [label]은 UI 언어 폰트([ts]), [value]는 데이터 폰트([tsD])를 사용한다.
-  pw.Widget _coverRow(
-    String label,
-    String value,
-    _TsFn ts,
-    _TsFn tsD,
-  ) =>
+  pw.Widget _coverRow(String label, String value, _TsFn ts, _TsFn tsD) =>
       pw.Row(
         crossAxisAlignment: pw.CrossAxisAlignment.center,
         children: <pw.Widget>[
           pw.SizedBox(
-              width: 88,
-              child: pw.Text(label, style: ts(size: 11, color: _kGrey))),
+            width: 88,
+            child: pw.Text(label, style: ts(size: 11, color: _kGrey)),
+          ),
           pw.Container(width: 2, height: 18, color: _kBlue),
           pw.SizedBox(width: 14),
-          pw.Expanded(
-              child: pw.Text(value, style: tsD(size: 13, bold: true))),
+          pw.Expanded(child: pw.Text(value, style: tsD(size: 13, bold: true))),
         ],
       );
 
@@ -426,44 +459,47 @@ class ExportPdfReportService {
     String period,
     _TsFn ts,
     _TsFn tsD,
-  ) =>
-      pw.Column(
+  ) => pw.Column(
+    children: <pw.Widget>[
+      pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: <pw.Widget>[
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: <pw.Widget>[
-              pw.Text('Household Ledger Report',
-                  style: ts(size: 8, color: _kGrey)),
-              // 이름은 한국어일 수 있으므로 tsD 사용
-              pw.Text('$name | $period',
-                  style: tsD(size: 8, color: _kGrey)),
-            ],
-          ),
-          pw.Container(
-              height: 1,
-              color: _kBorder,
-              margin: const pw.EdgeInsets.only(top: 4, bottom: 8)),
+          pw.Text('Household Ledger Report', style: ts(size: 8, color: _kGrey)),
+          // 이름은 한국어일 수 있으므로 tsD 사용
+          pw.Text('$name | $period', style: tsD(size: 8, color: _kGrey)),
         ],
-      );
+      ),
+      pw.Container(
+        height: 1,
+        color: _kBorder,
+        margin: const pw.EdgeInsets.only(top: 4, bottom: 8),
+      ),
+    ],
+  );
 
   /// 멀티페이지 하단 푸터를 생성한다.
   pw.Widget _pageFooter(pw.Context ctx, _TsFn ts) => pw.Column(
+    children: <pw.Widget>[
+      pw.Container(
+        height: 1,
+        color: _kBorder,
+        margin: const pw.EdgeInsets.only(bottom: 4),
+      ),
+      pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
         children: <pw.Widget>[
-          pw.Container(
-              height: 1,
-              color: _kBorder,
-              margin: const pw.EdgeInsets.only(bottom: 4)),
-          pw.Row(
-            mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-            children: <pw.Widget>[
-              pw.Text(DateFormat('yyyy/MM/dd').format(DateTime.now()),
-                  style: ts(size: 8, color: _kGrey)),
-              pw.Text('${ctx.pageNumber} / ${ctx.pagesCount}',
-                  style: ts(size: 8, color: _kGrey)),
-            ],
+          pw.Text(
+            DateFormat('yyyy/MM/dd').format(DateTime.now()),
+            style: ts(size: 8, color: _kGrey),
+          ),
+          pw.Text(
+            '${ctx.pageNumber} / ${ctx.pagesCount}',
+            style: ts(size: 8, color: _kGrey),
           ),
         ],
-      );
+      ),
+    ],
+  );
 
   // ─── 개요 섹션 ───────────────────────────────────────────────────
 
@@ -491,18 +527,22 @@ class ExportPdfReportService {
       pw.Row(
         children: <pw.Widget>[
           pw.Expanded(
-              child: _summaryBox(
-                  strings['pdfTotalExpense'] ?? '총 지출액',
-                  '$currency${_fmtAmount(combinedExpense)}',
-                  _kRed,
-                  ts)),
+            child: _summaryBox(
+              strings['pdfTotalExpense'] ?? '총 지출액',
+              '$currency${_fmtAmount(combinedExpense)}',
+              _kRed,
+              ts,
+            ),
+          ),
           pw.SizedBox(width: 8),
           pw.Expanded(
-              child: _summaryBox(
-                  strings['pdfTotalIncome'] ?? '총 수입액',
-                  '$currency${_fmtAmount(incomeTotal)}',
-                  _kGreen,
-                  ts)),
+            child: _summaryBox(
+              strings['pdfTotalIncome'] ?? '총 수입액',
+              '$currency${_fmtAmount(incomeTotal)}',
+              _kGreen,
+              ts,
+            ),
+          ),
           pw.SizedBox(width: 8),
           pw.Expanded(
             child: _summaryBox(
@@ -523,69 +563,15 @@ class ExportPdfReportService {
     for (int i = 0; i < catSorted.length; i++) {
       final String code = catSorted[i].key;
       final int amount = catSorted[i].value;
-      final double pct =
-          combinedExpense > 0 ? amount / combinedExpense * 100 : 0;
-      out.add(pw.Padding(
-        padding: const pw.EdgeInsets.only(bottom: 8),
-        // 카테고리명은 사용자 데이터(한국어) → tsD
-        child: _progressRow(
-          tagLabel(MetadataTagType.category, code),
-          amount,
-          pct,
-          currency,
-          _paletteColor(i),
-          ts,
-          tsD,
-        ),
-      ));
-    }
-
-    // ── 고정지출 ──
-    if (options.includeFixedExpenses && fixedExpenses.isNotEmpty) {
-      out
-        ..add(_sectionHeader(
-            strings['pdfFixedExpenseSection'] ?? '고정지출 내역', ts))
-        ..add(pw.SizedBox(height: 8))
-        ..add(pw.TableHelper.fromTextArray(
-          headers: <String>[
-            strings['pdfColDescription'] ?? '내용',
-            strings['pdfColAmount'] ?? '금액',
-          ],
-          data: fixedExpenses
-              .map((FixedExpense f) => <String>[
-                    f.description,
-                    '$currency${_fmtAmount(f.amount)}',
-                  ])
-              .toList(),
-          border: pw.TableBorder.all(color: _kBorder, width: 0.5),
-          headerStyle: ts(size: 9, bold: true, color: _kWhite),
-          headerDecoration: const pw.BoxDecoration(color: _kBlue),
-          // 고정지출 설명은 한국어 사용자 데이터 → tsD
-          cellStyle: tsD(size: 9),
-          cellAlignments: <int, pw.Alignment>{
-            1: pw.Alignment.centerRight,
-          },
-          cellPadding: const pw.EdgeInsets.all(5),
-          oddRowDecoration: const pw.BoxDecoration(color: _kLightGrey),
-        ))
-        ..add(pw.SizedBox(height: 20));
-    }
-
-    // ── 소비수단 요약 ──
-    if (options.includePaymentSummary && pmSorted.isNotEmpty) {
-      out
-        ..add(_sectionHeader(
-            strings['pdfPaymentSummary'] ?? '소비수단 별 요약', ts))
-        ..add(pw.SizedBox(height: 8));
-      for (int i = 0; i < pmSorted.length; i++) {
-        final int amount = pmSorted[i].value;
-        final double pct =
-            expenseTotal > 0 ? amount / expenseTotal * 100 : 0;
-        out.add(pw.Padding(
+      final double pct = combinedExpense > 0
+          ? amount / combinedExpense * 100
+          : 0;
+      out.add(
+        pw.Padding(
           padding: const pw.EdgeInsets.only(bottom: 8),
-          // 소비수단명은 사용자 데이터(한국어) → tsD
+          // 카테고리명은 사용자 데이터(한국어) → tsD
           child: _progressRow(
-            tagLabel(MetadataTagType.paymentMethod, pmSorted[i].key),
+            tagLabel(MetadataTagType.category, code),
             amount,
             pct,
             currency,
@@ -593,7 +579,67 @@ class ExportPdfReportService {
             ts,
             tsD,
           ),
-        ));
+        ),
+      );
+    }
+
+    // ── 고정지출 ──
+    if (options.includeFixedExpenses && fixedExpenses.isNotEmpty) {
+      out
+        ..add(
+          _sectionHeader(strings['pdfFixedExpenseSection'] ?? '고정지출 내역', ts),
+        )
+        ..add(pw.SizedBox(height: 8))
+        ..add(
+          pw.TableHelper.fromTextArray(
+            headers: <String>[
+              strings['pdfColDescription'] ?? '내용',
+              strings['pdfColAmount'] ?? '금액',
+            ],
+            data: fixedExpenses
+                .map(
+                  (FixedExpense f) => <String>[
+                    f.description,
+                    '$currency${_fmtAmount(f.amount)}',
+                  ],
+                )
+                .toList(),
+            border: pw.TableBorder.all(color: _kBorder, width: 0.5),
+            headerStyle: ts(size: 9, bold: true, color: _kWhite),
+            headerDecoration: const pw.BoxDecoration(color: _kBlue),
+            // 고정지출 설명은 한국어 사용자 데이터 → tsD
+            cellStyle: tsD(size: 9),
+            cellAlignments: <int, pw.Alignment>{1: pw.Alignment.centerRight},
+            cellPadding: const pw.EdgeInsets.all(5),
+            oddRowDecoration: const pw.BoxDecoration(color: _kLightGrey),
+          ),
+        )
+        ..add(pw.SizedBox(height: 20));
+    }
+
+    // ── 소비수단 요약 ──
+    if (options.includePaymentSummary && pmSorted.isNotEmpty) {
+      out
+        ..add(_sectionHeader(strings['pdfPaymentSummary'] ?? '소비수단 별 요약', ts))
+        ..add(pw.SizedBox(height: 8));
+      for (int i = 0; i < pmSorted.length; i++) {
+        final int amount = pmSorted[i].value;
+        final double pct = expenseTotal > 0 ? amount / expenseTotal * 100 : 0;
+        out.add(
+          pw.Padding(
+            padding: const pw.EdgeInsets.only(bottom: 8),
+            // 소비수단명은 사용자 데이터(한국어) → tsD
+            child: _progressRow(
+              tagLabel(MetadataTagType.paymentMethod, pmSorted[i].key),
+              amount,
+              pct,
+              currency,
+              _paletteColor(i),
+              ts,
+              tsD,
+            ),
+          ),
+        );
       }
       out.add(pw.SizedBox(height: 20));
     }
@@ -603,58 +649,69 @@ class ExportPdfReportService {
       final Map<String, int> daily = <String, int>{};
       for (final ExpenseEntry e in expenses) {
         final String key = DateFormat('MM/dd').format(e.spentAt);
-        daily.update(key, (int v) => v + e.amount,
-            ifAbsent: () => e.amount);
+        daily.update(key, (int v) => v + e.amount, ifAbsent: () => e.amount);
       }
       final List<MapEntry<String, int>> top5 =
-          (daily.entries.toList()
-                ..sort((MapEntry<String, int> a, MapEntry<String, int> b) =>
-                    b.value.compareTo(a.value)))
+          (daily.entries.toList()..sort(
+                (MapEntry<String, int> a, MapEntry<String, int> b) =>
+                    b.value.compareTo(a.value),
+              ))
               .take(5)
               .toList();
 
       if (top5.isNotEmpty) {
         out
-          ..add(_sectionHeader(
-              strings['pdfDailyTrend'] ?? '일별 지출 추이 (Top 5 지출일)', ts))
+          ..add(
+            _sectionHeader(
+              strings['pdfDailyTrend'] ?? '일별 지출 추이 (Top 5 지출일)',
+              ts,
+            ),
+          )
           ..add(pw.SizedBox(height: 8));
         final int topAmt = top5.first.value;
         for (int i = 0; i < top5.length; i++) {
           final int amt = top5[i].value;
-          final int pctInt =
-              (topAmt > 0 ? amt / topAmt * 100 : 0).round().clamp(1, 99);
-          out.add(pw.Padding(
-            padding: const pw.EdgeInsets.only(bottom: 6),
-            child: pw.Row(
-              children: <pw.Widget>[
-                // 날짜는 숫자/슬래시 → ts
-                pw.SizedBox(
+          final int pctInt = (topAmt > 0 ? amt / topAmt * 100 : 0)
+              .round()
+              .clamp(1, 99);
+          out.add(
+            pw.Padding(
+              padding: const pw.EdgeInsets.only(bottom: 6),
+              child: pw.Row(
+                children: <pw.Widget>[
+                  // 날짜는 숫자/슬래시 → ts
+                  pw.SizedBox(
                     width: 44,
-                    child: pw.Text(top5[i].key, style: ts(size: 9))),
-                pw.SizedBox(width: 8),
-                pw.Expanded(
-                  child: pw.Row(
-                    children: <pw.Widget>[
-                      pw.Expanded(
-                          flex: pctInt,
-                          child: pw.Container(height: 12, color: _kBlue)),
-                      pw.Expanded(
-                          flex: 100 - pctInt,
-                          child:
-                              pw.Container(height: 12, color: _kLightGrey)),
-                    ],
+                    child: pw.Text(top5[i].key, style: ts(size: 9)),
                   ),
-                ),
-                pw.SizedBox(width: 8),
-                pw.SizedBox(
-                  width: 80,
-                  child: pw.Text('$currency${_fmtAmount(amt)}',
+                  pw.SizedBox(width: 8),
+                  pw.Expanded(
+                    child: pw.Row(
+                      children: <pw.Widget>[
+                        pw.Expanded(
+                          flex: pctInt,
+                          child: pw.Container(height: 12, color: _kBlue),
+                        ),
+                        pw.Expanded(
+                          flex: 100 - pctInt,
+                          child: pw.Container(height: 12, color: _kLightGrey),
+                        ),
+                      ],
+                    ),
+                  ),
+                  pw.SizedBox(width: 8),
+                  pw.SizedBox(
+                    width: 80,
+                    child: pw.Text(
+                      '$currency${_fmtAmount(amt)}',
                       style: ts(size: 9),
-                      textAlign: pw.TextAlign.right),
-                ),
-              ],
+                      textAlign: pw.TextAlign.right,
+                    ),
+                  ),
+                ],
+              ),
             ),
-          ));
+          );
         }
       }
     }
@@ -671,47 +728,48 @@ class ExportPdfReportService {
     required Map<String, String> strings,
     required _TsFn ts,
     required _TsFn tsD,
-  }) =>
-      <pw.Widget>[
-        _sectionHeader(strings['pdfSectionTop10'] ?? '지출 Top 10', ts),
-        pw.SizedBox(height: 12),
-        pw.TableHelper.fromTextArray(
-          headers: <String>[
-            strings['pdfColNo'] ?? '순위',
-            strings['pdfColDate'] ?? '날짜',
-            strings['pdfColCategory'] ?? '카테고리',
-            strings['pdfColDescription'] ?? '내용',
-            strings['pdfColAmount'] ?? '금액',
-          ],
-          data: top10
-              .asMap()
-              .entries
-              .map((MapEntry<int, ExpenseEntry> e) => <String>[
-                    '${e.key + 1}',
-                    DateFormat('yyyy/MM/dd').format(e.value.spentAt),
-                    tagLabel(MetadataTagType.category, e.value.categoryCode),
-                    e.value.description,
-                    '$currency${_fmtAmount(e.value.amount)}',
-                  ])
-              .toList(),
-          border: pw.TableBorder.all(color: _kBorder, width: 0.5),
-          headerStyle: ts(size: 9, bold: true, color: _kWhite),
-          headerDecoration: const pw.BoxDecoration(color: _kBlue),
-          // 카테고리명·설명은 한국어 사용자 데이터 → tsD
-          cellStyle: tsD(size: 9),
-          cellAlignments: <int, pw.Alignment>{
-            0: pw.Alignment.center,
-            4: pw.Alignment.centerRight,
-          },
-          cellPadding: const pw.EdgeInsets.all(5),
-          oddRowDecoration: const pw.BoxDecoration(color: _kLightGrey),
-          columnWidths: <int, pw.TableColumnWidth>{
-            0: const pw.FixedColumnWidth(28),
-            1: const pw.FixedColumnWidth(70),
-            4: const pw.FixedColumnWidth(80),
-          },
-        ),
-      ];
+  }) => <pw.Widget>[
+    _sectionHeader(strings['pdfSectionTop10'] ?? '지출 Top 10', ts),
+    pw.SizedBox(height: 12),
+    pw.TableHelper.fromTextArray(
+      headers: <String>[
+        strings['pdfColNo'] ?? '순위',
+        strings['pdfColDate'] ?? '날짜',
+        strings['pdfColCategory'] ?? '카테고리',
+        strings['pdfColDescription'] ?? '내용',
+        strings['pdfColAmount'] ?? '금액',
+      ],
+      data: top10
+          .asMap()
+          .entries
+          .map(
+            (MapEntry<int, ExpenseEntry> e) => <String>[
+              '${e.key + 1}',
+              DateFormat('yyyy/MM/dd').format(e.value.spentAt),
+              tagLabel(MetadataTagType.category, e.value.categoryCode),
+              e.value.description,
+              '$currency${_fmtAmount(e.value.amount)}',
+            ],
+          )
+          .toList(),
+      border: pw.TableBorder.all(color: _kBorder, width: 0.5),
+      headerStyle: ts(size: 9, bold: true, color: _kWhite),
+      headerDecoration: const pw.BoxDecoration(color: _kBlue),
+      // 카테고리명·설명은 한국어 사용자 데이터 → tsD
+      cellStyle: tsD(size: 9),
+      cellAlignments: <int, pw.Alignment>{
+        0: pw.Alignment.center,
+        4: pw.Alignment.centerRight,
+      },
+      cellPadding: const pw.EdgeInsets.all(5),
+      oddRowDecoration: const pw.BoxDecoration(color: _kLightGrey),
+      columnWidths: <int, pw.TableColumnWidth>{
+        0: const pw.FixedColumnWidth(28),
+        1: const pw.FixedColumnWidth(70),
+        4: const pw.FixedColumnWidth(80),
+      },
+    ),
+  ];
 
   // ─── 전체 거래내역 (부록) ─────────────────────────────────────────
 
@@ -727,9 +785,10 @@ class ExportPdfReportService {
   }) {
     final List<List<String>> rows = <List<String>>[];
 
-    for (final ExpenseEntry e in (List<ExpenseEntry>.from(expenses)
-      ..sort((ExpenseEntry a, ExpenseEntry b) =>
-          b.spentAt.compareTo(a.spentAt)))) {
+    for (final ExpenseEntry e
+        in (List<ExpenseEntry>.from(expenses)..sort(
+          (ExpenseEntry a, ExpenseEntry b) => b.spentAt.compareTo(a.spentAt),
+        ))) {
       rows.add(<String>[
         DateFormat('yyyy/MM/dd').format(e.spentAt),
         strings['pdfTypeExpense'] ?? '지출',
@@ -738,9 +797,10 @@ class ExportPdfReportService {
         '-$currency${_fmtAmount(e.amount)}',
       ]);
     }
-    for (final IncomeEntry i in (List<IncomeEntry>.from(incomes)
-      ..sort((IncomeEntry a, IncomeEntry b) =>
-          b.earnedAt.compareTo(a.earnedAt)))) {
+    for (final IncomeEntry i
+        in (List<IncomeEntry>.from(incomes)..sort(
+          (IncomeEntry a, IncomeEntry b) => b.earnedAt.compareTo(a.earnedAt),
+        ))) {
       rows.add(<String>[
         DateFormat('yyyy/MM/dd').format(i.earnedAt),
         strings['pdfTypeIncome'] ?? '수입',
@@ -761,7 +821,9 @@ class ExportPdfReportService {
 
     return <pw.Widget>[
       _sectionHeader(
-          strings['pdfSectionAllTransactions'] ?? '전체 거래내역 (부록)', ts),
+        strings['pdfSectionAllTransactions'] ?? '전체 거래내역 (부록)',
+        ts,
+      ),
       pw.SizedBox(height: 12),
       if (rows.isEmpty)
         pw.Text('-', style: ts(size: 9, color: _kGrey))
@@ -781,9 +843,7 @@ class ExportPdfReportService {
           // 카테고리명·설명은 한국어 사용자 데이터 → tsD
           // 구분('지출'/'수입'/'고정지출')은 한자이므로 KR 폰트로 렌더링 가능
           cellStyle: tsD(size: 8),
-          cellAlignments: <int, pw.Alignment>{
-            4: pw.Alignment.centerRight,
-          },
+          cellAlignments: <int, pw.Alignment>{4: pw.Alignment.centerRight},
           cellPadding: const pw.EdgeInsets.all(4),
           oddRowDecoration: const pw.BoxDecoration(color: _kLightGrey),
           columnWidths: <int, pw.TableColumnWidth>{
@@ -799,32 +859,25 @@ class ExportPdfReportService {
 
   /// 섹션 제목과 구분선을 생성한다.
   pw.Widget _sectionHeader(String title, _TsFn ts) => pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
-        children: <pw.Widget>[
-          pw.SizedBox(height: 8),
-          pw.Text(title, style: ts(size: 14, bold: true, color: _kBlue)),
-          pw.Container(
-            height: 2,
-            color: _kBlue,
-            margin: const pw.EdgeInsets.only(top: 4, bottom: 8),
-          ),
-        ],
-      );
+    crossAxisAlignment: pw.CrossAxisAlignment.start,
+    children: <pw.Widget>[
+      pw.SizedBox(height: 8),
+      pw.Text(title, style: ts(size: 14, bold: true, color: _kBlue)),
+      pw.Container(
+        height: 2,
+        color: _kBlue,
+        margin: const pw.EdgeInsets.only(top: 4, bottom: 8),
+      ),
+    ],
+  );
 
   /// 요약 수치 박스를 생성한다.
-  pw.Widget _summaryBox(
-    String label,
-    String value,
-    PdfColor color,
-    _TsFn ts,
-  ) =>
+  pw.Widget _summaryBox(String label, String value, PdfColor color, _TsFn ts) =>
       pw.Container(
-        padding:
-            const pw.EdgeInsets.symmetric(vertical: 12, horizontal: 10),
+        padding: const pw.EdgeInsets.symmetric(vertical: 12, horizontal: 10),
         decoration: pw.BoxDecoration(
           border: pw.Border.all(color: color, width: 1.5),
-          borderRadius:
-              const pw.BorderRadius.all(pw.Radius.circular(6)),
+          borderRadius: const pw.BorderRadius.all(pw.Radius.circular(6)),
         ),
         child: pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
@@ -856,33 +909,44 @@ class ExportPdfReportService {
         pw.SizedBox(
           width: 80,
           // 카테고리·소비수단명은 한국어 → tsD
-          child: pw.Text(label,
-              style: tsD(size: 9), overflow: pw.TextOverflow.clip),
+          child: pw.Text(
+            label,
+            style: tsD(size: 9),
+            overflow: pw.TextOverflow.clip,
+          ),
         ),
         pw.SizedBox(width: 8),
         pw.Expanded(
           child: pw.Row(
             children: <pw.Widget>[
               pw.Expanded(
-                  flex: filled,
-                  child: pw.Container(height: 10, color: barColor)),
+                flex: filled,
+                child: pw.Container(height: 10, color: barColor),
+              ),
               pw.Expanded(
-                  flex: empty,
-                  child: pw.Container(height: 10, color: _kLightGrey)),
+                flex: empty,
+                child: pw.Container(height: 10, color: _kLightGrey),
+              ),
             ],
           ),
         ),
         pw.SizedBox(width: 8),
         pw.SizedBox(
-            width: 28,
-            child: pw.Text('${pct.round()}%',
-                style: ts(size: 9), textAlign: pw.TextAlign.right)),
+          width: 28,
+          child: pw.Text(
+            '${pct.round()}%',
+            style: ts(size: 9),
+            textAlign: pw.TextAlign.right,
+          ),
+        ),
         pw.SizedBox(width: 8),
         pw.SizedBox(
           width: 80,
-          child: pw.Text('$currency${_fmtAmount(amount)}',
-              style: ts(size: 9, bold: true),
-              textAlign: pw.TextAlign.right),
+          child: pw.Text(
+            '$currency${_fmtAmount(amount)}',
+            style: ts(size: 9, bold: true),
+            textAlign: pw.TextAlign.right,
+          ),
         ),
       ],
     );

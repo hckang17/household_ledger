@@ -107,56 +107,67 @@ class DataImExportService {
       'id,spentAt,categoryCode,subcategoryCode,paymentMethodCode,description,amount,note',
     );
     for (final e in expenses) {
-      buffer.writeln(_csvRow([
-        e.id,
-        e.spentAt.toIso8601String(),
-        e.categoryCode,
-        e.subcategoryCode,
-        e.paymentMethodCode,
-        e.description,
-        e.amount.toString(),
-        e.note,
-      ]));
+      buffer.writeln(
+        _csvRow([
+          e.id,
+          e.spentAt.toIso8601String(),
+          e.categoryCode,
+          e.subcategoryCode,
+          e.paymentMethodCode,
+          e.description,
+          e.amount.toString(),
+          e.note,
+        ]),
+      );
     }
     buffer.writeln();
 
     buffer.writeln(_sectionFixedExpenses);
-    buffer.writeln('id,appliedAt,categoryCode,paymentMethodCode,description,amount,note');
+    buffer.writeln(
+      'id,appliedAt,categoryCode,paymentMethodCode,description,amount,note',
+    );
     for (final e in fixedExpenses) {
-      buffer.writeln(_csvRow([
-        e.id,
-        e.appliedAt.toIso8601String(),
-        e.categoryCode,
-        e.paymentMethodCode,
-        e.description,
-        e.amount.toString(),
-        e.note,
-      ]));
+      buffer.writeln(
+        _csvRow([
+          e.id,
+          e.appliedAt.toIso8601String(),
+          e.categoryCode,
+          e.paymentMethodCode,
+          e.description,
+          e.amount.toString(),
+          e.note,
+        ]),
+      );
     }
     buffer.writeln();
 
     buffer.writeln(_sectionIncomes);
     buffer.writeln('id,earnedAt,amount,description');
     for (final e in incomes) {
-      buffer.writeln(_csvRow([
-        e.id?.toString() ?? '',
-        e.earnedAt.toIso8601String(),
-        e.amount.toString(),
-        e.description,
-      ]));
+      buffer.writeln(
+        _csvRow([
+          e.id?.toString() ?? '',
+          e.earnedAt.toIso8601String(),
+          e.amount.toString(),
+          e.description,
+        ]),
+      );
     }
     buffer.writeln();
 
     buffer.writeln(_sectionSettings);
     buffer.writeln('key,value');
     buffer.writeln(_csvRow(['localeCode', ledgerState.settings.localeCode]));
-    buffer.writeln(_csvRow(['currencyUnit', ledgerState.settings.currencyUnit]));
-    buffer.writeln(_csvRow([
-      'monthlyBudget',
-      ledgerState.settings.monthlyBudget.toString(),
-    ]));
+    buffer.writeln(
+      _csvRow(['currencyUnit', ledgerState.settings.currencyUnit]),
+    );
+    buffer.writeln(
+      _csvRow(['monthlyBudget', ledgerState.settings.monthlyBudget.toString()]),
+    );
     buffer.writeln(_csvRow(['userName', ledgerState.userProfile.name]));
-    buffer.writeln(_csvRow(['userAge', ledgerState.userProfile.age.toString()]));
+    buffer.writeln(
+      _csvRow(['userAge', ledgerState.userProfile.age.toString()]),
+    );
     buffer.writeln();
 
     buffer.writeln(_sectionTags);
@@ -211,9 +222,7 @@ class DataImExportService {
 
   /// 저장된 파일을 OS 공유 시트로 공유한다.
   Future<void> shareFile(String filePath) async {
-    await Share.shareXFiles(
-      [XFile(filePath, mimeType: 'text/csv')],
-    );
+    await Share.shareXFiles([XFile(filePath, mimeType: 'text/csv')]);
   }
 
   /// 플랫폼별 저장 디렉터리를 결정한다.
@@ -341,16 +350,18 @@ class DataImExportService {
         continue;
       }
       try {
-        result.add(ExpenseEntry.create(
-          id: f[0],
-          spentAt: DateTime.parse(f[1]),
-          categoryCode: f[2],
-          subcategoryCode: f[3],
-          paymentMethodCode: f[4],
-          description: f[5],
-          amount: int.parse(f[6]),
-          note: f[7],
-        ));
+        result.add(
+          ExpenseEntry.create(
+            id: f[0],
+            spentAt: DateTime.parse(f[1]),
+            categoryCode: f[2],
+            subcategoryCode: f[3],
+            paymentMethodCode: f[4],
+            description: f[5],
+            amount: int.parse(f[6]),
+            note: f[7],
+          ),
+        );
       } catch (_) {
         continue;
       }
@@ -369,15 +380,17 @@ class DataImExportService {
         continue;
       }
       try {
-        result.add(FixedExpense.create(
-          id: f[0],
-          appliedAt: DateTime.parse(f[1]),
-          categoryCode: f[2],
-          paymentMethodCode: f[3],
-          description: f[4],
-          amount: int.parse(f[5]),
-          note: f[6],
-        ));
+        result.add(
+          FixedExpense.create(
+            id: f[0],
+            appliedAt: DateTime.parse(f[1]),
+            categoryCode: f[2],
+            paymentMethodCode: f[3],
+            description: f[4],
+            amount: int.parse(f[5]),
+            note: f[6],
+          ),
+        );
       } catch (_) {
         continue;
       }
@@ -396,12 +409,14 @@ class DataImExportService {
         continue;
       }
       try {
-        result.add(IncomeEntry.create(
-          id: int.tryParse(f[0]),
-          earnedAt: DateTime.parse(f[1]),
-          amount: int.parse(f[2]),
-          description: f[3],
-        ));
+        result.add(
+          IncomeEntry.create(
+            id: int.tryParse(f[0]),
+            earnedAt: DateTime.parse(f[1]),
+            amount: int.parse(f[2]),
+            description: f[3],
+          ),
+        );
       } catch (_) {
         continue;
       }

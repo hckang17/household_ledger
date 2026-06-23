@@ -113,8 +113,8 @@ class AnalysisDonutChart extends StatelessWidget {
 
     final DonutSection? touched =
         touchedIndex >= 0 && touchedIndex < sections.length
-            ? sections[touchedIndex]
-            : null;
+        ? sections[touchedIndex]
+        : null;
 
     return SizedBox(
       height: 300,
@@ -127,24 +127,23 @@ class AnalysisDonutChart extends StatelessWidget {
           PieChart(
             PieChartData(
               pieTouchData: PieTouchData(
-                touchCallback: (
-                  FlTouchEvent event,
-                  PieTouchResponse? response,
-                ) {
-                  if (!event.isInterestedForInteractions ||
-                      response == null ||
-                      response.touchedSection == null) {
-                    onTouchUpdate(-1);
-                    return;
-                  }
-                  final int idx =
-                      response.touchedSection!.touchedSectionIndex;
-                  onTouchUpdate(idx);
-                  /// 손가락을 뗄 때만 탭 콜백을 호출해 불필요한 중복 발동을 막는다.
-                  if (event is FlTapUpEvent) {
-                    onSectionTap?.call(idx);
-                  }
-                },
+                touchCallback:
+                    (FlTouchEvent event, PieTouchResponse? response) {
+                      if (!event.isInterestedForInteractions ||
+                          response == null ||
+                          response.touchedSection == null) {
+                        onTouchUpdate(-1);
+                        return;
+                      }
+                      final int idx =
+                          response.touchedSection!.touchedSectionIndex;
+                      onTouchUpdate(idx);
+
+                      /// 손가락을 뗄 때만 탭 콜백을 호출해 불필요한 중복 발동을 막는다.
+                      if (event is FlTapUpEvent) {
+                        onSectionTap?.call(idx);
+                      }
+                    },
               ),
               centerSpaceRadius: 72,
               sectionsSpace: 2,
@@ -152,18 +151,19 @@ class AnalysisDonutChart extends StatelessWidget {
                 MapEntry<int, DonutSection> entry,
               ) {
                 final bool isTouched = entry.key == touchedIndex;
+
                 /// 터치되지 않은 상위 3개 섹션에만 외부 라벨 뱃지를 표시한다.
                 final bool showBadge = !isTouched && entry.key < 3;
                 final DonutSection s = entry.value;
                 return PieChartSectionData(
                   color: s.color,
                   value: s.amount.toDouble(),
+
                   /// 터치된 섹션만 반경을 크게 해서 강조 표시한다.
                   radius: isTouched ? 64 : 50,
+
                   /// 터치된 섹션에만 비율 텍스트를 섹션 내부에 표시한다.
-                  title: isTouched
-                      ? '${s.percentage.toStringAsFixed(0)}%'
-                      : '',
+                  title: isTouched ? '${s.percentage.toStringAsFixed(0)}%' : '',
                   titleStyle: const TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w700,

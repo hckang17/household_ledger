@@ -258,7 +258,9 @@ class ExpenseDatabaseService {
 
     final db = await _getDatabase();
     final deletedCount = await db.delete(_tableName);
-    logger.d('$_logPrefix deleteAllExpenses() completed via SQLite. deletedCount=$deletedCount');
+    logger.d(
+      '$_logPrefix deleteAllExpenses() completed via SQLite. deletedCount=$deletedCount',
+    );
     _log('deleteAllExpenses', '지출내역 전체 삭제 완료(SQLite)');
   }
 

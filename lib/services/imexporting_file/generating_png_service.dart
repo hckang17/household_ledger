@@ -31,13 +31,14 @@ class GeneratingPngService {
     double pixelRatio = 3.0,
   }) async {
     try {
-      final RenderObject? renderObject =
-          repaintKey.currentContext?.findRenderObject();
+      final RenderObject? renderObject = repaintKey.currentContext
+          ?.findRenderObject();
       if (renderObject is! RenderRepaintBoundary) return null;
 
       final ui.Image image = await renderObject.toImage(pixelRatio: pixelRatio);
-      final ByteData? byteData =
-          await image.toByteData(format: ui.ImageByteFormat.png);
+      final ByteData? byteData = await image.toByteData(
+        format: ui.ImageByteFormat.png,
+      );
       image.dispose();
       return byteData?.buffer.asUint8List();
     } catch (_) {
@@ -59,10 +60,9 @@ class GeneratingPngService {
   }) async {
     final File? file = await saveTempFile(bytes, filename: filename);
     if (file == null) return;
-    await Share.shareXFiles(
-      <XFile>[XFile(file.path, mimeType: 'image/png')],
-      subject: subject,
-    );
+    await Share.shareXFiles(<XFile>[
+      XFile(file.path, mimeType: 'image/png'),
+    ], subject: subject);
   }
 
   /// 위젯 캡처부터 공유까지 한 번에 처리하는 편의 메서드다.
@@ -75,8 +75,10 @@ class GeneratingPngService {
     double pixelRatio = 3.0,
     String? subject,
   }) async {
-    final Uint8List? bytes =
-        await captureWidget(repaintKey, pixelRatio: pixelRatio);
+    final Uint8List? bytes = await captureWidget(
+      repaintKey,
+      pixelRatio: pixelRatio,
+    );
     if (bytes == null) return;
     await shareAsImage(bytes, filename: filename, subject: subject);
   }

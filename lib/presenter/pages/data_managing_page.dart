@@ -53,10 +53,14 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
-    if (picked == null) { return; }
-    ref.read(dataManageProvider.notifier).setFilter(
-      filter.copyWith(selectedMonth: DateTime(picked.year, picked.month)),
-    );
+    if (picked == null) {
+      return;
+    }
+    ref
+        .read(dataManageProvider.notifier)
+        .setFilter(
+          filter.copyWith(selectedMonth: DateTime(picked.year, picked.month)),
+        );
   }
 
   Future<void> _pickStartDate(DataSearchFilter filter) async {
@@ -66,12 +70,16 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
-    if (picked == null) { return; }
-    ref.read(dataManageProvider.notifier).setFilter(
-      filter.copyWith(
-        startDate: DateTime(picked.year, picked.month, picked.day),
-      ),
-    );
+    if (picked == null) {
+      return;
+    }
+    ref
+        .read(dataManageProvider.notifier)
+        .setFilter(
+          filter.copyWith(
+            startDate: DateTime(picked.year, picked.month, picked.day),
+          ),
+        );
   }
 
   Future<void> _pickEndDate(DataSearchFilter filter) async {
@@ -81,18 +89,19 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
       firstDate: DateTime(2000),
       lastDate: DateTime(2100),
     );
-    if (picked == null) { return; }
-    ref.read(dataManageProvider.notifier).setFilter(
-      filter.copyWith(
-        endDate: DateTime(picked.year, picked.month, picked.day),
-      ),
-    );
+    if (picked == null) {
+      return;
+    }
+    ref
+        .read(dataManageProvider.notifier)
+        .setFilter(
+          filter.copyWith(
+            endDate: DateTime(picked.year, picked.month, picked.day),
+          ),
+        );
   }
 
-  Future<void> _confirmDelete(
-    Map<String, String> strings,
-    int count,
-  ) async {
+  Future<void> _confirmDelete(Map<String, String> strings, int count) async {
     final bool? confirmed = await showDialog<bool>(
       context: context,
       builder: (BuildContext ctx) => AlertDialog(
@@ -107,16 +116,15 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             Text(
-              _s(strings, 'dataManageDeleteConfirmMessage', '{count}건을 삭제합니다.')
-                  .replaceAll('{count}', count.toString()),
+              _s(
+                strings,
+                'dataManageDeleteConfirmMessage',
+                '{count}건을 삭제합니다.',
+              ).replaceAll('{count}', count.toString()),
             ),
             const SizedBox(height: 8),
             Text(
-              _s(
-                strings,
-                'dataManageDeleteWarning',
-                '삭제한 데이터는 복구할 수 없습니다.',
-              ),
+              _s(strings, 'dataManageDeleteWarning', '삭제한 데이터는 복구할 수 없습니다.'),
               style: const TextStyle(
                 color: Color(0xFFDC3545),
                 fontWeight: FontWeight.w600,
@@ -140,14 +148,21 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
         ],
       ),
     );
-    if (confirmed != true || !mounted) { return; }
+    if (confirmed != true || !mounted) {
+      return;
+    }
     await ref.read(dataManageProvider.notifier).deleteSelected();
-    if (!mounted) { return; }
+    if (!mounted) {
+      return;
+    }
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(
-          _s(strings, 'dataManageDeleteSuccess', '{count}건이 삭제되었습니다.')
-              .replaceAll('{count}', count.toString()),
+          _s(
+            strings,
+            'dataManageDeleteSuccess',
+            '{count}건이 삭제되었습니다.',
+          ).replaceAll('{count}', count.toString()),
         ),
         backgroundColor: const Color(0xFF198754),
       ),
@@ -160,7 +175,9 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
     List<MetadataTag> paymentTags,
     DataManageState manageState,
   ) async {
-    if (manageState.searchedTableType == DataTableType.income) { return; }
+    if (manageState.searchedTableType == DataTableType.income) {
+      return;
+    }
 
     String? selectedPayment;
     String? selectedCategory;
@@ -186,10 +203,9 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
               children: <Widget>[
                 Text(
                   _s(strings, 'dataManageChangeTagTitle', '태그 일괄 변경'),
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.copyWith(fontWeight: FontWeight.w700),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -234,7 +250,8 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                       ),
                     ),
                   ],
-                  onChanged: (String? v) => setModal(() => selectedCategory = v),
+                  onChanged: (String? v) =>
+                      setModal(() => selectedCategory = v),
                 ),
                 const SizedBox(height: 20),
                 SizedBox(
@@ -242,76 +259,77 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                   child: FilledButton(
                     onPressed:
                         (selectedPayment == null && selectedCategory == null)
-                            ? null
-                            : () async {
-                                // 변경 확인 다이얼로그
-                                final bool? confirmed = await showDialog<bool>(
-                                  context: context,
-                                  builder: (BuildContext dialogCtx) =>
-                                      AlertDialog(
-                                    title: Text(
-                                      _s(
-                                        strings,
-                                        'dataManageChangeConfirmTitle',
-                                        '태그 변경 확인',
-                                      ),
-                                    ),
-                                    content: Text(
-                                      _s(
-                                        strings,
-                                        'dataManageChangeConfirmMessage',
-                                        '{count}건의 태그를 변경하시겠습니까?',
-                                      ).replaceAll('{count}', selCount.toString()),
-                                    ),
-                                    actions: <Widget>[
-                                      TextButton(
-                                        onPressed: () =>
-                                            Navigator.pop(dialogCtx, false),
-                                        child: Text(_s(strings, 'cancel', '취소')),
-                                      ),
-                                      FilledButton(
-                                        onPressed: () =>
-                                            Navigator.pop(dialogCtx, true),
-                                        child: Text(
-                                          _s(
-                                            strings,
-                                            'dataManageChangeTagApply',
-                                            '변경 적용',
-                                          ),
-                                        ),
-                                      ),
-                                    ],
+                        ? null
+                        : () async {
+                            // 변경 확인 다이얼로그
+                            final bool? confirmed = await showDialog<bool>(
+                              context: context,
+                              builder: (BuildContext dialogCtx) => AlertDialog(
+                                title: Text(
+                                  _s(
+                                    strings,
+                                    'dataManageChangeConfirmTitle',
+                                    '태그 변경 확인',
                                   ),
-                                );
-                                if (confirmed != true) { return; }
-                                // 시트를 닫고 일괄 변경 실행
-                                if (sheetCtx.mounted) {
-                                  Navigator.pop(sheetCtx);
-                                }
-                                await ref
-                                    .read(dataManageProvider.notifier)
-                                    .bulkChangeTags(
-                                      paymentMethodCode: selectedPayment,
-                                      categoryCode: selectedCategory,
-                                    );
-                                if (mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        _s(
-                                          strings,
-                                          'dataManageChangeSuccess',
-                                          '{count}건의 태그가 변경되었습니다.',
-                                        ).replaceAll(
-                                          '{count}',
-                                          selCount.toString(),
-                                        ),
+                                ),
+                                content: Text(
+                                  _s(
+                                    strings,
+                                    'dataManageChangeConfirmMessage',
+                                    '{count}건의 태그를 변경하시겠습니까?',
+                                  ).replaceAll('{count}', selCount.toString()),
+                                ),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () =>
+                                        Navigator.pop(dialogCtx, false),
+                                    child: Text(_s(strings, 'cancel', '취소')),
+                                  ),
+                                  FilledButton(
+                                    onPressed: () =>
+                                        Navigator.pop(dialogCtx, true),
+                                    child: Text(
+                                      _s(
+                                        strings,
+                                        'dataManageChangeTagApply',
+                                        '변경 적용',
                                       ),
-                                      backgroundColor: const Color(0xFF198754),
                                     ),
-                                  );
-                                }
-                              },
+                                  ),
+                                ],
+                              ),
+                            );
+                            if (confirmed != true) {
+                              return;
+                            }
+                            // 시트를 닫고 일괄 변경 실행
+                            if (sheetCtx.mounted) {
+                              Navigator.pop(sheetCtx);
+                            }
+                            await ref
+                                .read(dataManageProvider.notifier)
+                                .bulkChangeTags(
+                                  paymentMethodCode: selectedPayment,
+                                  categoryCode: selectedCategory,
+                                );
+                            if (mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    _s(
+                                      strings,
+                                      'dataManageChangeSuccess',
+                                      '{count}건의 태그가 변경되었습니다.',
+                                    ).replaceAll(
+                                      '{count}',
+                                      selCount.toString(),
+                                    ),
+                                  ),
+                                  backgroundColor: const Color(0xFF198754),
+                                ),
+                              );
+                            }
+                          },
                     child: Text(
                       _s(strings, 'dataManageChangeTagApply', '변경 적용'),
                     ),
@@ -335,30 +353,40 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
       segments: <ButtonSegment<DataTableType?>>[
         ButtonSegment<DataTableType?>(
           value: DataTableType.expense,
-          label: Text(_s(strings, 'dataManageTableExpense', '소비기록')),
+          label: Text(
+            _s(strings, 'dataManageTableExpense', '소비기록'),
+            style: TextStyle(fontSize: 12),
+          ),
         ),
         ButtonSegment<DataTableType?>(
           value: DataTableType.fixedExpense,
-          label: Text(_s(strings, 'dataManageTableFixed', '고정지출')),
+          label: Text(
+            _s(strings, 'dataManageTableFixed', '고정지출'),
+            style: TextStyle(fontSize: 12),
+          ),
         ),
         ButtonSegment<DataTableType?>(
           value: DataTableType.income,
-          label: Text(_s(strings, 'dataManageTableIncome', '수입')),
+          label: Text(
+            _s(strings, 'dataManageTableIncome', '수입'),
+            style: TextStyle(fontSize: 12),
+          ),
         ),
       ],
       selected: <DataTableType?>{filter.tableType},
       emptySelectionAllowed: true,
       onSelectionChanged: (Set<DataTableType?> selected) {
-        final DataTableType? picked =
-            selected.isEmpty ? null : selected.first;
-        ref.read(dataManageProvider.notifier).setFilter(
-          filter.copyWith(
-            tableType: picked,
-            clearTableType: picked == null,
-            clearPaymentMethod: true,
-            clearCategory: true,
-          ),
-        );
+        final DataTableType? picked = selected.isEmpty ? null : selected.first;
+        ref
+            .read(dataManageProvider.notifier)
+            .setFilter(
+              filter.copyWith(
+                tableType: picked,
+                clearTableType: picked == null,
+                clearPaymentMethod: true,
+                clearCategory: true,
+              ),
+            );
       },
     );
   }
@@ -370,32 +398,50 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        SegmentedButton<DateRangeType>(
-          segments: <ButtonSegment<DateRangeType>>[
-            ButtonSegment<DateRangeType>(
-              value: DateRangeType.all,
-              label: Text(_s(strings, 'dataManageAllPeriod', '전체')),
+        SizedBox(
+          width: double.infinity,
+          child: SegmentedButton<DateRangeType>(
+            style: SegmentedButton.styleFrom(
+              tapTargetSize: MaterialTapTargetSize.shrinkWrap,
             ),
-            ButtonSegment<DateRangeType>(
-              value: DateRangeType.month,
-              label: Text(_s(strings, 'dataManageMonthPeriod', '특정 달')),
-            ),
-            ButtonSegment<DateRangeType>(
-              value: DateRangeType.period,
-              label: Text(_s(strings, 'dataManageRangePeriod', '기간 지정')),
-            ),
-          ],
-          selected: <DateRangeType>{filter.dateRangeType},
-          onSelectionChanged: (Set<DateRangeType> selection) {
-            ref.read(dataManageProvider.notifier).setFilter(
-              filter.copyWith(dateRangeType: selection.first),
-            );
-          },
+            segments: <ButtonSegment<DateRangeType>>[
+              ButtonSegment<DateRangeType>(
+                value: DateRangeType.all,
+                label: Text(
+                  _s(strings, 'dataManageAllPeriod', '전체'),
+                  style: TextStyle(fontSize: 12),
+                ),
+              ),
+              ButtonSegment<DateRangeType>(
+                value: DateRangeType.month,
+                label: Text(
+                  _s(strings, 'dataManageMonthPeriod', '특정 달'),
+                  style: TextStyle(fontSize: 12),
+                ),
+              ),
+              ButtonSegment<DateRangeType>(
+                value: DateRangeType.period,
+                label: Text(
+                  _s(strings, 'dataManageRangePeriod', '기간 지정'),
+                  style: TextStyle(fontSize: 12),
+                ),
+              ),
+            ],
+            selected: <DateRangeType>{filter.dateRangeType},
+            onSelectionChanged: (Set<DateRangeType> selection) {
+              ref
+                  .read(dataManageProvider.notifier)
+                  .setFilter(filter.copyWith(dateRangeType: selection.first));
+            },
+          ),
         ),
         if (filter.dateRangeType == DateRangeType.month)
           Padding(
             padding: const EdgeInsets.only(top: 8),
             child: OutlinedButton.icon(
+              style: OutlinedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 36),
+              ),
               onPressed: () => _pickMonth(filter),
               icon: const Icon(Icons.calendar_month_outlined, size: 16),
               label: Text(
@@ -412,6 +458,9 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
               children: <Widget>[
                 Expanded(
                   child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 36),
+                    ),
                     onPressed: () => _pickStartDate(filter),
                     child: Text(
                       filter.startDate != null
@@ -426,6 +475,9 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 ),
                 Expanded(
                   child: OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 36),
+                    ),
                     onPressed: () => _pickEndDate(filter),
                     child: Text(
                       filter.endDate != null
@@ -482,11 +534,13 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 ),
               ],
               onChanged: (String? v) {
-                ref.read(dataManageProvider.notifier).setFilter(
-                  v == null
-                      ? filter.copyWith(clearPaymentMethod: true)
-                      : filter.copyWith(paymentMethodCode: v),
-                );
+                ref
+                    .read(dataManageProvider.notifier)
+                    .setFilter(
+                      v == null
+                          ? filter.copyWith(clearPaymentMethod: true)
+                          : filter.copyWith(paymentMethodCode: v),
+                    );
               },
             ),
             const SizedBox(height: 12),
@@ -510,11 +564,13 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 ),
               ],
               onChanged: (String? v) {
-                ref.read(dataManageProvider.notifier).setFilter(
-                  v == null
-                      ? filter.copyWith(clearCategory: true)
-                      : filter.copyWith(categoryCode: v),
-                );
+                ref
+                    .read(dataManageProvider.notifier)
+                    .setFilter(
+                      v == null
+                          ? filter.copyWith(clearCategory: true)
+                          : filter.copyWith(categoryCode: v),
+                    );
               },
             ),
           ],
@@ -526,9 +582,9 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
               isDense: true,
             ),
             onChanged: (String v) {
-              ref.read(dataManageProvider.notifier).setFilter(
-                filter.copyWith(descriptionQuery: v),
-              );
+              ref
+                  .read(dataManageProvider.notifier)
+                  .setFilter(filter.copyWith(descriptionQuery: v));
             },
           ),
           if (!isIncome) ...<Widget>[
@@ -540,9 +596,9 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 isDense: true,
               ),
               onChanged: (String v) {
-                ref.read(dataManageProvider.notifier).setFilter(
-                  filter.copyWith(noteQuery: v),
-                );
+                ref
+                    .read(dataManageProvider.notifier)
+                    .setFilter(filter.copyWith(noteQuery: v));
               },
             ),
           ],
@@ -610,7 +666,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
               TextButton(
                 onPressed: s.isAllSelected
                     ? () =>
-                        ref.read(dataManageProvider.notifier).clearSelection()
+                          ref.read(dataManageProvider.notifier).clearSelection()
                     : () => ref.read(dataManageProvider.notifier).selectAll(),
                 child: Text(
                   s.isAllSelected
@@ -637,7 +693,11 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
               OutlinedButton.icon(
                 onPressed: canChangeTag
                     ? () => _showTagChangeSheet(
-                        strings, categoryTags, paymentTags, s)
+                        strings,
+                        categoryTags,
+                        paymentTags,
+                        s,
+                      )
                     : null,
                 icon: const Icon(Icons.label_outline, size: 16),
                 label: Text(_s(strings, 'dataManageChangeTag', '태그변경')),
@@ -676,8 +736,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
             final e = s.expenses[i];
             final bool selected = s.isSelected(e.id);
             return BootstrapSectionCard(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               child: Row(
                 children: <Widget>[
                   Checkbox(
@@ -699,18 +758,14 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                     child: Text(
                       _tagLabel(categoryTags, e.categoryCode),
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(ctx)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(fontWeight: FontWeight.w600),
+                      style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   Expanded(
                     flex: 3,
-                    child: Text(
-                      e.description,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    child: Text(e.description, overflow: TextOverflow.ellipsis),
                   ),
                   Expanded(
                     flex: 2,
@@ -739,8 +794,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
             final e = s.fixedExpenses[i];
             final bool selected = s.isSelected(e.id);
             return BootstrapSectionCard(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               child: Row(
                 children: <Widget>[
                   Checkbox(
@@ -762,18 +816,14 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                     child: Text(
                       _tagLabel(categoryTags, e.categoryCode),
                       overflow: TextOverflow.ellipsis,
-                      style: Theme.of(ctx)
-                          .textTheme
-                          .bodySmall
-                          ?.copyWith(fontWeight: FontWeight.w600),
+                      style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
                   Expanded(
                     flex: 3,
-                    child: Text(
-                      e.description,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    child: Text(e.description, overflow: TextOverflow.ellipsis),
                   ),
                   Expanded(
                     flex: 2,
@@ -803,8 +853,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
             final String sid = e.id?.toString() ?? '';
             final bool selected = sid.isNotEmpty && s.isSelected(sid);
             return BootstrapSectionCard(
-              padding:
-                  const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
               child: Row(
                 children: <Widget>[
                   Checkbox(
@@ -812,8 +861,8 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                     onChanged: sid.isEmpty
                         ? null
                         : (_) => ref
-                            .read(dataManageProvider.notifier)
-                            .toggleSelection(sid),
+                              .read(dataManageProvider.notifier)
+                              .toggleSelection(sid),
                     visualDensity: VisualDensity.compact,
                   ),
                   Expanded(
@@ -825,10 +874,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                   ),
                   Expanded(
                     flex: 5,
-                    child: Text(
-                      e.description,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    child: Text(e.description, overflow: TextOverflow.ellipsis),
                   ),
                   Expanded(
                     flex: 2,
@@ -859,15 +905,15 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
     final DataSearchFilter filter = manageState.filter;
 
     if (ledger == null) {
-      return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
-      );
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final List<MetadataTag> categoryTags =
-        ledger.tagsByType(MetadataTagType.category);
-    final List<MetadataTag> paymentTags =
-        ledger.tagsByType(MetadataTagType.paymentMethod);
+    final List<MetadataTag> categoryTags = ledger.tagsByType(
+      MetadataTagType.category,
+    );
+    final List<MetadataTag> paymentTags = ledger.tagsByType(
+      MetadataTagType.paymentMethod,
+    );
     final String currency = strings['currencyUnit'] ?? '';
     final bool isIncome = filter.tableType == DataTableType.income;
 
@@ -913,7 +959,8 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 const Center(child: CircularProgressIndicator()),
               if (manageState.isOperating)
                 _buildOperationProgress(strings, manageState),
-              if (manageState.hasResults && !manageState.isOperating) ...<Widget>[
+              if (manageState.hasResults &&
+                  !manageState.isOperating) ...<Widget>[
                 _buildActionBar(
                   strings,
                   manageState,

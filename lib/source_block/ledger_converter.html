@@ -1,0 +1,1215 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>家計簿メモ変換ツール</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --ground:  #1B2D3A;
+  --surface: #F8F7F2;
+  --text:    #1A1E23;
+  --muted:   #8A897E;
+  --rule:    #D6D5CF;
+  --jade:    #4E7A6A;
+  --jade-bg: #E6EEEB;
+  --stamp:   #C4533A;
+  --stamp-bg:#FAE9E5;
+  --mono: 'Courier New', 'Consolas', 'Menlo', monospace;
+}
+
+body{
+  background:var(--ground);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:44px 16px 96px;
+  font-family:'Hiragino Kaku Gothic Pro','Noto Sans JP','Yu Gothic',system-ui,-apple-system,sans-serif;
+  font-size:13px;
+  line-height:1.5;
+}
+
+/* ── page header ──────────────────────────────── */
+.masthead{
+  text-align:center;
+  margin-bottom:30px;
+  color:#7B9BAA;
+}
+.masthead-eyebrow{
+  font-size:10px;
+  letter-spacing:.25em;
+  text-transform:uppercase;
+  font-weight:600;
+}
+.masthead-sub{
+  font-family:var(--mono);
+  font-size:10px;
+  opacity:.5;
+  margin-top:3px;
+}
+
+/* ── receipt card ─────────────────────────────── */
+.card{
+  background:var(--surface);
+  width:100%;
+  max-width:528px;
+  border-radius:3px 3px 0 0;
+  box-shadow:0 24px 64px rgba(0,0,0,.45);
+}
+.card-body{
+  padding:32px 32px 36px;
+}
+
+/* perforated bottom edge — the aesthetic risk */
+.card-perf{
+  height:16px;
+  background:
+    radial-gradient(circle at 9px 0, var(--ground) 8px, transparent 9px) -9px 0 / 18px 16px repeat-x,
+    var(--surface);
+  border-radius:0 0 3px 3px;
+}
+
+/* ── card header ──────────────────────────────── */
+.receipt-head{
+  border-bottom:1.5px solid var(--text);
+  padding-bottom:16px;
+  margin-bottom:28px;
+}
+.receipt-brand{
+  font-size:10px;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:var(--jade);
+  font-weight:700;
+}
+.receipt-title{
+  font-size:22px;
+  font-weight:800;
+  color:var(--text);
+  letter-spacing:-.02em;
+  margin-top:3px;
+  line-height:1.15;
+}
+.receipt-date{
+  font-family:var(--mono);
+  font-size:10px;
+  color:var(--muted);
+  margin-top:7px;
+}
+
+/* ── step label ───────────────────────────────── */
+.step-label{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  font-size:9.5px;
+  font-weight:800;
+  letter-spacing:.2em;
+  text-transform:uppercase;
+  color:var(--jade);
+  margin-bottom:13px;
+}
+.step-label::after{
+  content:'';
+  flex:1;
+  height:1px;
+  background:var(--rule);
+}
+
+/* ── notice ───────────────────────────────────── */
+.notice{
+  background:var(--jade-bg);
+  border-left:2.5px solid var(--jade);
+  border-radius:0 2px 2px 0;
+  padding:10px 12px;
+  font-size:11.5px;
+  color:#2D5044;
+  margin-bottom:14px;
+  line-height:1.55;
+}
+.notice code{font-family:var(--mono);font-size:11px}
+.notice.warn{background:var(--stamp-bg);border-color:var(--stamp);color:#7A2B1A}
+
+/* ── form elements ────────────────────────────── */
+.field{margin-bottom:12px}
+.field label{
+  display:block;
+  font-size:10.5px;
+  font-weight:700;
+  letter-spacing:.06em;
+  color:var(--muted);
+  margin-bottom:5px;
+}
+.field-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+
+input[type=text],
+input[type=email],
+input[type=password],
+input[type=number],
+textarea{
+  width:100%;
+  background:#fff;
+  border:1.5px solid var(--rule);
+  border-radius:2px;
+  padding:9px 11px;
+  font-size:13px;
+  font-family:inherit;
+  color:var(--text);
+  outline:none;
+  transition:border-color .15s;
+  -webkit-appearance:none;
+}
+input:focus,textarea:focus{border-color:var(--jade)}
+textarea{
+  font-family:var(--mono);
+  font-size:11.5px;
+  line-height:1.7;
+  resize:vertical;
+  min-height:210px;
+}
+input[type=number]{width:90px}
+.hint{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.4}
+.hint code{font-family:var(--mono);font-size:10.5px}
+
+/* ── file drop ────────────────────────────────── */
+.file-zone{
+  border:1.5px dashed #C0BFB8;
+  border-radius:2px;
+  padding:16px;
+  text-align:center;
+  cursor:pointer;
+  transition:border-color .15s;
+}
+.file-zone:hover,.file-zone:focus-within{border-color:var(--jade);outline:none}
+.file-zone input[type=file]{display:none}
+.file-zone-lbl{font-size:12px;color:var(--muted);cursor:pointer}
+.file-zone-lbl small{display:block;font-size:10.5px;margin-top:2px;opacity:.7}
+#file-name{
+  font-family:var(--mono);
+  font-size:11px;
+  color:var(--jade);
+  margin-top:5px;
+  min-height:16px;
+}
+
+/* ── divider ──────────────────────────────────── */
+.rule{border:none;border-top:1px solid var(--rule);margin:24px 0}
+
+/* ── buttons ──────────────────────────────────── */
+.btn-convert{
+  width:100%;
+  background:var(--jade);
+  color:#fff;
+  border:none;
+  border-radius:2px;
+  padding:13px 16px;
+  font-size:13.5px;
+  font-weight:700;
+  letter-spacing:.04em;
+  cursor:pointer;
+  transition:background .15s;
+  font-family:inherit;
+}
+.btn-convert:hover{background:#3C6154}
+.btn-convert:focus-visible{outline:2px solid var(--jade);outline-offset:2px}
+.btn-convert:disabled{background:#B8B7B0;cursor:not-allowed}
+
+.btn-dl{
+  display:none;
+  width:100%;
+  background:var(--text);
+  color:#fff;
+  border:none;
+  border-radius:2px;
+  padding:13px 16px;
+  font-size:13.5px;
+  font-weight:700;
+  letter-spacing:.04em;
+  cursor:pointer;
+  transition:background .15s;
+  margin-top:12px;
+  font-family:inherit;
+}
+.btn-dl.show{display:block}
+.btn-dl:hover{background:#303640}
+.btn-dl:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+
+/* ── error ────────────────────────────────────── */
+.error-msg{
+  display:none;
+  color:var(--stamp);
+  font-size:12px;
+  margin-top:9px;
+  line-height:1.4;
+}
+.error-msg.show{display:block}
+
+/* ── preview ──────────────────────────────────── */
+#preview{display:none;margin-top:4px}
+#preview.show{display:block}
+
+.preview-stats{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:0;
+  margin-bottom:16px;
+  border:1px solid var(--rule);
+  border-radius:2px;
+  overflow:hidden;
+}
+.stat-cell{
+  flex:1;
+  min-width:80px;
+  padding:12px 14px;
+  background:#fff;
+  border-right:1px solid var(--rule);
+  text-align:center;
+}
+.stat-cell:last-child{border-right:none}
+.stat-num{
+  font-family:var(--mono);
+  font-size:22px;
+  font-weight:700;
+  color:var(--text);
+  line-height:1;
+  display:block;
+}
+.stat-num.jade{color:var(--jade)}
+.stat-num.stamp{color:var(--stamp)}
+.stat-lbl{
+  font-size:10px;
+  color:var(--muted);
+  margin-top:4px;
+  display:block;
+  letter-spacing:.04em;
+}
+
+.tbl-wrap{overflow-x:auto;border:1px solid var(--rule);border-radius:2px;max-height:340px;overflow-y:auto}
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+thead{position:sticky;top:0;z-index:1}
+th{
+  background:#EEEEE8;
+  text-align:left;
+  padding:7px 10px;
+  font-size:9.5px;
+  font-weight:800;
+  letter-spacing:.12em;
+  text-transform:uppercase;
+  color:var(--muted);
+  border-bottom:1px solid var(--rule);
+  white-space:nowrap;
+}
+td{
+  padding:6px 10px;
+  border-bottom:1px solid #EEEEE8;
+  color:var(--text);
+  white-space:nowrap;
+}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#F4F3EE}
+.td-mono{font-family:var(--mono)}
+.td-amount{text-align:right;font-family:var(--mono);font-weight:700}
+
+/* payment badge */
+.badge{
+  display:inline-block;
+  padding:2px 7px;
+  border-radius:20px;
+  font-size:10px;
+  font-weight:700;
+  letter-spacing:.03em;
+}
+.badge-mom{background:var(--stamp-bg);color:var(--stamp)}
+.badge-cash{background:var(--jade-bg);color:var(--jade)}
+
+/* ── receipt footer ───────────────────────────── */
+.receipt-foot{
+  border-top:1.5px dashed #C4C3BC;
+  margin-top:28px;
+  padding-top:14px;
+  font-family:var(--mono);
+  font-size:10px;
+  color:#B4B3AB;
+  text-align:center;
+  line-height:1.9;
+}
+
+/* ── reduced motion ───────────────────────────── */
+@media(prefers-reduced-motion:reduce){
+  *{transition:none !important;scroll-behavior:auto !important}
+}
+</style>
+</head>
+<body>
+
+<header class="masthead">
+  <div class="masthead-eyebrow">家計簿 / 가계부</div>
+  <div class="masthead-sub">household_ledger_v1 · CSV Import Tool</div>
+</header>
+
+<main class="card">
+  <div class="card-body">
+
+    <div class="receipt-head">
+      <div class="receipt-brand">Ledger Converter</div>
+      <h1 class="receipt-title">メモ → CSV 変換</h1>
+      <div class="receipt-date" id="stamp-date"></div>
+    </div>
+
+    <!-- ── STEP 1 認証情報 ───────────────── -->
+    <div class="step-label">Step 1 &nbsp;— 認証情報</div>
+    <div class="notice">
+      アプリでデータを出力 / 取り込む際に使用する
+      <strong>メールアドレス</strong>と<strong>認証キー</strong>を入力してください。<br>
+      ここで入力した情報が CSV の署名に使われます。
+    </div>
+    <div class="field-row">
+      <div class="field">
+        <label for="f-email">Email</label>
+        <input type="email" id="f-email" placeholder="your@email.com" autocomplete="off">
+      </div>
+      <div class="field">
+        <label for="f-pass">認証キー</label>
+        <input type="password" id="f-pass" placeholder="passkey" autocomplete="off">
+      </div>
+    </div>
+
+    <hr class="rule">
+
+    <!-- ── STEP 2 既存データ ─────────────── -->
+    <div class="step-label">Step 2 &nbsp;— 既存データ（任意）</div>
+    <div class="notice">
+      アプリから出力した <code>.csv</code> を読み込むと、既存データを保持したままメモを追加します。<br>
+      スキップするとメモの内容のみで新規作成します。
+    </div>
+    <div class="file-zone" tabindex="0" role="button" aria-label="CSVファイルを選択"
+         onclick="document.getElementById('f-file').click()"
+         onkeydown="if(event.key==='Enter'||event.key===' ')this.click()">
+      <input type="file" id="f-file" accept=".csv,text/csv">
+      <label class="file-zone-lbl" for="f-file">
+        クリックしてエクスポート済み CSV を選択
+        <small>（任意 — スキップ可能）</small>
+      </label>
+      <div id="file-name"></div>
+    </div>
+
+    <hr class="rule">
+
+    <!-- ── STEP 3 メモ入力 ───────────────── -->
+    <div class="step-label">Step 3 &nbsp;— メモ入力</div>
+    <div class="notice">
+      <strong>コード規則：</strong>
+      <code>{Category(大)}{Subcategory(小)?}_{PaymentMethod(小)?}: {説明} {金額} ¥ {コメント?}</code><br>
+      小分類省略 → <code>n</code>（普段）&nbsp;·&nbsp; 決済省略 → <code>_c</code>（現金）<br>
+      旅行中は小文字 <code>t</code> を付加 → <code>Ft:</code> など &nbsp;·&nbsp; 負数・<code>-</code>（0扱い）対応
+    </div>
+    <div class="field" style="margin-bottom:10px">
+      <label for="f-year">年度</label>
+      <input type="number" id="f-year" value="2026" min="2020" max="2099">
+    </div>
+    <div class="field">
+      <label for="f-memo">メモ</label>
+      <textarea id="f-memo" spellcheck="false"></textarea>
+    </div>
+
+    <hr class="rule">
+
+    <button class="btn-convert" id="btn-go" onclick="doConvert()">変換する →</button>
+    <div class="error-msg" id="err"></div>
+
+    <!-- ── PREVIEW ───────────────────────── -->
+    <div id="preview">
+      <hr class="rule">
+      <div class="step-label" style="margin-bottom:16px">プレビュー</div>
+
+      <div class="preview-stats" id="stats"></div>
+
+      <div class="tbl-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>日付</th>
+              <th>分類</th>
+              <th>小分類</th>
+              <th>内容</th>
+              <th style="text-align:right">金額</th>
+              <th>決済</th>
+            </tr>
+          </thead>
+          <tbody id="tbl-body"></tbody>
+        </table>
+      </div>
+
+      <button class="btn-dl" id="btn-dl" onclick="doDownload()">CSV をダウンロード</button>
+    </div>
+
+    <div class="receipt-foot">
+      ※ インポートは既存データを完全に上書きします<br>
+      取り込む前に、アプリからバックアップを取っておいてください<br>
+      ─────────────────────────────<br>
+      household_ledger_v1 · sig: sha256(email|passkey|salt)
+    </div>
+
+  </div>
+  <div class="card-perf"></div>
+</main>
+
+<script>
+// ── Crypto ───────────────────────────────────────────────────
+async function sha256hex(s){
+  const buf=await crypto.subtle.digest('SHA-256',new TextEncoder().encode(s))
+  return [...new Uint8Array(buf)].map(b=>b.toString(16).padStart(2,'0')).join('')
+}
+
+// ── CSV utils ────────────────────────────────────────────────
+function esc(v){
+  const s=String(v)
+  return(s.includes(',')||s.includes('"')||s.includes('\n'))
+    ?'"'+s.replace(/"/g,'""')+'"':s
+}
+function row(...f){return f.map(esc).join(',')}
+
+// ── Parse memo ────────────────────────────────────────────────
+// コード規則: {Category(大)}{Subcategory(小)?}_{PaymentMethod(小)?}
+//   小分類省略 → n → _ (普段) フォールバック
+//   決済省略   → _c (現金)   フォールバック
+//   例) F       → F, n→_, _c
+//       Fn      → F, n→_, _c
+//       Tt      → T, t→t(旅行), _c
+//       Fn_m    → F, n→_, _m(엄마카드)
+const SUB_MAP={'n':'_','t':'t'}
+const SUB_LABEL={'_':'普段','t':'旅行'}
+const PAY_LABEL={'_c':'現金','_m':'엄마카드','_s':'カード'}
+
+function parseMemo(text,year){
+  const entries=[],dateRe=/^(\d+)월(\d+)일/
+  // 金額: 整数/0/負数(-500)/ダッシュ(-) 対応。¥前スペース省略可。¥後コメント任意。
+  const entryRe=/^([A-Za-z][A-Za-z_]*): (.+?)\s+(-?\d+|-)\s*¥(.*)$/
+  let date=null
+  for(const raw of text.split('\n')){
+    const l=raw.trim(); if(!l)continue
+    const dm=l.match(dateRe)
+    if(dm){
+      const m=parseInt(dm[1]),d=parseInt(dm[2])
+      date=`${year}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`
+      continue
+    }
+    const em=l.match(entryRe)
+    if(em&&date){
+      const code=em[1],desc=em[2].trim(),rawAmt=em[3],note=em[4].trim()
+      const amount=rawAmt==='-'?'0':rawAmt   // ダッシュ → 0
+
+      // コード解析
+      const cat=code[0].toUpperCase()
+      const rest=code.slice(1)
+      let subLetter='',payLetter=''
+      if(rest.includes('_')){
+        const idx=rest.indexOf('_')
+        subLetter=rest.slice(0,idx)
+        payLetter=rest.slice(idx+1)
+      }else{
+        subLetter=rest
+      }
+      subLetter=subLetter||'n'              // 省略 → n (普段)
+      const subCode=SUB_MAP[subLetter]||'_'
+      const payCode=payLetter?`_${payLetter}`:'_c'   // 省略 → _c (現金)
+
+      entries.push({
+        id:crypto.randomUUID(),
+        spentAt:`${date}T12:00:00.000`,
+        categoryCode:cat,subcategoryCode:subCode,
+        paymentMethodCode:payCode,description:desc,
+        amount,note,dateLabel:date,
+        isMom:payCode==='_m',subCode,payCode
+      })
+    }
+  }
+  return entries
+}
+
+// ── Parse existing CSV ────────────────────────────────────────
+function parseCsv(text){
+  const t=text.replace(/^﻿/,'')
+  const sec={metadata:[],expenses:[],fixedExpenses:[],incomes:[],settings:[],tags:[]}
+  const map={'[METADATA]':'metadata','[EXPENSES]':'expenses','[FIXED_EXPENSES]':'fixedExpenses',
+             '[INCOMES]':'incomes','[SETTINGS]':'settings','[TAGS]':'tags'}
+  let cur=null
+  for(const l of t.split('\n')){
+    const s=l.trimEnd()
+    if(map[s]!==undefined){cur=map[s];continue}
+    if(cur)sec[cur].push(s)
+  }
+  return sec
+}
+
+// ── Build output CSV ──────────────────────────────────────────
+async function buildCsv(email,passkey,existing,entries){
+  const sig=await sha256hex(`${email}|${passkey}|household_ledger_v1_salt`)
+  const ts=new Date().toISOString()
+  const L=[]
+
+  L.push('[METADATA]')
+  L.push(row('version','1.0'))
+  L.push(row('exportedAt',ts))
+  L.push(row('email',email))
+  L.push(row('signature',sig))
+  L.push('')
+
+  L.push('[EXPENSES]')
+  L.push('id,spentAt,categoryCode,subcategoryCode,paymentMethodCode,description,amount,note')
+  ;(existing?.expenses||[]).filter(r=>r&&!r.startsWith('id,')&&r.trim()).forEach(r=>L.push(r))
+  entries.forEach(e=>L.push(row(e.id,e.spentAt,e.categoryCode,e.subcategoryCode,e.paymentMethodCode,e.description,e.amount,e.note)))
+  L.push('')
+
+  L.push('[FIXED_EXPENSES]')
+  L.push('id,appliedAt,categoryCode,paymentMethodCode,description,amount,note')
+  ;(existing?.fixedExpenses||[]).filter(r=>r&&!r.startsWith('id,')&&r.trim()).forEach(r=>L.push(r))
+  L.push('')
+
+  L.push('[INCOMES]')
+  L.push('id,earnedAt,amount,description')
+  ;(existing?.incomes||[]).filter(r=>r&&!r.startsWith('id,')&&r.trim()).forEach(r=>L.push(r))
+  L.push('')
+
+  L.push('[SETTINGS]')
+  L.push('key,value')
+  const sRows=(existing?.settings||[]).filter(r=>r&&!r.startsWith('key,')&&r.trim())
+  if(sRows.length){sRows.forEach(r=>L.push(r))}
+  else{
+    L.push(row('localeCode','jp'))
+    L.push(row('currencyUnit','¥'))
+    L.push(row('monthlyBudget','0'))
+    L.push(row('userName',''))
+    L.push(row('userAge','0'))
+  }
+  L.push('')
+
+  L.push('[TAGS]')
+  L.push('type,code,label')
+  const tRows=(existing?.tags||[]).filter(r=>r&&!r.startsWith('type,')&&r.trim())
+  if(tRows.length){
+    tRows.forEach(r=>L.push(r))
+    if(!tRows.some(r=>r.includes('_m')))L.push(row('paymentMethod','_m','엄마카드'))
+  }else{
+    const def=[
+      ['category','C','カフェ'],['category','D','日用品＆衣料'],
+      ['category','F','外食費'],['category','G','食料品'],
+      ['category','H','ヒーリング＆趣味'],['category','L','生活費'],
+      ['category','S','スポーツ'],['category','T','交通費'],
+      ['subcategory','_','普段'],['subcategory','t','旅行'],
+      ['paymentMethod','_c','現金'],['paymentMethod','_m','엄마카드'],
+      ['paymentMethod','_s','クレジットカード'],
+    ]
+    def.forEach(d=>L.push(row(...d)))
+  }
+
+  return'﻿'+L.join('\n')
+}
+
+// ── State ─────────────────────────────────────────────────────
+let existingData=null,outputCsv=null
+
+// ── File input ────────────────────────────────────────────────
+document.getElementById('f-file').addEventListener('change',e=>{
+  const f=e.target.files[0]; if(!f)return
+  const r=new FileReader()
+  r.onload=ev=>{existingData=parseCsv(ev.target.result);document.getElementById('file-name').textContent=f.name}
+  r.readAsText(f,'utf-8')
+})
+
+// ── Convert ───────────────────────────────────────────────────
+async function doConvert(){
+  const email=document.getElementById('f-email').value.trim()
+  const pass=document.getElementById('f-pass').value.trim()
+  const memo=document.getElementById('f-memo').value
+  const year=parseInt(document.getElementById('f-year').value)||2026
+  const errEl=document.getElementById('err')
+
+  errEl.className='error-msg'
+  if(!email||!pass){
+    errEl.textContent='Email と認証キーを入力してください。'
+    errEl.className='error-msg show'; return
+  }
+
+  const entries=parseMemo(memo,year)
+  if(!entries.length){
+    errEl.textContent='変換できる項目が見つかりませんでした。メモのフォーマットを確認してください。'
+    errEl.className='error-msg show'; return
+  }
+
+  const btn=document.getElementById('btn-go')
+  btn.disabled=true; btn.textContent='変換中...'
+
+  outputCsv=await buildCsv(email,pass,existingData,entries)
+
+  // stats
+  const momN=entries.filter(e=>e.isMom).length
+  const cashN=entries.length-momN
+  const total=entries.reduce((s,e)=>s+parseInt(e.amount),0)
+  document.getElementById('stats').innerHTML=`
+    <div class="stat-cell"><span class="stat-num">${entries.length}</span><span class="stat-lbl">合計件数</span></div>
+    <div class="stat-cell"><span class="stat-num stamp">${momN}</span><span class="stat-lbl">엄마카드</span></div>
+    <div class="stat-cell"><span class="stat-num jade">${cashN}</span><span class="stat-lbl">現金</span></div>
+    <div class="stat-cell"><span class="stat-num">¥${total.toLocaleString()}</span><span class="stat-lbl">総支出額</span></div>
+  `
+
+  // table
+  document.getElementById('tbl-body').innerHTML=entries.map(e=>{
+    const pmLabel=PAY_LABEL[e.payCode]||e.payCode
+    const badgeClass=e.payCode==='_m'?'badge-mom':'badge-cash'
+    const amt=parseInt(e.amount)
+    const amtStr=amt<0?`-¥${Math.abs(amt).toLocaleString()}`:`¥${amt.toLocaleString()}`
+    const amtColor=amt<0?'color:var(--muted)':''
+    return`<tr>
+      <td class="td-mono">${e.dateLabel}</td>
+      <td class="td-mono">${e.categoryCode}</td>
+      <td class="td-mono" style="color:var(--muted);font-size:10.5px">${SUB_LABEL[e.subCode]||e.subCode}</td>
+      <td>${e.description}${e.note?` <small style="color:var(--muted)">${e.note}</small>`:''}</td>
+      <td class="td-amount" style="${amtColor}">${amtStr}</td>
+      <td><span class="badge ${badgeClass}">${pmLabel}</span></td>
+    </tr>`
+  }).join('')
+
+  document.getElementById('preview').className='show'
+  document.getElementById('btn-dl').className='btn-dl show'
+  btn.disabled=false; btn.textContent='再変換 →'
+  document.getElementById('preview').scrollIntoView({behavior:'smooth',block:'start'})
+}
+
+// ── Download ──────────────────────────────────────────────────
+function doDownload(){
+  if(!outputCsv)return
+  const blob=new Blob([outputCsv],{type:'text/csv;charset=utf-8'})
+  const url=URL.createObjectURL(blob),a=document.createElement('a')
+  const d=new Date()
+  a.href=url
+  a.download=`ledger_import_${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}.csv`
+  a.click(); URL.revokeObjectURL(url)
+}
+
+// ── Stamp date ────────────────────────────────────────────────
+;(()=>{
+  const d=new Date()
+  document.getElementById('stamp-date').textContent=
+    `${d.getFullYear()}.${String(d.getMonth()+1).padStart(2,'0')}.${String(d.getDate()).padStart(2,'0')}`
+})()
+
+// ── Pre-fill memo ─────────────────────────────────────────────
+document.getElementById('f-memo').value=
+`4월1일 (수)
+F: 요시노야 840 ¥
+C: 탈리즈 390 ¥
+D: 돈키호테 4500 ¥
+G: 저녁거리 1120 ¥
+D: 다이소 660 ¥
+S: 운동 6600 ¥
+
+4월2일(목)
+C: 커피 240 ¥
+F: 점심도시락 750 ¥
+
+4월3일(금)
+D: 공책 230 ¥
+F: 아침소바 570 ¥
+C: 커피 240 ¥
+F: 점심 750 ¥
+H: 노미카이 3200 ¥
+
+4월4일(토)
+F: 맥도날드 810 ¥
+D: 세제 1040 ¥
+G: 식재료 3990 ¥
+D: 다이소 1220 ¥
+
+4월5일(일)
+F: 사이제리아 1000 ¥
+T: 헬로사이클링 320 ¥
+D: 다이소 990 ¥
+
+4월6일(월)
+C: 음료 320 ¥
+F: 점심 1500 ¥
+F: 편의점 290 ¥
+
+4월7일(화)
+F: 아침 650 ¥
+F: 점심 840 ¥
+D: 세탁비 540 ¥
+G: 마트 380 ¥
+C: 카페 330 ¥
+
+4월8일(수)
+F: 아침 300 ¥
+F: 점심 750 ¥
+C: 커피 300 ¥
+F: 저녁 430 ¥
+
+4월9일(목)
+G: 물 120 ¥
+C: 카페 280 ¥
+F: 밥 750 ¥
+F: 저녁 900 ¥
+
+4월10일(금)
+F: 조식 560 ¥
+D: 치약칫솔(오피스용) 330 ¥
+F: 점심 750 ¥
+F: 저녁회식 2400 ¥
+F: 토리키조쿠 1000 ¥
+
+4월11일(토)
+T: 파스모충전 1000 ¥
+F: 멘쇼라멘 1500 ¥
+C: 카페 330 ¥
+F: 맥날 910 ¥
+D: 배터리 170 ¥
+
+4월12일(일)
+T: 파스모충전 500 ¥
+F: 교자 1000 ¥
+C: 스타벅스 160 ¥
+F: 소금빵 620 ¥
+C: 카페 860 ¥
+H: 게임 400 ¥
+F: 하이디라오 5100 ¥
+
+4월13일(월)
+F: 아침 440 ¥
+G: 물 120 ¥
+F: 점심 750 ¥
+C: 술 200 ¥
+
+4월14일(화)
+F: 아침 440 ¥
+C: 커피 770 ¥
+F: 점심 680 ¥
+G: 마트 1660 ¥
+
+4월15일(수)
+C: 아침 510 ¥
+F: 점심 1350 ¥
+G: 하이츄 140 ¥
+F: 저녁모임 3000 ¥
+T: 파스모 1000 ¥
+
+4월16일(목)
+G: 물 120 ¥
+F: 아침 320 ¥
+F: 점심 1070 ¥
+C: 카페 660 ¥
+G: 마트 300 ¥
+
+4월17일(금)
+F: 아침 300 ¥
+F: 점심 1840 ¥
+F: 노미카이 3600 ¥
+F: 노미카이 2400 ¥
+
+4월18일(토)
+C: 스벅 560 ¥
+F: 점심 1800 ¥
+H: 보드게임 2000 ¥
+
+4월19일(일)
+T: 헬로사이클링 160 ¥
+C: 스타벅스 280 ¥
+T: 파스모 200 ¥
+C: 맥도날드 150 ¥
+D: 다이소 생활용품 1210 ¥
+
+4월20일(월)
+F: 점심 900 ¥
+C: 아이스크림 120 ¥
+G: 마트 460 ¥
+
+4월21일(화)
+G: 물 120 ¥
+F: 점심 1430 ¥
+F: 맥도날드 850 ¥
+
+4월22일(수)
+T: 파스모 1000 ¥
+T: 헬로사이클링 160 ¥
+F: 점심소바 640 ¥
+C: 커피 120 ¥
+L: 관공서 600 ¥
+G: 마트 1660 ¥
+
+4월23일(목)
+F: 점심 1130 ¥
+F: 저녁 1660 ¥
+
+4월24일(금)
+F: 아침 440 ¥
+C: 스타벅스 660 ¥
+F: 점심 1450 ¥
+T: 파스모 1000 ¥
+
+4월25일(토)
+F: 사이제리아 1400 ¥
+C: 맥날카페 660 ¥
+D: 약품 230 ¥
+G: 저녁거리 700 ¥
+Tt: 신칸센 11100 ¥
+Ft: 테바사키 3300 ¥
+Ft: 신지다이 3000 ¥
+Ft: 토리키 1370 ¥
+Ft: 편의점 250 ¥
+
+4월26일(일)
+Ct: 코메다 540 ¥
+Ft: 히츠마부시 6950 ¥
+Ht: 온천 1950 ¥
+Ft: 츠케멘 1290 ¥
+Tt: 신칸센 10890 ¥
+Ct: 스벅 250 ¥
+D: GU(옷) 6540 ¥
+Ft: 내기승리 -500¥
+T: 파스모 1000 ¥
+
+4월27일(월)
+G: 물 120 ¥
+F: 아침 300 ¥
+F: 점심 750 ¥
+D: 다이소 220 ¥
+
+4월28일(화)
+C: 스타벅스 660 ¥
+G: 편의점 250 ¥
+F: 노미카이 3100 ¥
+G: 물 등 550 ¥
+
+4월29일(수)
+F: 맥도날드 810 ¥
+G: 마트 2720 ¥
+
+4월30일(목)
+D: 제모기 330 ¥
+G: 물 120 ¥
+F: 점심 1220 ¥
+
+5월1일(금)
+F: 점심/스태미나타로 2090 ¥
+C: 도토루카페 1090 ¥
+T: 파스모충전 210 ¥
+
+5월2일(토)
+F: 아침/나카우 590 ¥
+F: 점심/맥도날드 780 ¥
+D: 다이소 220 ¥
+T: 헬로사이클링 320 ¥
+G: 칼디팜 420 ¥
+F: 노미카이/혼다쇼텐 4410 ¥
+
+5월3일(일)
+C: 맥카페 150 ¥
+T: 파스모 2000 ¥
+C: 스타벅스 1280 ¥
+F: 점심/마루가메제면 920 ¥
+H: 온천 2280 ¥
+
+5월4일(월)
+C: 스타벅스 1260 ¥
+Tt: 기름값 1130 ¥
+Tt: 톨게이트비용 - ¥
+Ft: 점심/호토 1540 ¥
+Gt: 물 180 ¥
+Ht: 로프웨이 입장권 1000 ¥
+Ct: 아이스크림 500 ¥
+Ft: 저녁/야끼니꾸 3500 ¥
+
+5월5일(화)
+C: 맥카페 150 ¥
+F: 노미카이 5220 ¥
+
+5월6일(수)
+C: 스터디카페 1200 ¥
+F: 점심/맥날 590 ¥
+C: 간식/크레이프 690 ¥
+G: 마트/세이센이치바 5220 ¥
+
+5월7일(목)
+F: 환급 -200 ¥
+C: 카페/자판기 210 ¥
+F: 점심/아오렌 920 ¥
+
+5월8일(금)
+F: 아침/역우동 440 ¥
+C: 스타벅스 1330 ¥
+F: 점심/벤또 710 ¥
+G: 물 170 ¥
+G: 식재료 270 ¥
+
+5월9일(토)
+T: 파스모충전 2600 ¥
+C: 스타벅스 680 ¥
+F: 환급 -300 ¥
+H: 크레인게임 600 ¥
+
+5월10일(일)
+H: 호텔/캐쉬백 -5000 ¥
+F: 점심/라멘 2760 ¥
+C: 스타벅스 680 ¥
+C: 말차간식 2060 ¥
+H: 게임센터 500 ¥
+D: 일용품/드럭스토어 3590 ¥
+
+5월11일(월)
+F: 점심/정식 900 ¥
+C: 스타벅스 520 ¥
+F: 저녁/동현이 2500 ¥
+F: 노미카이 3700 ¥
+
+5월12일(화)
+T: 파스모 2000 ¥
+L: 미용실 7000 ¥
+F: 후배/노미카이 7200 ¥
+
+5월13일(수)
+F: 아침/역우동 440 ¥
+F: 점심/도시락 320 ¥
+C: 스타벅스 70 ¥
+G: 마트/세이센이치바 620 ¥
+C: 스타벅스 캐쉬백 -500 ¥
+
+5월14일(목)
+G: 물 120 ¥
+F: 아침/편의점 320 ¥
+F: 점심/도시락 890 ¥
+F: 저녁/소바 680 ¥
+
+5월15일(금)
+F: 아침/편의점 780 ¥
+F: 점심/테케테케 1100 ¥
+C: 스타벅스 520 ¥
+
+5월16일(토)
+C: 맥카페 270 ¥
+F: 점심/맥도날드 240 ¥
+G: 세이센이치바 2050 ¥
+F: 야식/편의점 100 ¥
+
+5월17일(일)
+T: 파스모충전 1000 ¥
+F: 아침/역우동 440 ¥
+F: 점심/쿠라스시 2650 ¥
+
+5월18일(월)
+F: 아침/편의점 490 ¥
+F: 점심/라멘 1790 ¥
+G: 세이센이치바 1240 ¥
+
+5월19일(화)
+C: 스타벅스 300 ¥
+F: 점심/도시락 330 ¥
+G: 세이센이치바 1720 ¥
+
+5월20일(수)
+C: 스타벅스 520 ¥
+F: 점심/도시락 640 ¥
+G: 물 90 ¥
+F: 저녁/노미카이 2000 ¥
+
+5월21일(목)
+G: 물 120 ¥
+F: 아침/편의점 400 ¥
+C: 스타벅스 660 ¥
+F: 점심/츠카다 1430 ¥
+F: 저녁/맥도날드 810 ¥
+
+5월22일(금)
+F: 아침/시리얼 0 ¥
+F: 점심/도시락 620 ¥
+F: 저녁/노미카이 4050 ¥
+
+5월23일(토)
+C: 스타벅스 650 ¥
+F: 점심/카레 1580 ¥
+D: 옷 3000 ¥
+F: 저녁/카이센 2580 ¥
+F: 저녁/노미카이 1270 ¥
+T: 렌트&톨비 2500 ¥
+
+5월24일(일)
+S: 헬스장 7150 ¥
+F: 저녁/사이제리아 1400 ¥
+G: 떡 250 ¥
+D: 마츠모토키요시 820 ¥
+T: 파스모충전 750 ¥
+G: 세이센이치바 2750 ¥
+
+5월25일(월)
+C: 스타벅스 570 ¥
+F: 점심/도시락 530 ¥
+F: 저녁/토리키조쿠 1630 ¥
+
+5월26일(화)
+G: 물 120 ¥
+F: 아침/편의점 320 ¥
+F: 점심/도시락 750 ¥
+
+5월27일(수)
+F: 점심/도시락 850 ¥
+C: 스타벅스 1320 ¥
+F: 저녁/사이제리아 1500 ¥
+
+5월28일(목)
+F: 아침/우동 580 ¥
+F: 점심/도시락 750 ¥
+F: 저녁/소바 680 ¥
+H: 온천 1180 ¥
+
+5월29일(금)
+C: 스타벅스 200 ¥
+G: 물 170 ¥
+F: 저녁/노미카이 400 ¥
+
+5월30일(토)
+F: 맥도날드 1420 ¥
+G: 세이센이치바 1820 ¥
+
+5월31일(일)
+C: 스타벅스 700 ¥
+H: 아쿠아리움 700 ¥
+F: 저녁/중화코스요리 2530 ¥
+
+6월1일(월)
+Cn: 스타벅스 330 ¥
+Fn_m: 점심/도시락 360 ¥
+Gn_m: 세이센이치바 2480 ¥
+Gn_m: 물 180 ¥
+
+6월2일(화)
+Gn: 물 70 ¥
+Fn: 아침/오니기리 260 ¥
+Fn_m: 점심/도시락 640 ¥
+Cn: 하이츄 140 ¥
+Fn: 저녁/한국요리 2220 ¥
+
+6월3일(수)
+Fn_m: 저녁/사이제리아 700 ¥
+
+6월4일(목)
+Cn: 스타벅스 670 ¥
+Gn: 물 90 ¥
+Fn_m: 점심/맥도날드 780 ¥
+
+6월5일(금)
+Fn_m: 아침/오니기리 280 ¥
+Fn: 점심/카레 1090 ¥
+Fn: 저녁/노미카이 3500 ¥
+Gn: 물 70 ¥
+
+6월6일(토)
+Fn_m: 점심/규카쿠 3940 ¥
+Cn: 맥카페 150 ¥
+Gn_m: 세이센이치바 1880 ¥
+Gn_m: 물 120 ¥
+Dn: 다이소 870 ¥
+Fn: 타쿠노미 2300 ¥
+
+6월7일(일)
+Fn_m: 점심/맥도날드 1180 ¥
+Gn_m: 세이센이치바 1710 ¥
+Dn: 다이소 220 ¥
+
+6월8일(월)
+Gn_m: 물 70 ¥
+Fn_m: 점심/소바 1250 ¥
+Cn: 스타벅스 430 ¥
+Fn: 저녁/규카쿠 4160 ¥
+
+6월9일(화)
+Fn: 아침/오니기리 240 ¥
+Fn_m: 점심/테케테케 1220 ¥
+
+6월10일(수)
+Gn_m: 물 70 ¥
+Fn: 점심/한식 1450 ¥
+Cn: 스타벅스 670 ¥
+Gn_m: 세이센이치바 890 ¥
+
+6월11일(목)
+Gn_m: 아침/오니기리 240 ¥
+Fn: 점심/멘치카츠 1000 ¥
+Cn: 스타벅스 520 ¥
+Gn_m: 마이바스켓토 1120 ¥
+
+6월12일(금)
+Fn: 점심/멘치카츠 1000 ¥
+Cn: 스타벅스 760 ¥
+Fn: 저녁/노미카이 3600 ¥
+
+6월13일(토)
+Fn_m: 간식/맥도날드 1140 ¥
+Gn_m: 세이센이치바 3310 ¥
+
+6월14일(일)
+Fn_m: 저녁/맥도날드 1410 ¥
+Gn_m: 세이센이치바 1180 ¥
+Dn: 다이소 220 ¥
+
+6월15일(월)
+Gn_m: 물 70 ¥
+Fn_m: 점심/도시락 640 ¥
+Gn_m: 편의점 140 ¥
+Fn_m: 저녁/나카우 590 ¥
+
+6월16일(화)
+Fn_m: 아침/오니기리 230 ¥
+Fn: 점심/멘치카쓰 1000 ¥
+Gn_m: 패밀리마트 140 ¥
+Cn: 캔커피 120 ¥
+Gn_m: 세이센이치바 850 ¥
+
+6월17일(수)
+Gn_m: 물 70 ¥
+Fn: 점심/멘치카쓰 1000 ¥
+Cn: 캔커피 120 ¥
+Gn_m: 패밀리마트 140 ¥
+Fn_m: 저녁/맥도날드 980 ¥
+Sn: 헬스장요금 5500 ¥
+
+6월18일(목)
+Fn_m: 점심/츠케멘 920 ¥
+Cn: 미스터도넛 990 ¥
+Tn: 파스모 1500 ¥
+Gn_m: 세이센이치바 660 ¥
+
+6월19일(금)
+Cn: 스타벅스 670 ¥
+Fn: 점심/버거킹 680 ¥
+Gn: 패밀리마트 360 ¥
+Fn: 저녁/노미카이 3000 ¥
+Gn: 마이바스켓토 400 ¥
+
+6월20일(토)
+Cn: 스타벅스 1330 ¥
+Fn: 저녁/노미카이(박범순) 4290 ¥
+Dn: 우산 900 ¥
+
+6월21일(일)
+Fn_m: 점심/라멘 1320 ¥
+Cn: 스타벅스 200 ¥
+Hn_m: 온천/유라노사토 2690 ¥
+Fn_m: 저녁/토리키조쿠 2470 ¥
+Tn: 헬로사이클링 60 ¥
+Tn: 파스모 1000 ¥
+
+6월22일(월)
+Fn_m: 아침/오니기리 240 ¥
+Gn_m: 물 70 ¥
+Cn: 스타벅스 670 ¥
+Fn: 점심/마파두부 1200 ¥
+Fn_m: 저녁/스키야 860 ¥
+
+6월23일(화)
+Gn_m: 아침/소바 430 ¥
+Gn_m: 물 70 ¥`
+</script>
+</body>
+</html>

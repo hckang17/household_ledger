@@ -6,9 +6,9 @@ import 'package:household_ledger/model/ledger_state.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/model/user_profile.dart';
 import 'package:household_ledger/services/debugging_logger.dart';
-import 'package:household_ledger/services/expense_database_service.dart';
-import 'package:household_ledger/services/fixed_expense_database_service.dart';
-import 'package:household_ledger/services/income_database_service.dart';
+import 'package:household_ledger/services/database/expense_database_service.dart';
+import 'package:household_ledger/services/database/fixed_expense_database_service.dart';
+import 'package:household_ledger/services/database/income_database_service.dart';
 import 'package:household_ledger/services/local_storage_service.dart';
 
 void _logLedgerProvider(String methodName, String action) {
@@ -485,9 +485,13 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
     await _incomeDatabaseService.upsertIncomes(incomes);
 
     final nowMonth = DateTime.now();
-    final currentMonthExpenses = expenses.where(
-      (ExpenseEntry e) => e.spentAt.year == nowMonth.year && e.spentAt.month == nowMonth.month,
-    ).toList();
+    final currentMonthExpenses = expenses
+        .where(
+          (ExpenseEntry e) =>
+              e.spentAt.year == nowMonth.year &&
+              e.spentAt.month == nowMonth.month,
+        )
+        .toList();
 
     final next = importedState.copyWith(
       expenses: currentMonthExpenses,

@@ -266,7 +266,8 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
           tooltip: strings['dataManageTitle'] ?? '데이터 관리',
         ),
         IconButton(
-          onPressed: () => Navigator.of(context).pushNamed(AppRouter.settingsRoute),
+          onPressed: () =>
+              Navigator.of(context).pushNamed(AppRouter.settingsRoute),
           icon: const Icon(Icons.settings_outlined),
         ),
       ],

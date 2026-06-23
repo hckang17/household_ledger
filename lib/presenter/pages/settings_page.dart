@@ -501,9 +501,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         children: <Widget>[
           Text(
             _text(strings, 'dataManagementSectionTitle'),
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
           ),
           const SizedBox(height: 16),
           BootstrapActionButton(

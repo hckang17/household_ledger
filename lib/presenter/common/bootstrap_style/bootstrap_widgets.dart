@@ -6,7 +6,7 @@ class BootstrapSectionCard extends StatelessWidget {
   const BootstrapSectionCard({
     required this.child,
     super.key,
-    this.padding = const EdgeInsets.all(10),
+    this.padding = const EdgeInsets.all(16),
     this.width = double.infinity,
   });
 

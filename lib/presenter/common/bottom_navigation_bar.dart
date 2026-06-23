@@ -14,11 +14,14 @@ class LedgerBottomNavBar extends ConsumerWidget {
   const LedgerBottomNavBar({super.key});
 
   static const List<_NavItem> _items = <_NavItem>[
-    _NavItem(icon: Icons.trending_up_rounded,          labelKey: 'navIncome'),
-    _NavItem(icon: Icons.insights_rounded,             labelKey: 'navAnalysis'),
-    _NavItem(icon: Icons.home_rounded,                 labelKey: 'navHome'),
-    _NavItem(icon: Icons.calendar_month_rounded,       labelKey: 'navExpenseRecord'),
-    _NavItem(icon: Icons.account_balance_wallet_outlined, labelKey: 'navFixedExpense'),
+    _NavItem(icon: Icons.trending_up_rounded, labelKey: 'navIncome'),
+    _NavItem(icon: Icons.insights_rounded, labelKey: 'navAnalysis'),
+    _NavItem(icon: Icons.home_rounded, labelKey: 'navHome'),
+    _NavItem(icon: Icons.calendar_month_rounded, labelKey: 'navExpenseRecord'),
+    _NavItem(
+      icon: Icons.account_balance_wallet_outlined,
+      labelKey: 'navFixedExpense',
+    ),
   ];
 
   @override

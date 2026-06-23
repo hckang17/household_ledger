@@ -45,10 +45,11 @@ class MonthNavigatorBar extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Text(
               displayText,
-              style: textStyle ??
+              style:
+                  textStyle ??
                   Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
+                    fontWeight: FontWeight.w700,
+                  ),
             ),
           ),
         ),
