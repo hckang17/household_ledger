@@ -7,6 +7,7 @@ import 'package:household_ledger/router/app_router.dart';
 import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
 import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
 import 'package:household_ledger/presenter/common/widgets/month_navigator_bar.dart';
+import 'package:household_ledger/presenter/common/widgets/month_selector_dialog.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 
@@ -42,16 +43,15 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
   }
 
   Future<void> _pickMonth() async {
-    final picked = await showDatePicker(
+    final strings = ref.read(localizedStringsProvider);
+    final picked = await showMonthSelectorDialog(
       context: context,
-      initialDate: _focusedMonth,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2100),
+      initialMonth: _focusedMonth,
+      strings: strings,
+      allowFuture: true,
     );
     if (picked == null) return;
-    setState(() {
-      _focusedMonth = DateTime(picked.year, picked.month, 1);
-    });
+    setState(() => _focusedMonth = DateTime(picked.year, picked.month, 1));
   }
 
   String _text(Map<String, String> strings, String tag) {
@@ -72,14 +72,6 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
     return template
         .replaceAll('{year}', _focusedMonth.year.toString())
         .replaceAll('{month}', _focusedMonth.month.toString().padLeft(2, '0'));
-  }
-
-  String _resolveTagLabel(List<MetadataTag> tags, String code) {
-    try {
-      return tags.firstWhere((MetadataTag tag) => tag.code == code).label;
-    } catch (_) {
-      return code;
-    }
   }
 
   Future<void> _showDetail({
@@ -414,8 +406,7 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                       const SizedBox(height: 10),
                   itemBuilder: (BuildContext context, int index) {
                     final item = items[index];
-                    final categoryLabel = _resolveTagLabel(
-                      categoryTags,
+                    final categoryLabel = categoryTags.labelFor(
                       item.categoryCode,
                     );
                     final amountText = '${item.amount.toCurrency()}$currency';

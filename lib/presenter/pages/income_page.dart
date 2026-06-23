@@ -6,6 +6,7 @@ import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/router/app_router.dart';
 import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
+import 'package:household_ledger/presenter/common/widgets/income_editor_sheet.dart';
 import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
 import 'package:intl/intl.dart';
 
@@ -40,142 +41,6 @@ class _IncomePageState extends ConsumerState<IncomePage> {
 
   String _monthLabel(DateTime month) {
     return DateFormat('yyyy년 M월').format(month);
-  }
-
-  Future<void> _showEditor(
-    Map<String, String> strings, {
-    IncomeEntry? item,
-  }) async {
-    final dateController = TextEditingController(
-      text: DateFormat(
-        'yyyy-MM-dd HH:mm',
-      ).format(item?.earnedAt ?? _focusedMonth),
-    );
-    final amountController = TextEditingController(
-      text: item?.amount.toString() ?? '',
-    );
-    final descriptionController = TextEditingController(
-      text: item?.description ?? '',
-    );
-    var selectedDate = item?.earnedAt ?? _focusedMonth;
-    var isSaving = false;
-
-    final saved = await showModalBottomSheet<IncomeEntry>(
-      context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (BuildContext sheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              top: 20,
-              bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 24,
-            ),
-            child: StatefulBuilder(
-              builder: (BuildContext context, StateSetter setModalState) {
-                return SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      TextField(
-                        controller: dateController,
-                        readOnly: true,
-                        decoration: InputDecoration(
-                          labelText: _text(strings, 'dateLabel', '날짜'),
-                        ),
-                        onTap: () async {
-                          final pickedDate = await showDatePicker(
-                            context: context,
-                            initialDate: selectedDate,
-                            firstDate: DateTime(2020),
-                            lastDate: DateTime(2100),
-                          );
-                          if (pickedDate == null) {
-                            return;
-                          }
-
-                          setModalState(() {
-                            selectedDate = DateTime(
-                              pickedDate.year,
-                              pickedDate.month,
-                              pickedDate.day,
-                              selectedDate.hour,
-                              selectedDate.minute,
-                            );
-                            dateController.text = DateFormat(
-                              'yyyy-MM-dd HH:mm',
-                            ).format(selectedDate);
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: amountController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: _text(strings, 'amountLabel', '금액'),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: descriptionController,
-                        decoration: InputDecoration(
-                          labelText: _text(strings, 'descriptionLabel', '내용'),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      BootstrapActionButton(
-                        label: _text(strings, 'save', '저장'),
-                        icon: Icons.save_outlined,
-                        onPressed: () async {
-                          if (isSaving) {
-                            return;
-                          }
-                          setModalState(() {
-                            isSaving = true;
-                          });
-
-                          final amount =
-                              int.tryParse(amountController.text.trim()) ?? 0;
-                          final next = IncomeEntry.create(
-                            id: item?.id,
-                            earnedAt: selectedDate,
-                            amount: amount,
-                            description: descriptionController.text,
-                          );
-                          if (sheetContext.mounted) {
-                            Navigator.of(sheetContext).pop(next);
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        );
-      },
-    );
-
-    if (saved == null) {
-      return;
-    }
-    if (!mounted) {
-      return;
-    }
-    if (saved.id == null) {
-      await ref.read(ledgerProvider.notifier).addIncome(saved);
-    } else {
-      await ref.read(ledgerProvider.notifier).updateIncome(saved);
-    }
-    if (!mounted) {
-      return;
-    }
-
-    ref.invalidate(monthlyIncomesProvider(_focusedMonth));
   }
 
   Future<void> _delete(Map<String, String> strings, IncomeEntry item) async {
@@ -243,7 +108,12 @@ class _IncomePageState extends ConsumerState<IncomePage> {
         ),
       ],
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showEditor(strings),
+        onPressed: () => showIncomeEditorSheet(
+          context: context,
+          ref: ref,
+          focusedMonth: _focusedMonth,
+          strings: strings,
+        ),
         label: Text(_text(strings, 'addIncome', '소득 추가')),
         icon: const Icon(Icons.add),
       ),
@@ -331,8 +201,13 @@ class _IncomePageState extends ConsumerState<IncomePage> {
                             Row(
                               children: <Widget>[
                                 TextButton(
-                                  onPressed: () =>
-                                      _showEditor(strings, item: item),
+                                  onPressed: () => showIncomeEditorSheet(
+                                    context: context,
+                                    ref: ref,
+                                    focusedMonth: _focusedMonth,
+                                    strings: strings,
+                                    item: item,
+                                  ),
                                   child: Text(_text(strings, 'edit', '수정')),
                                 ),
                                 TextButton(

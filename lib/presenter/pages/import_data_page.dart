@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
+import 'package:household_ledger/presenter/common/widgets/loading_overlay.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/main.dart';
@@ -290,41 +291,13 @@ class _ImportDataPageState extends ConsumerState<ImportDataPage> {
             ),
           ),
         ),
-        if (_isImporting) _buildProgressOverlay(strings),
+        if (_isImporting)
+          LoadingOverlay(
+            keepOpenMessage: _text(strings, 'keepAppOpenMessage'),
+            progressMessage: _text(strings, 'importingMessage'),
+          ),
       ],
     );
   }
 
-  Widget _buildProgressOverlay(Map<String, String> strings) {
-    return Positioned.fill(
-      child: ColoredBox(
-        color: Colors.black.withValues(alpha: 0.45),
-        child: Center(
-          child: BootstrapSectionCard(
-            width: 280,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(
-                  _text(strings, 'keepAppOpenMessage'),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                const LinearProgressIndicator(),
-                const SizedBox(height: 16),
-                Text(
-                  _text(strings, 'importingMessage'),
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }

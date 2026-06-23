@@ -42,6 +42,18 @@ extension MetadataTagTypeX on MetadataTagType {
   }
 }
 
+/// [List<MetadataTag>]에서 코드로 라벨을 조회하는 편의 메서드를 제공한다.
+extension MetadataTagListX on List<MetadataTag> {
+  /// [code]에 해당하는 태그의 [label]을 반환한다. 없으면 [code]를 그대로 반환한다.
+  String labelFor(String code) {
+    try {
+      return firstWhere((MetadataTag t) => t.code == code).label;
+    } catch (_) {
+      return code;
+    }
+  }
+}
+
 /// 사용자가 관리하는 태그 데이터를 표현한다.
 class MetadataTag {
   /// 태그를 생성한다.

@@ -7,6 +7,7 @@ import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/presenter/common/widgets/loading_overlay.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/services/imexporting_file/data_im_export_service.dart';
@@ -418,7 +419,11 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
             ),
           ),
         ),
-        if (_isExporting) _buildProgressOverlay(strings),
+        if (_isExporting)
+          LoadingOverlay(
+            keepOpenMessage: _text(strings, 'keepAppOpenMessage'),
+            progressMessage: _text(strings, 'exportingMessage'),
+          ),
       ],
     );
   }
@@ -597,37 +602,4 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
     );
   }
 
-  /// 진행 중 오버레이를 빌드한다.
-  Widget _buildProgressOverlay(Map<String, String> strings) {
-    return Positioned.fill(
-      child: ColoredBox(
-        color: Colors.black.withValues(alpha: 0.45),
-        child: Center(
-          child: BootstrapSectionCard(
-            width: 280,
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: <Widget>[
-                Text(
-                  _text(strings, 'keepAppOpenMessage'),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                const LinearProgressIndicator(),
-                const SizedBox(height: 16),
-                Text(
-                  _text(strings, 'exportingMessage'),
-                  style: Theme.of(context).textTheme.bodyMedium,
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 }
