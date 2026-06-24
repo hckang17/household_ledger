@@ -95,6 +95,7 @@ class HomePage extends ConsumerWidget {
           onPressed: () =>
               Navigator.of(context).pushNamed(AppRouter.settingsRoute),
           icon: const Icon(Icons.settings_outlined),
+          tooltip: strings['settingsTitle'] ?? '설정',
         ),
       ],
       child: SingleChildScrollView(
@@ -176,8 +177,9 @@ class HomePage extends ConsumerWidget {
                   ),
                 ),
                 TextButton.icon(
-                  onPressed: () => Navigator.of(context)
-                      .pushNamed(AppRouter.expenseRecordRoute),
+                  onPressed: () => Navigator.of(
+                    context,
+                  ).pushNamed(AppRouter.expenseRecordRoute),
                   icon: const Icon(Icons.arrow_forward, size: 16),
                   label: Text(strings['homeViewAll'] ?? '더보기'),
                 ),
@@ -213,13 +215,8 @@ class HomePage extends ConsumerWidget {
                   entry: entry,
                   initialDate: entry.spentAt,
                 ),
-                onDelete: (ExpenseEntry entry) => _deleteExpense(
-                  context,
-                  ref,
-                  strings,
-                  entry,
-                  currency,
-                ),
+                onDelete: (ExpenseEntry entry) =>
+                    _deleteExpense(context, ref, strings, entry, currency),
               ),
             ),
           ],
