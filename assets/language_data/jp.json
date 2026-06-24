@@ -262,5 +262,17 @@
   "analysisNoPrevPeriodData": "前月同期の比較データがありません。",
   "analysisCompPeriodHint": "{start}〜{end}の前月同期データとの比較結果も表示されます。",
   "analysisDailyCurrMonth": "今月",
-  "analysisDailyPrevMonth": "前月"
+  "analysisDailyPrevMonth": "前月",
+  "reportIncludePrevComparison": "前月同期比の支出データを含む",
+  "reportIncludePrevCategoryAnalysis": "前月同期比のカテゴリー別分析を含む",
+  "pdfSectionPrevComparison": "前月同期比の支出比較",
+  "pdfSectionPrevCategoryAnalysis": "カテゴリー別前月同期比",
+  "pdfCurrentPeriod": "今月",
+  "pdfPrevPeriod": "前月同期",
+  "pdfDiffLabel": "差分",
+  "pdfSectionCategoryChart": "支出区分分析チャート",
+  "pdfSectionDailyChart": "日別支出推移チャート",
+  "pdfChartCountUnit": "件",
+  "reportTitleLabel": "PDFタイトル設定",
+  "reportTitleHint": "デフォルト: Household Ledger"
 }

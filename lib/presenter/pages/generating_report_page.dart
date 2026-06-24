@@ -29,6 +29,8 @@ class GeneratingReportPage extends ConsumerStatefulWidget {
 }
 
 class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
+  final TextEditingController _titleCtrl =
+      TextEditingController(text: 'Household Ledger');
   final TextEditingController _emailCtrl = TextEditingController();
   final TextEditingController _passwordCtrl = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -41,6 +43,8 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
   bool _includeFixedExpenses = true;
   bool _includePaymentSummary = true;
   bool _includeDetailedData = true;
+  bool _includePrevComparison = false;
+  bool _includePrevCategoryAnalysis = false;
 
   bool _isGenerating = false;
   DateTime? _lastGenerateTime;
@@ -61,6 +65,7 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
 
   @override
   void dispose() {
+    _titleCtrl.dispose();
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
     super.dispose();
@@ -89,6 +94,31 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
 
   String _t(Map<String, String> strings, String key, String fallback) =>
       strings[key] ?? fallback;
+
+  DateTime _shiftOneMonthBack(DateTime d) {
+    final int year = d.month == 1 ? d.year - 1 : d.year;
+    final int month = d.month == 1 ? 12 : d.month - 1;
+    final int lastDay = DateTime(year, month + 1, 0).day;
+    return DateTime(year, month, d.day < lastDay ? d.day : lastDay);
+  }
+
+  ExpenseRangeQuery _computePrevPeriodQuery() {
+    final bool usingRange =
+        _periodMode == _PeriodMode.range && _selectedRange != null;
+    if (!usingRange) {
+      final DateTime now = DateTime.now();
+      final bool isCurrentMonth =
+          _selectedMonth.year == now.year && _selectedMonth.month == now.month;
+      final DateTime refDate = isCurrentMonth
+          ? now
+          : DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0);
+      return computePrevSamePeriodQuery(refDate);
+    }
+    return ExpenseRangeQuery(
+      start: _shiftOneMonthBack(_selectedRange!.start),
+      endInclusive: _shiftOneMonthBack(_selectedRange!.end),
+    );
+  }
 
   String _periodLabel() {
     if (_periodMode == _PeriodMode.monthly) {
@@ -189,19 +219,38 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                 .toList()
           : <FixedExpense>[];
 
+      // 전월동기 데이터 로드 (비교 섹션 및 차트용)
+      final ExpenseRangeQuery prevQuery = _computePrevPeriodQuery();
+      final List<ExpenseEntry> prevExpenses =
+          await ref.read(rangeExpensesProvider(prevQuery).future);
+
+      final DateTime periodStart = usingRange
+          ? _selectedRange!.start
+          : _selectedMonth;
+
+      final String reportTitle = _titleCtrl.text.trim().isEmpty
+          ? 'Household Ledger'
+          : _titleCtrl.text.trim();
+
       final String path = await _service.generateReport(
         expenses: expenses,
         fixedExpenses: fixedExpenses,
         incomes: incomes,
         ledger: ledger,
         email: _emailCtrl.text.trim(),
+        reportTitle: reportTitle,
         options: ReportOptions(
           includeDetailedData: _includeDetailedData,
           includeTop10: _includeTop10,
           includeFixedExpenses: _includeFixedExpenses,
           includePaymentSummary: _includePaymentSummary,
+          includePrevComparison: _includePrevComparison,
+          includePrevCategoryAnalysis: _includePrevCategoryAnalysis,
         ),
         periodLabel: _periodLabel(),
+        periodStart: periodStart,
+        prevExpenses: prevExpenses,
+        prevPeriodStart: prevQuery.start,
         strings: strings,
       );
 
@@ -309,6 +358,36 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
               ),
               const SizedBox(height: 12),
 
+              // ── 타이틀 지정 ──
+              BootstrapSectionCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      _t(strings, 'reportTitleLabel', 'PDF 타이틀 지정'),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _titleCtrl,
+                      decoration: InputDecoration(
+                        hintText: _t(
+                          strings,
+                          'reportTitleHint',
+                          '기본값: Household Ledger',
+                        ),
+                        border: const OutlineInputBorder(),
+                        isDense: true,
+                        prefixIcon: const Icon(Icons.title_rounded),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+
               // ── 이메일 입력 ──
               BootstrapSectionCard(
                 child: Column(
@@ -404,6 +483,8 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                 includeFixedExpenses: _includeFixedExpenses,
                 includePaymentSummary: _includePaymentSummary,
                 includeDetailedData: _includeDetailedData,
+                includePrevComparison: _includePrevComparison,
+                includePrevCategoryAnalysis: _includePrevCategoryAnalysis,
                 strings: strings,
                 onTop10Changed: (bool v) =>
                     setState(() => _includeTop10 = v),
@@ -413,6 +494,10 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                     setState(() => _includePaymentSummary = v),
                 onDetailedChanged: (bool v) =>
                     setState(() => _includeDetailedData = v),
+                onPrevComparisonChanged: (bool v) =>
+                    setState(() => _includePrevComparison = v),
+                onPrevCategoryAnalysisChanged: (bool v) =>
+                    setState(() => _includePrevCategoryAnalysis = v),
               ),
               const SizedBox(height: 20),
 
