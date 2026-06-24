@@ -120,6 +120,13 @@ class LocalizationService {
     'pdfChartCountUnit': '건',
     'reportTitleLabel': 'PDF 타이틀 지정',
     'reportTitleHint': '기본값: Household Ledger',
+    'tooltipTotalSpentFixed': '고정지출',
+    'tooltipTotalSpentSuffix': '을 제외한, 이번달 소비금액의 총 합입니다.',
+    'tooltipRemainingPrefix': '이번달 총 소득에서 ',
+    'tooltipRemainingFixed': '고정금액',
+    'tooltipRemainingMid': '과 ',
+    'tooltipRemainingTotal': '총 지출금액',
+    'tooltipRemainingSuffix': '을 제외한 금액입니다.',
   };
 
   /// 선택한 로케일 파일을 읽어 문자열 맵으로 반환한다.

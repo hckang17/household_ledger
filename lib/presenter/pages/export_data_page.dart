@@ -10,7 +10,10 @@ import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widg
 import 'package:household_ledger/presenter/common/widgets/loading_overlay.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
+import 'package:household_ledger/provider/tutorial_provider.dart';
 import 'package:household_ledger/services/imexporting_file/data_im_export_service.dart';
+import 'package:household_ledger/services/mock_data_service.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 enum _ExportRange { all, month, period }
 
@@ -38,7 +41,38 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
   DateTime? _startDate;
   DateTime? _endDate;
 
+  final GlobalKey _signatureSectionKey = GlobalKey();
+  final GlobalKey _exportBtnKey = GlobalKey();
+  bool _showcaseStarted = false;
+  BuildContext? _showcaseContext;
+
   final DataImExportService _service = DataImExportService();
+
+  void _maybeStartShowcase() {
+    if (_showcaseStarted) return;
+    if (_showcaseContext == null) return;
+    final state = ref.read(tutorialProvider);
+    if (!state.isActive || state.phase != TutorialPhase.exportData) return;
+    _showcaseStarted = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _showcaseContext == null) return;
+      ShowCaseWidget.of(_showcaseContext!).startShowCase([
+        _signatureSectionKey,
+        _exportBtnKey,
+      ]);
+    });
+  }
+
+  void _onShowcaseComplete(int? index, GlobalKey key) {
+    if (key == _exportBtnKey) {
+      _completeTutorial();
+    }
+  }
+
+  Future<void> _completeTutorial() async {
+    await ref.read(mockDataServiceProvider).cleanupMockData(ref);
+    await ref.read(tutorialProvider.notifier).completeTutorial();
+  }
 
   @override
   void initState() {
@@ -303,128 +337,169 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
   @override
   Widget build(BuildContext context) {
     final strings = ref.watch(localizedStringsProvider);
+    final isTutorial = ref.watch(
+      tutorialProvider.select(
+        (s) => s.isActive && s.phase == TutorialPhase.exportData,
+      ),
+    );
     final now = DateTime.now();
     final years = List<int>.generate(
       now.year - 2020 + 1,
       (i) => 2020 + i,
     ).reversed.toList();
 
-    return Stack(
-      children: <Widget>[
-        BootstrapPage(
-          title: _text(strings, 'exportDataPageTitle'),
-          child: SingleChildScrollView(
-            child: Column(
-              children: <Widget>[
-                // ── 추출 범위 섹션 ─────────────────────────
-                BootstrapSectionCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        _text(strings, 'exportRangeSectionTitle'),
-                        style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      _buildRangeSegment(strings),
-                      if (_exportRange == _ExportRange.month) ...<Widget>[
-                        const SizedBox(height: 16),
-                        _buildMonthSelector(strings, years),
-                      ],
-                      if (_exportRange == _ExportRange.period) ...<Widget>[
-                        const SizedBox(height: 16),
-                        _buildPeriodSelector(strings),
-                      ],
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 16),
-                // ── 서명 섹션 ──────────────────────────────
-                BootstrapSectionCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        _text(strings, 'signatureInfoMessage'),
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Colors.grey[600],
-                        ),
-                      ),
-                      const SizedBox(height: 20),
-                      TextField(
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        decoration: InputDecoration(
-                          labelText: _text(strings, 'emailLabel'),
-                          prefixIcon: const Icon(Icons.email_outlined),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: _passkeyController,
-                        obscureText: _obscurePasskey,
-                        decoration: InputDecoration(
-                          labelText: _text(strings, 'passkeyLabel'),
-                          prefixIcon: const Icon(Icons.key_outlined),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePasskey
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                            ),
-                            onPressed: () => setState(
-                              () => _obscurePasskey = !_obscurePasskey,
-                            ),
+    Widget buildInner(BuildContext showcaseCtx) {
+      _showcaseContext = showcaseCtx;
+      _maybeStartShowcase();
+
+      final page = Stack(
+        children: <Widget>[
+          BootstrapPage(
+            title: _text(strings, 'exportDataPageTitle'),
+            child: SingleChildScrollView(
+              child: Column(
+                children: <Widget>[
+                  // ── 추출 범위 섹션 ─────────────────────────
+                  BootstrapSectionCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          _text(strings, 'exportRangeSectionTitle'),
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                            fontWeight: FontWeight.w700,
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: _passkeyConfirmController,
-                        obscureText: _obscurePasskeyConfirm,
-                        decoration: InputDecoration(
-                          labelText: _text(strings, 'passkeyConfirmLabel'),
-                          prefixIcon: const Icon(Icons.key_outlined),
-                          suffixIcon: IconButton(
-                            icon: Icon(
-                              _obscurePasskeyConfirm
-                                  ? Icons.visibility_outlined
-                                  : Icons.visibility_off_outlined,
-                            ),
-                            onPressed: () => setState(
-                              () => _obscurePasskeyConfirm =
-                                  !_obscurePasskeyConfirm,
+                        const SizedBox(height: 12),
+                        _buildRangeSegment(strings),
+                        if (_exportRange == _ExportRange.month) ...<Widget>[
+                          const SizedBox(height: 16),
+                          _buildMonthSelector(strings, years),
+                        ],
+                        if (_exportRange == _ExportRange.period) ...<Widget>[
+                          const SizedBox(height: 16),
+                          _buildPeriodSelector(strings),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // ── 서명 섹션 ──────────────────────────────
+                  Showcase(
+                    key: _signatureSectionKey,
+                    title: strings['tutExportSignatureTitle'] ?? '이메일 및 패스키 서명',
+                    description: strings['tutExportSignatureDesc'] ?? '내보내기 파일에 서명을 추가해요.\n이메일과 패스키는 나중에 가져오기 시 본인 확인에 사용됩니다.',
+                    tooltipPosition: TooltipPosition.top,
+                    child: BootstrapSectionCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            _text(strings, 'signatureInfoMessage'),
+                            style:
+                                Theme.of(context).textTheme.bodyMedium?.copyWith(
+                              color: Colors.grey[600],
                             ),
                           ),
-                        ),
+                          const SizedBox(height: 20),
+                          TextField(
+                            controller: _emailController,
+                            keyboardType: TextInputType.emailAddress,
+                            decoration: InputDecoration(
+                              labelText: _text(strings, 'emailLabel'),
+                              prefixIcon: const Icon(Icons.email_outlined),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _passkeyController,
+                            obscureText: _obscurePasskey,
+                            decoration: InputDecoration(
+                              labelText: _text(strings, 'passkeyLabel'),
+                              prefixIcon: const Icon(Icons.key_outlined),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePasskey
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                ),
+                                onPressed: () => setState(
+                                  () => _obscurePasskey = !_obscurePasskey,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _passkeyConfirmController,
+                            obscureText: _obscurePasskeyConfirm,
+                            decoration: InputDecoration(
+                              labelText: _text(strings, 'passkeyConfirmLabel'),
+                              prefixIcon: const Icon(Icons.key_outlined),
+                              suffixIcon: IconButton(
+                                icon: Icon(
+                                  _obscurePasskeyConfirm
+                                      ? Icons.visibility_outlined
+                                      : Icons.visibility_off_outlined,
+                                ),
+                                onPressed: () => setState(
+                                  () => _obscurePasskeyConfirm =
+                                      !_obscurePasskeyConfirm,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: 24),
-                BootstrapActionButton(
-                  label: _text(strings, 'exportButton'),
-                  icon: Icons.upload_file_outlined,
-                  backgroundColor: (_isExporting || _isCooldown)
-                      ? Colors.grey.shade400
-                      : const Color(0xFF0D6EFD),
-                  onPressed: _isExporting
-                      ? null
-                      : () => _onExportPressed(strings),
-                ),
-                const SizedBox(height: 16),
-              ],
+                  const SizedBox(height: 24),
+                  Showcase(
+                    key: _exportBtnKey,
+                    title: strings['tutExportBtnTitle'] ?? '데이터 내보내기',
+                    description: strings['tutExportBtnDesc'] ?? '버튼을 탭하면 모든 데이터가 CSV 파일로 저장돼요!\n이것으로 튜토리얼이 완료됩니다. 수고하셨어요!',
+                    tooltipPosition: TooltipPosition.top,
+                    child: BootstrapActionButton(
+                      label: _text(strings, 'exportButton'),
+                      icon: Icons.upload_file_outlined,
+                      backgroundColor: (_isExporting || _isCooldown)
+                          ? Colors.grey.shade400
+                          : const Color(0xFF0D6EFD),
+                      onPressed: _isExporting
+                          ? null
+                          : () => _onExportPressed(strings),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
             ),
           ),
-        ),
-        if (_isExporting)
-          LoadingOverlay(
-            keepOpenMessage: _text(strings, 'keepAppOpenMessage'),
-            progressMessage: _text(strings, 'exportingMessage'),
-          ),
-      ],
+          if (_isExporting)
+            LoadingOverlay(
+              keepOpenMessage: _text(strings, 'keepAppOpenMessage'),
+              progressMessage: _text(strings, 'exportingMessage'),
+            ),
+        ],
+      );
+
+      if (isTutorial) {
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) async {
+            if (!didPop) await _completeTutorial();
+          },
+          child: page,
+        );
+      }
+      return page;
+    }
+
+    return ShowCaseWidget(
+      onComplete: _onShowcaseComplete,
+      enableAutoScroll: true,
+      builder: buildInner,
     );
   }
 

@@ -11,10 +11,14 @@ import 'package:household_ledger/presenter/common/widgets/report_option_selector
 import 'package:household_ledger/presenter/common/widgets/report_period_selector.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
+import 'package:household_ledger/provider/tutorial_provider.dart';
+import 'package:household_ledger/router/app_router.dart';
 import 'package:household_ledger/services/imexporting_file/export_pdf_report_service.dart';
+import 'package:household_ledger/services/mock_data_service.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 /// 기간 선택 모드를 정의한다.
 enum _PeriodMode { monthly, range }
@@ -34,6 +38,14 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
   final TextEditingController _emailCtrl = TextEditingController();
   final TextEditingController _passwordCtrl = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+  final GlobalKey _periodSelectorKey = GlobalKey();
+  final GlobalKey _titleFieldKey = GlobalKey();
+  final GlobalKey _emailFieldKey = GlobalKey();
+  final GlobalKey _optionSelectorKey = GlobalKey();
+  final GlobalKey _generateBtnKey = GlobalKey();
+  bool _showcaseStarted = false;
+  BuildContext? _showcaseContext;
 
   _PeriodMode _periodMode = _PeriodMode.monthly;
   DateTime _selectedMonth = DateTime.now();
@@ -69,6 +81,67 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
     _emailCtrl.dispose();
     _passwordCtrl.dispose();
     super.dispose();
+  }
+
+  // ─── 튜토리얼 ──────────────────────────────────────────────────
+
+  void _maybeStartShowcase() {
+    if (_showcaseStarted) return;
+    if (_showcaseContext == null) return;
+    final state = ref.read(tutorialProvider);
+    if (!state.isActive || state.phase != TutorialPhase.pdfReport) return;
+    _showcaseStarted = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _showcaseContext == null) return;
+      ShowCaseWidget.of(_showcaseContext!).startShowCase([
+        _periodSelectorKey,
+        _titleFieldKey,
+        _emailFieldKey,
+        _optionSelectorKey,
+        _generateBtnKey,
+      ]);
+    });
+  }
+
+  void _onShowcaseComplete(int? index, GlobalKey key) {
+    if (key == _generateBtnKey) {
+      ref.read(tutorialProvider.notifier).setPhase(TutorialPhase.dataManage);
+      Navigator.of(context).pushNamed(AppRouter.dataManageRoute);
+    }
+  }
+
+  Future<void> _handleBackDuringTutorial() async {
+    if (_showcaseContext != null) {
+      try { ShowCaseWidget.of(_showcaseContext!).dismiss(); } catch (_) {}
+    }
+    final strings = ref.read(localizedStringsProvider);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(strings['tutorialExitTitle'] ?? '튜토리얼 종료'),
+        content: Text(strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(strings['tutorialContinue'] ?? '계속하기'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(strings['tutorialExitConfirm'] ?? '종료'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await ref.read(mockDataServiceProvider).cleanupMockData(ref);
+      await ref.read(tutorialProvider.notifier).exitTutorial();
+    } else if (mounted) {
+      _showcaseStarted = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _maybeStartShowcase();
+      });
+    }
   }
 
   // ─── 상태 메서드 ────────────────────────────────────────────────
@@ -219,7 +292,6 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                 .toList()
           : <FixedExpense>[];
 
-      // 전월동기 데이터 로드 (비교 섹션 및 차트용)
       final ExpenseRangeQuery prevQuery = _computePrevPeriodQuery();
       final List<ExpenseEntry> prevExpenses =
           await ref.read(rangeExpensesProvider(prevQuery).future);
@@ -325,6 +397,11 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
   Widget build(BuildContext context) {
     final Map<String, String> strings = ref.watch(localizedStringsProvider);
     final ledger = ref.watch(ledgerProvider).asData?.value;
+    final isTutorial = ref.watch(
+      tutorialProvider.select(
+        (s) => s.isActive && s.phase == TutorialPhase.pdfReport,
+      ),
+    );
 
     if (ledger == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -332,215 +409,277 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
 
     final String localeCode = ledger.settings.localeCode;
 
-    return BootstrapPage(
-      title: _t(strings, 'reportPageTitle', 'PDF 리포트 생성'),
-      child: SingleChildScrollView(
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
-              // ── 기간 설정 ──
-              ReportPeriodSelector(
-                isRangeMode: _periodMode == _PeriodMode.range,
-                selectedMonth: _selectedMonth,
-                selectedRange: _selectedRange,
-                strings: strings,
-                onModeChanged: (bool isRange) => setState(() {
-                  _periodMode =
-                      isRange ? _PeriodMode.range : _PeriodMode.monthly;
-                  _selectedRange = null;
-                }),
-                onMonthChanged: (DateTime d) =>
-                    setState(() => _selectedMonth = d),
-                onRangeChanged: (DateTimeRange r) =>
-                    setState(() => _selectedRange = r),
-              ),
-              const SizedBox(height: 12),
+    Widget buildInner(BuildContext showcaseCtx) {
+      _showcaseContext = showcaseCtx;
+      _maybeStartShowcase();
 
-              // ── 타이틀 지정 ──
-              BootstrapSectionCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      _t(strings, 'reportTitleLabel', 'PDF 타이틀 지정'),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _titleCtrl,
-                      decoration: InputDecoration(
-                        hintText: _t(
-                          strings,
-                          'reportTitleHint',
-                          '기본값: Household Ledger',
-                        ),
-                        border: const OutlineInputBorder(),
-                        isDense: true,
-                        prefixIcon: const Icon(Icons.title_rounded),
-                      ),
-                    ),
-                  ],
+      final page = BootstrapPage(
+        title: _t(strings, 'reportPageTitle', 'PDF 리포트 생성'),
+        child: SingleChildScrollView(
+          child: Form(
+            key: _formKey,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: <Widget>[
+                // ── 기간 설정 ──
+                Showcase(
+                  key: _periodSelectorKey,
+                  title: strings['tutReportPeriodTitle'] ?? '리포트 기간 설정',
+                  description: strings['tutReportPeriodDesc'] ?? '분석 기간을 선택해요.\n월별 또는 직접 날짜 범위를 지정할 수 있습니다.',
+                  tooltipPosition: TooltipPosition.top,
+                  child: ReportPeriodSelector(
+                    isRangeMode: _periodMode == _PeriodMode.range,
+                    selectedMonth: _selectedMonth,
+                    selectedRange: _selectedRange,
+                    strings: strings,
+                    onModeChanged: (bool isRange) => setState(() {
+                      _periodMode =
+                          isRange ? _PeriodMode.range : _PeriodMode.monthly;
+                      _selectedRange = null;
+                    }),
+                    onMonthChanged: (DateTime d) =>
+                        setState(() => _selectedMonth = d),
+                    onRangeChanged: (DateTimeRange r) =>
+                        setState(() => _selectedRange = r),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
+                const SizedBox(height: 12),
 
-              // ── 이메일 입력 ──
-              BootstrapSectionCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      _t(strings, 'reportEmailLabel', '이메일 (필수)'),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _emailCtrl,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: const InputDecoration(
-                        hintText: 'example@email.com',
-                        border: OutlineInputBorder(),
-                        isDense: true,
-                        prefixIcon: Icon(Icons.email_outlined),
-                      ),
-                      validator: (String? v) {
-                        if (v == null || v.trim().isEmpty) {
-                          return _t(
-                            strings,
-                            'emailFormatError',
-                            '이메일 형식을 확인해주세요.',
-                          );
-                        }
-                        if (!RegExp(
-                          r'^[^@]+@[^@]+\.[^@]+$',
-                        ).hasMatch(v.trim())) {
-                          return _t(
-                            strings,
-                            'emailFormatError',
-                            '이메일 형식을 확인해주세요.',
-                          );
-                        }
-                        return null;
-                      },
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // ── PDF 암호 (예약) ──
-              BootstrapSectionCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      _t(strings, 'reportPasswordLabel', 'PDF 암호 (선택)'),
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    TextFormField(
-                      controller: _passwordCtrl,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        hintText: _t(
-                          strings,
-                          'reportPasswordHint',
-                          '암호를 설정하면 PDF 열 때 입력이 필요합니다',
-                        ),
-                        border: const OutlineInputBorder(),
-                        isDense: true,
-                        prefixIcon: const Icon(Icons.lock_outline_rounded),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      _t(
-                        strings,
-                        'pdfUnsupportWarning',
-                        '* 현재 버전에서는 PDF 암호화가 지원되지 않습니다.',
-                      ),
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey.shade500,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 12),
-
-              // ── 포함할 데이터 ──
-              ReportOptionSelector(
-                includeTop10: _includeTop10,
-                includeFixedExpenses: _includeFixedExpenses,
-                includePaymentSummary: _includePaymentSummary,
-                includeDetailedData: _includeDetailedData,
-                includePrevComparison: _includePrevComparison,
-                includePrevCategoryAnalysis: _includePrevCategoryAnalysis,
-                strings: strings,
-                onTop10Changed: (bool v) =>
-                    setState(() => _includeTop10 = v),
-                onFixedChanged: (bool v) =>
-                    setState(() => _includeFixedExpenses = v),
-                onPaymentChanged: (bool v) =>
-                    setState(() => _includePaymentSummary = v),
-                onDetailedChanged: (bool v) =>
-                    setState(() => _includeDetailedData = v),
-                onPrevComparisonChanged: (bool v) =>
-                    setState(() => _includePrevComparison = v),
-                onPrevCategoryAnalysisChanged: (bool v) =>
-                    setState(() => _includePrevCategoryAnalysis = v),
-              ),
-              const SizedBox(height: 20),
-
-              // ── PDF 생성하기 버튼 ──
-              SizedBox(
-                width: double.infinity,
-                child: FilledButton.icon(
-                  onPressed: _canGenerate
-                      ? () => _onGeneratePressed(strings, localeCode)
-                      : null,
-                  icon: _isGenerating
-                      ? const SizedBox(
-                          width: 18,
-                          height: 18,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            color: Colors.white,
+                // ── 타이틀 지정 ──
+                Showcase(
+                  key: _titleFieldKey,
+                  title: strings['tutReportTitleFieldTitle'] ?? 'PDF 타이틀',
+                  description: strings['tutReportTitleFieldDesc'] ?? 'PDF 파일에 표시될 제목을 입력해요.\n기본값은 Household Ledger입니다.',
+                  tooltipPosition: TooltipPosition.top,
+                  child: BootstrapSectionCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          _t(strings, 'reportTitleLabel', 'PDF 타이틀 지정'),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
                           ),
-                        )
-                      : const Icon(Icons.picture_as_pdf_rounded),
-                  label: Text(
-                    _isGenerating
-                        ? _t(strings, 'reportGenerating', 'PDF 생성 중...')
-                        : _t(strings, 'reportGenerateButton', 'PDF 생성하기'),
-                  ),
-                  style: FilledButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _titleCtrl,
+                          decoration: InputDecoration(
+                            hintText: _t(
+                              strings,
+                              'reportTitleHint',
+                              '기본값: Household Ledger',
+                            ),
+                            border: const OutlineInputBorder(),
+                            isDense: true,
+                            prefixIcon: const Icon(Icons.title_rounded),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              const SizedBox(height: 32),
+                const SizedBox(height: 12),
 
-              // ── 이전에 생성된 리포트 목록 ──
-              ReportFileList(
-                files: _existingReports,
-                isLoading: _loadingReports,
-                strings: strings,
-              ),
-              const SizedBox(height: 24),
-            ],
+                // ── 이메일 입력 ──
+                Showcase(
+                  key: _emailFieldKey,
+                  title: strings['tutReportEmailFieldTitle'] ?? '이메일 입력',
+                  description: strings['tutReportEmailFieldDesc'] ?? 'PDF에 표시될 이메일 주소를 입력해요.\n리포트 헤더에 담당자 이메일로 표시됩니다.',
+                  tooltipPosition: TooltipPosition.top,
+                  child: BootstrapSectionCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: <Widget>[
+                        Text(
+                          _t(strings, 'reportEmailLabel', '이메일 (필수)'),
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        TextFormField(
+                          controller: _emailCtrl,
+                          keyboardType: TextInputType.emailAddress,
+                          decoration: const InputDecoration(
+                            hintText: 'example@email.com',
+                            border: OutlineInputBorder(),
+                            isDense: true,
+                            prefixIcon: Icon(Icons.email_outlined),
+                          ),
+                          validator: (String? v) {
+                            if (v == null || v.trim().isEmpty) {
+                              return _t(
+                                strings,
+                                'emailFormatError',
+                                '이메일 형식을 확인해주세요.',
+                              );
+                            }
+                            if (!RegExp(
+                              r'^[^@]+@[^@]+\.[^@]+$',
+                            ).hasMatch(v.trim())) {
+                              return _t(
+                                strings,
+                                'emailFormatError',
+                                '이메일 형식을 확인해주세요.',
+                              );
+                            }
+                            return null;
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // ── PDF 암호 (예약) ──
+                BootstrapSectionCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        _t(strings, 'reportPasswordLabel', 'PDF 암호 (선택)'),
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      TextFormField(
+                        controller: _passwordCtrl,
+                        obscureText: true,
+                        decoration: InputDecoration(
+                          hintText: _t(
+                            strings,
+                            'reportPasswordHint',
+                            '암호를 설정하면 PDF 열 때 입력이 필요합니다',
+                          ),
+                          border: const OutlineInputBorder(),
+                          isDense: true,
+                          prefixIcon: const Icon(Icons.lock_outline_rounded),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        _t(
+                          strings,
+                          'pdfUnsupportWarning',
+                          '* 현재 버전에서는 PDF 암호화가 지원되지 않습니다.',
+                        ),
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 12),
+
+                // ── 포함할 데이터 ──
+                Showcase(
+                  key: _optionSelectorKey,
+                  title: strings['tutReportOptionTitle'] ?? '리포트 포함 항목',
+                  description: strings['tutReportOptionDesc'] ?? 'PDF에 포함할 데이터 항목을 선택해요.\n필요한 항목만 체크하면 더 간결한 리포트가 생성됩니다.',
+                  tooltipPosition: TooltipPosition.top,
+                  child: ReportOptionSelector(
+                    includeTop10: _includeTop10,
+                    includeFixedExpenses: _includeFixedExpenses,
+                    includePaymentSummary: _includePaymentSummary,
+                    includeDetailedData: _includeDetailedData,
+                    includePrevComparison: _includePrevComparison,
+                    includePrevCategoryAnalysis: _includePrevCategoryAnalysis,
+                    strings: strings,
+                    onTop10Changed: (bool v) =>
+                        setState(() => _includeTop10 = v),
+                    onFixedChanged: (bool v) =>
+                        setState(() => _includeFixedExpenses = v),
+                    onPaymentChanged: (bool v) =>
+                        setState(() => _includePaymentSummary = v),
+                    onDetailedChanged: (bool v) =>
+                        setState(() => _includeDetailedData = v),
+                    onPrevComparisonChanged: (bool v) =>
+                        setState(() => _includePrevComparison = v),
+                    onPrevCategoryAnalysisChanged: (bool v) =>
+                        setState(() => _includePrevCategoryAnalysis = v),
+                  ),
+                ),
+                const SizedBox(height: 20),
+
+                // ── PDF 생성하기 버튼 ──
+                Showcase(
+                  key: _generateBtnKey,
+                  title: strings['tutReportGenerateBtnTitle'] ?? 'PDF 생성',
+                  description: strings['tutReportGenerateBtnDesc'] ?? '설정이 완료되면 이 버튼으로 PDF를 생성해요!\n다음은 데이터 관리 화면을 살펴볼게요.',
+                  tooltipPosition: TooltipPosition.top,
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: FilledButton.icon(
+                      onPressed: _canGenerate
+                          ? () => _onGeneratePressed(strings, localeCode)
+                          : null,
+                      icon: _isGenerating
+                          ? const SizedBox(
+                              width: 18,
+                              height: 18,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
+                          : const Icon(Icons.picture_as_pdf_rounded),
+                      label: Text(
+                        _isGenerating
+                            ? _t(strings, 'reportGenerating', 'PDF 생성 중...')
+                            : _t(
+                                strings,
+                                'reportGenerateButton',
+                                'PDF 생성하기',
+                              ),
+                      ),
+                      style: FilledButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 32),
+
+                // ── 이전에 생성된 리포트 목록 ──
+                ReportFileList(
+                  files: _existingReports,
+                  isLoading: _loadingReports,
+                  strings: strings,
+                ),
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
-      ),
+      );
+
+      if (isTutorial) {
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) _handleBackDuringTutorial();
+          },
+          child: page,
+        );
+      }
+      return page;
+    }
+
+    return ShowCaseWidget(
+      onComplete: _onShowcaseComplete,
+      enableAutoScroll: true,
+      builder: buildInner,
     );
   }
 }
