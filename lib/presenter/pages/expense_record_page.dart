@@ -12,6 +12,7 @@ import 'package:household_ledger/presenter/common/widgets/expense_entry_tile.dar
 import 'package:household_ledger/presenter/common/widgets/expense_calendar_section.dart';
 import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
 import 'package:household_ledger/presenter/common/widgets/expense_editor_sheet.dart';
+
 /// 소비 기록 페이지다.
 class ExpenseRecordPage extends ConsumerStatefulWidget {
   /// 소비 기록 페이지를 생성한다.
@@ -211,6 +212,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
           onPressed: () =>
               Navigator.of(context).pushNamed(AppRouter.settingsRoute),
           icon: const Icon(Icons.settings_outlined),
+          tooltip: strings['settingsTitle'] ?? '설정',
         ),
       ],
       floatingActionButton: FloatingActionButton.extended(

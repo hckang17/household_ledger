@@ -29,6 +29,7 @@ class AnalysisExpenseTabSection extends StatefulWidget {
     required this.currency,
     required this.usingRange,
     required this.chartRangeStart,
+    required this.prevRangeStart,
     super.key,
   });
 
@@ -42,6 +43,7 @@ class AnalysisExpenseTabSection extends StatefulWidget {
   final String currency;
   final bool usingRange;
   final DateTime chartRangeStart;
+  final DateTime prevRangeStart;
 
   @override
   State<AnalysisExpenseTabSection> createState() =>
@@ -79,12 +81,9 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
   });
 
   String _chartModeTitle() => switch (_chartMode) {
-    AnalysisChartMode.category =>
-      _text('categoryLabel', '소비구분'),
-    AnalysisChartMode.subcategory =>
-      _text('subcategoryLabel', '소비 소구분'),
-    AnalysisChartMode.paymentMethod =>
-      _text('paymentMethodLabel', '소비수단'),
+    AnalysisChartMode.category => _text('categoryLabel', '소비구분'),
+    AnalysisChartMode.subcategory => _text('subcategoryLabel', '소비 소구분'),
+    AnalysisChartMode.paymentMethod => _text('paymentMethodLabel', '소비수단'),
   };
 
   // ─── 스크롤 ──────────────────────────────────────────────────────
@@ -94,7 +93,7 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
     if (ctx == null) return;
     Scrollable.ensureVisible(
       ctx,
-      duration: const Duration(milliseconds: 400),
+      duration: const Duration(milliseconds: 1000),
       curve: Curves.easeInOut,
     );
   }
@@ -223,9 +222,7 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
                 Expanded(
                   child: filteredExpenses.isEmpty
                       ? Center(
-                          child: Text(
-                            _text('emptyData', '아직 입력된 데이터가 없습니다.'),
-                          ),
+                          child: Text(_text('emptyData', '아직 입력된 데이터가 없습니다.')),
                         )
                       : ListView.separated(
                           controller: controller,
@@ -382,9 +379,13 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
     final int maxAmount = items
         .map((FixedExpense f) => f.amount)
         .reduce((int a, int b) => a > b ? a : b);
-    final int fixedTotal = items.fold(0, (int s, FixedExpense f) => s + f.amount);
-    final double fixedPercentage =
-        totalAmount > 0 ? fixedTotal / totalAmount * 100 : 0.0;
+    final int fixedTotal = items.fold(
+      0,
+      (int s, FixedExpense f) => s + f.amount,
+    );
+    final double fixedPercentage = totalAmount > 0
+        ? fixedTotal / totalAmount * 100
+        : 0.0;
 
     return BootstrapSectionCard(
       key: _fixedSectionKey,
@@ -477,15 +478,18 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
   @override
   Widget build(BuildContext context) {
     final List<ExpenseEntry> expenses = widget.expenses;
-    final List<FixedExpense> activeFixed =
-        !widget.usingRange ? widget.monthlyFixed : const <FixedExpense>[];
+    final List<FixedExpense> activeFixed = !widget.usingRange
+        ? widget.monthlyFixed
+        : const <FixedExpense>[];
 
     final int expenseTotal = expenses.fold(
       0,
       (int s, ExpenseEntry e) => s + e.amount,
     );
-    final int fixedTotal =
-        activeFixed.fold(0, (int s, FixedExpense f) => s + f.amount);
+    final int fixedTotal = activeFixed.fold(
+      0,
+      (int s, FixedExpense f) => s + f.amount,
+    );
     final int totalAmount = expenseTotal + fixedTotal;
 
     final int chartDisplayTotal = _chartMode == AnalysisChartMode.category
@@ -494,8 +498,8 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
 
     final List<ExpenseEntry> prevExpenses =
         _chartMode == AnalysisChartMode.category
-            ? widget.prevCategoryExpenses
-            : const <ExpenseEntry>[];
+        ? widget.prevCategoryExpenses
+        : const <ExpenseEntry>[];
     final Map<String, int> prevCategoryTotals = <String, int>{};
     for (final ExpenseEntry e in prevExpenses) {
       prevCategoryTotals.update(
@@ -504,8 +508,10 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
         ifAbsent: () => e.amount,
       );
     }
-    final int prevExpensesTotal =
-        prevExpenses.fold(0, (int s, ExpenseEntry e) => s + e.amount);
+    final int prevExpensesTotal = prevExpenses.fold(
+      0,
+      (int s, ExpenseEntry e) => s + e.amount,
+    );
 
     String? totalDiffText;
     Color? totalDiffColor;
@@ -536,30 +542,40 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
       ),
     };
 
-    final List<FlSpot> dailySpots =
-        buildDailyExpenseSpots(expenses, widget.chartRangeStart);
+    final List<FlSpot> dailySpots = buildDailyExpenseSpots(
+      expenses,
+      widget.chartRangeStart,
+    );
+
+    final List<FlSpot> prevDailySpots = widget.prevCategoryExpenses.isNotEmpty
+        ? buildDailyExpenseSpots(
+            widget.prevCategoryExpenses,
+            widget.prevRangeStart,
+          )
+        : const <FlSpot>[];
 
     List<ExpenseEntry> filteredFor(DonutSection section) {
       final List<ExpenseEntry> list = switch (_chartMode) {
-        AnalysisChartMode.category => expenses
-            .where((ExpenseEntry e) => e.categoryCode == section.categoryCode)
-            .toList(),
-        AnalysisChartMode.subcategory => expenses
-            .where(
-              (ExpenseEntry e) => e.subcategoryCode == section.categoryCode,
-            )
-            .toList(),
-        AnalysisChartMode.paymentMethod => expenses
-            .where(
-              (ExpenseEntry e) =>
-                  e.paymentMethodCode == section.categoryCode,
-            )
-            .toList(),
+        AnalysisChartMode.category =>
+          expenses
+              .where((ExpenseEntry e) => e.categoryCode == section.categoryCode)
+              .toList(),
+        AnalysisChartMode.subcategory =>
+          expenses
+              .where(
+                (ExpenseEntry e) => e.subcategoryCode == section.categoryCode,
+              )
+              .toList(),
+        AnalysisChartMode.paymentMethod =>
+          expenses
+              .where(
+                (ExpenseEntry e) => e.paymentMethodCode == section.categoryCode,
+              )
+              .toList(),
       };
-      return list
-        ..sort(
-          (ExpenseEntry a, ExpenseEntry b) => b.spentAt.compareTo(a.spentAt),
-        );
+      return list..sort(
+        (ExpenseEntry a, ExpenseEntry b) => b.spentAt.compareTo(a.spentAt),
+      );
     }
 
     return Column(
@@ -597,10 +613,7 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
                 children: <Widget>[
                   Text(
                     _text('analysisTotalLabel', '전체'),
-                    style: TextStyle(
-                      color: Colors.grey.shade500,
-                      fontSize: 13,
-                    ),
+                    style: TextStyle(color: Colors.grey.shade500, fontSize: 13),
                   ),
                   const SizedBox(width: 12),
                   Text(
@@ -633,8 +646,9 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
                       section: entry.value,
                       onRowTap: () {
                         setState(
-                          () => _touchedIndex =
-                              _touchedIndex == entry.key ? -1 : entry.key,
+                          () => _touchedIndex = _touchedIndex == entry.key
+                              ? -1
+                              : entry.key,
                         );
                         if (isFixed) _scrollToFixedSection();
                       },
@@ -643,10 +657,7 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
                           _scrollToFixedSection();
                           return;
                         }
-                        _showGroupDetail(
-                          entry.value,
-                          filteredFor(entry.value),
-                        );
+                        _showGroupDetail(entry.value, filteredFor(entry.value));
                       },
                       prevDiffText: !isFixed
                           ? _categoryDiffText(
@@ -686,9 +697,11 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
           BootstrapSectionCard(
             child: AnalysisDailyChart(
               spots: dailySpots,
+              prevSpots: prevDailySpots.isNotEmpty ? prevDailySpots : null,
               currency: widget.currency,
               title: _text('analysisDailyTrendTitle', '일별 지출 추이'),
               rangeStart: widget.chartRangeStart,
+              prevRangeStart: prevDailySpots.isNotEmpty ? widget.prevRangeStart : null,
               showDayStats: true,
             ),
           ),

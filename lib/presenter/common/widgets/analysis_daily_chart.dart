@@ -11,6 +11,8 @@ import 'package:household_ledger/provider/localization_provider.dart';
 ///
 /// [showDayStats]를 true로 설정하면 그래프 하단에
 /// 최고·최저 지출일 요약 행을 표시한다(로케일 문자열 자동 참조).
+///
+/// [prevSpots]를 전달하면 전월동기 선을 주황색으로 함께 표시한다.
 class AnalysisDailyChart extends ConsumerWidget {
   /// 일별 추이 차트를 생성한다.
   const AnalysisDailyChart({
@@ -19,6 +21,8 @@ class AnalysisDailyChart extends ConsumerWidget {
     required this.title,
     this.rangeStart,
     this.showDayStats = false,
+    this.prevSpots,
+    this.prevRangeStart,
     super.key,
   });
 
@@ -37,6 +41,12 @@ class AnalysisDailyChart extends ConsumerWidget {
 
   /// true이면 그래프 하단에 최고·최저 금액일 요약 행을 표시한다.
   final bool showDayStats;
+
+  /// 전월동기 데이터 포인트 목록이다. null이면 전월 선을 표시하지 않는다.
+  final List<FlSpot>? prevSpots;
+
+  /// 전월 기간 시작일이다. 툴팁 월 표기에 사용한다.
+  final DateTime? prevRangeStart;
 
   // ─── 내부 헬퍼 ──────────────────────────────────────────────────
 
@@ -104,11 +114,28 @@ class AnalysisDailyChart extends ConsumerWidget {
     if (spots.isEmpty) return const SizedBox.shrink();
     if (spots.every((FlSpot s) => s.y == 0)) return const SizedBox.shrink();
 
-    final double maxY =
-        spots
-            .map((FlSpot s) => s.y)
-            .reduce((double a, double b) => a > b ? a : b) *
-        1.3;
+    final List<FlSpot> effectivePrev =
+        (prevSpots != null && prevSpots!.isNotEmpty)
+        ? prevSpots!
+        : const <FlSpot>[];
+
+    // Y축 최대값: 이번달·전월 중 높은 값 기준
+    final double maxCurr = spots
+        .map((FlSpot s) => s.y)
+        .reduce((double a, double b) => a > b ? a : b);
+    final double maxPrev = effectivePrev.isEmpty
+        ? 0
+        : effectivePrev
+              .map((FlSpot s) => s.y)
+              .reduce((double a, double b) => a > b ? a : b);
+    final double maxY = (maxCurr > maxPrev ? maxCurr : maxPrev) * 1.3;
+
+    // X축 범위: 두 선의 마지막 점 중 큰 값
+    final double maxX = effectivePrev.isEmpty
+        ? spots.last.x
+        : (spots.last.x > effectivePrev.last.x
+              ? spots.last.x
+              : effectivePrev.last.x);
 
     final FlSpot maxSpot = spots.reduce(
       (FlSpot a, FlSpot b) => a.y >= b.y ? a : b,
@@ -117,14 +144,58 @@ class AnalysisDailyChart extends ConsumerWidget {
       (FlSpot a, FlSpot b) => a.y <= b.y ? a : b,
     );
 
+    final String daySuffix = strings['chartDateDaySuffix'] ?? '일';
+    final String monthSuffix = strings['chartDateMonthSuffix'] ?? '월';
+    final String currMonthLabel = rangeStart != null
+        ? '${rangeStart!.month}$monthSuffix'
+        : '';
+    final String prevMonthLabel = prevRangeStart != null
+        ? '${prevRangeStart!.month}$monthSuffix'
+        : '';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: <Widget>[
-        Text(
-          title,
-          style: Theme.of(
-            context,
-          ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+        Row(
+          children: <Widget>[
+            Expanded(
+              child: Text(
+                title,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+              ),
+            ),
+            if (effectivePrev.isNotEmpty) ...<Widget>[
+              Container(
+                width: 10,
+                height: 10,
+                decoration: const BoxDecoration(
+                  color: Color(0xFF0D6EFD),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                strings['analysisDailyCurrMonth'] ?? '이번달',
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+              ),
+              const SizedBox(width: 8),
+              Container(
+                width: 10,
+                height: 10,
+                decoration: const BoxDecoration(
+                  color: Color(0xFFFF8C42),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Text(
+                strings['analysisDailyPrevMonth'] ?? '전월',
+                style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+              ),
+            ],
+          ],
         ),
         const SizedBox(height: 16),
 
@@ -133,6 +204,7 @@ class AnalysisDailyChart extends ConsumerWidget {
           child: LineChart(
             LineChartData(
               lineBarsData: <LineChartBarData>[
+                // 이번달 (파란색)
                 LineChartBarData(
                   spots: spots,
                   isCurved: true,
@@ -153,6 +225,19 @@ class AnalysisDailyChart extends ConsumerWidget {
                     ),
                   ),
                 ),
+                // 전월동기 (주황색) — 데이터가 있을 때만 렌더링
+                if (effectivePrev.isNotEmpty)
+                  LineChartBarData(
+                    spots: effectivePrev,
+                    isCurved: true,
+                    curveSmoothness: 0.35,
+                    color: const Color(0xFFFF8C42),
+                    barWidth: 1.8,
+                    isStrokeCapRound: true,
+                    dashArray: <int>[4, 3],
+                    dotData: const FlDotData(show: false),
+                    belowBarData: BarAreaData(show: false),
+                  ),
               ],
               titlesData: FlTitlesData(
                 leftTitles: AxisTitles(
@@ -209,24 +294,50 @@ class AnalysisDailyChart extends ConsumerWidget {
               ),
               borderData: FlBorderData(show: false),
               minX: spots.first.x,
-              maxX: spots.last.x,
+              maxX: maxX,
               minY: 0,
               maxY: maxY,
               lineTouchData: LineTouchData(
                 touchTooltipData: LineTouchTooltipData(
+                  fitInsideHorizontally: true,
+                  fitInsideVertically: true,
                   getTooltipColor: (_) => const Color(0xFF222222),
-                  getTooltipItems: (List<LineBarSpot> touchedSpots) => touchedSpots
-                      .map(
-                        (LineBarSpot spot) => LineTooltipItem(
-                          '${spot.x.toInt()}\n${spot.y.toInt().toCurrency()}$currency',
+                  getTooltipItems: (List<LineBarSpot> touchedSpots) {
+                    // barIndex 0 = 이번달, barIndex 1 = 전월
+                    LineBarSpot? currBarSpot;
+                    LineBarSpot? prevBarSpot;
+                    for (final LineBarSpot s in touchedSpots) {
+                      if (s.barIndex == 0) currBarSpot = s;
+                      if (s.barIndex == 1) prevBarSpot = s;
+                    }
+                    return touchedSpots.map((LineBarSpot spot) {
+                      if (spot.barIndex != 0) return null;
+                      final int day = spot.x.toInt();
+                      final String dayLine = '$day$daySuffix';
+                      final String currLine =
+                          '$currMonthLabel ${currBarSpot!.y.toInt().toCurrency()}$currency';
+                      if (prevBarSpot != null && prevMonthLabel.isNotEmpty) {
+                        final String prevLine =
+                            '$prevMonthLabel ${prevBarSpot.y.toInt().toCurrency()}$currency';
+                        return LineTooltipItem(
+                          '$dayLine\n$currLine\n$prevLine',
                           const TextStyle(
                             color: Colors.white,
                             fontSize: 11,
                             fontWeight: FontWeight.w600,
                           ),
+                        );
+                      }
+                      return LineTooltipItem(
+                        '$dayLine\n$currLine',
+                        const TextStyle(
+                          color: Colors.white,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
                         ),
-                      )
-                      .toList(),
+                      );
+                    }).toList();
+                  },
                 ),
               ),
             ),

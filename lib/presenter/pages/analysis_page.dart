@@ -71,8 +71,8 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     final bool usingRange =
         _periodMode == _PeriodMode.range && _selectedRange != null;
     if (!usingRange) {
-      final bool isCurrentMonth = _selectedMonth.year == now.year &&
-          _selectedMonth.month == now.month;
+      final bool isCurrentMonth =
+          _selectedMonth.year == now.year && _selectedMonth.month == now.month;
       final DateTime refDate = isCurrentMonth
           ? now
           : DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0);
@@ -81,6 +81,79 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     return ExpenseRangeQuery(
       start: _shiftOneMonthBack(_selectedRange!.start),
       endInclusive: _shiftOneMonthBack(_selectedRange!.end),
+    );
+  }
+
+  // ─── 비교 안내 배너 ──────────────────────────────────────────────
+
+  Widget _buildComparisonBanner({
+    required Map<String, String> strings,
+    required AsyncValue<List<ExpenseEntry>> expensesAsync,
+    required List<ExpenseEntry> prevCategoryExpenses,
+    required ExpenseRangeQuery analysisPrevQuery,
+  }) {
+    final List<ExpenseEntry>? currentExpenses = expensesAsync.asData?.value;
+    // 로딩 중이거나 에러면 배너 표시 안 함
+    if (currentExpenses == null) return const SizedBox.shrink();
+
+    final String monthSuffix = strings['chartDateMonthSuffix'] ?? '월';
+    final String daySuffix = strings['chartDateDaySuffix'] ?? '일';
+
+    final String message;
+    final Color bgColor;
+    final Color borderColor;
+    final IconData icon;
+    final Color iconColor;
+
+    if (currentExpenses.isEmpty) {
+      message = strings['analysisNoCurrMonthData'] ?? '이번 달 소비 데이터가 없습니다.';
+      bgColor = const Color(0xFFFFF8E1);
+      borderColor = const Color(0xFFFFE082);
+      icon = Icons.info_outline;
+      iconColor = const Color(0xFFF9A825);
+    } else if (prevCategoryExpenses.isEmpty) {
+      message = strings['analysisNoPrevPeriodData'] ?? '전월동기 비교 데이터가 없습니다.';
+      bgColor = const Color(0xFFF5F5F5);
+      borderColor = const Color(0xFFE0E0E0);
+      icon = Icons.compare_arrows;
+      iconColor = Colors.grey.shade500;
+    } else {
+      final DateTime s = analysisPrevQuery.start;
+      final DateTime e = analysisPrevQuery.endInclusive;
+      final String startStr = '${s.month}$monthSuffix ${s.day}$daySuffix';
+      final String endStr = '${e.month}$monthSuffix ${e.day}$daySuffix';
+      message = (strings['analysisCompPeriodHint'] ??
+              '{start} ~ {end} 기간과 비교한 결과도 표시됩니다.')
+          .replaceAll('{start}', startStr)
+          .replaceAll('{end}', endStr);
+      bgColor = const Color(0xFFE8F4FD);
+      borderColor = const Color(0xFFBBDEFB);
+      icon = Icons.compare_arrows;
+      iconColor = const Color(0xFF1565C0);
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: borderColor),
+        ),
+        child: Row(
+          children: <Widget>[
+            Icon(icon, size: 16, color: iconColor),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade800),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -163,6 +236,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
           onPressed: () =>
               Navigator.of(context).pushNamed(AppRouter.settingsRoute),
           icon: const Icon(Icons.settings_outlined),
+          tooltip: strings['settingsTitle'] ?? '설정',
         ),
       ],
       child: SingleChildScrollView(
@@ -195,33 +269,41 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
               onRangeChanged: (DateTimeRange? r) =>
                   setState(() => _selectedRange = r),
               onModeChanged: (bool isRange) => setState(() {
-                _periodMode =
-                    isRange ? _PeriodMode.range : _PeriodMode.monthly;
+                _periodMode = isRange ? _PeriodMode.range : _PeriodMode.monthly;
                 _selectedRange = null;
               }),
             ),
             const SizedBox(height: 16),
 
+            // ── 전월동기 비교 안내 배너 (지출 탭에서만 표시) ──
+            if (_showExpense)
+              _buildComparisonBanner(
+                strings: strings,
+                expensesAsync: expensesAsync,
+                prevCategoryExpenses: prevCategoryExpenses,
+                analysisPrevQuery: analysisPrevQuery,
+              ),
+
             // ── 지출 탭 ──
             if (_showExpense)
               expensesAsync.when(
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: CircularProgressIndicator()),
                 error: (Object e, _) => Center(child: Text(e.toString())),
                 data: (List<ExpenseEntry> expenses) =>
                     AnalysisExpenseTabSection(
-                  key: ValueKey('expense-$periodKey'),
-                  expenses: expenses,
-                  prevCategoryExpenses: prevCategoryExpenses,
-                  monthlyFixed: monthlyFixed,
-                  categoryTags: categoryTags,
-                  subcategoryTags: subcategoryTags,
-                  paymentTags: paymentTags,
-                  strings: strings,
-                  currency: currency,
-                  usingRange: usingRange,
-                  chartRangeStart: chartRangeStart,
-                ),
+                      key: ValueKey('expense-$periodKey'),
+                      expenses: expenses,
+                      prevCategoryExpenses: prevCategoryExpenses,
+                      monthlyFixed: monthlyFixed,
+                      categoryTags: categoryTags,
+                      subcategoryTags: subcategoryTags,
+                      paymentTags: paymentTags,
+                      strings: strings,
+                      currency: currency,
+                      usingRange: usingRange,
+                      chartRangeStart: chartRangeStart,
+                      prevRangeStart: analysisPrevQuery.start,
+                    ),
               ),
 
             // ── PDF 출력 버튼 (지출 탭에서만 표시) ──
@@ -253,8 +335,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
             // ── 수입 탭 ──
             if (!_showExpense)
               incomesAsync.when(
-                loading: () =>
-                    const Center(child: CircularProgressIndicator()),
+                loading: () => const Center(child: CircularProgressIndicator()),
                 error: (Object e, _) => Center(child: Text(e.toString())),
                 data: (List<IncomeEntry> incomes) => AnalysisIncomeTabSection(
                   key: ValueKey('income-$periodKey'),
