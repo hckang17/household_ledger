@@ -271,5 +271,17 @@
   "analysisNoPrevPeriodData": "전월동기 비교 데이터가 없습니다.",
   "analysisCompPeriodHint": "{start} ~ {end} 기간과 비교한 결과도 표시됩니다.",
   "analysisDailyCurrMonth": "이번달",
-  "analysisDailyPrevMonth": "전월"
+  "analysisDailyPrevMonth": "전월",
+  "reportIncludePrevComparison": "전월동기대비 소비데이터 포함",
+  "reportIncludePrevCategoryAnalysis": "전월동기대비 카테고리별 분석결과 포함",
+  "pdfSectionPrevComparison": "전월동기 소비 비교",
+  "pdfSectionPrevCategoryAnalysis": "카테고리별 전월동기 비교",
+  "pdfCurrentPeriod": "이번 달",
+  "pdfPrevPeriod": "전월동기",
+  "pdfDiffLabel": "차이",
+  "pdfSectionCategoryChart": "소비구분 분석 차트",
+  "pdfSectionDailyChart": "일별 지출 추이 차트",
+  "pdfChartCountUnit": "건",
+  "reportTitleLabel": "PDF 타이틀 지정",
+  "reportTitleHint": "기본값: Household Ledger"
 }

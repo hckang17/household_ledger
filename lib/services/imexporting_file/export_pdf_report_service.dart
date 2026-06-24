@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
@@ -20,12 +21,16 @@ class ReportOptions {
     this.includeTop10 = true,
     this.includeFixedExpenses = true,
     this.includePaymentSummary = true,
+    this.includePrevComparison = false,
+    this.includePrevCategoryAnalysis = false,
   });
 
   final bool includeDetailedData;
   final bool includeTop10;
   final bool includeFixedExpenses;
   final bool includePaymentSummary;
+  final bool includePrevComparison;
+  final bool includePrevCategoryAnalysis;
 }
 
 // ─── PDF 공통 색상 ─────────────────────────────────────────────────
@@ -136,6 +141,10 @@ class ExportPdfReportService {
     required ReportOptions options,
     required String periodLabel,
     required Map<String, String> strings,
+    List<ExpenseEntry> prevExpenses = const <ExpenseEntry>[],
+    DateTime? periodStart,
+    DateTime? prevPeriodStart,
+    String reportTitle = 'Household Ledger',
   }) async {
     final String localeCode = ledger.settings.localeCode;
     final String currency = strings['currencyUnit'] ?? '₩';
@@ -207,6 +216,7 @@ class ExportPdfReportService {
             b.value.compareTo(a.value),
       );
 
+
     // ── 소비수단 집계 ──
     final Map<String, int> pmSums = <String, int>{};
     for (final ExpenseEntry e in expenses) {
@@ -236,6 +246,36 @@ class ExportPdfReportService {
       }
     }
 
+    // ── 차트용 데이터 계산 (tagLabel 선언 이후) ──
+    // 카테고리별 건수 집계
+    final Map<String, int> catCounts = <String, int>{};
+    for (final ExpenseEntry e in expenses) {
+      catCounts.update(e.categoryCode, (int v) => v + 1, ifAbsent: () => 1);
+    }
+
+    // 도넛 차트 슬라이스: (label, amount, color, count)
+    final List<(String, int, PdfColor, int)> pieSlices = catSorted
+        .asMap()
+        .entries
+        .map(
+          (MapEntry<int, MapEntry<String, int>> e) => (
+            tagLabel(MetadataTagType.category, e.value.key),
+            e.value.value,
+            _paletteColor(e.key),
+            catCounts[e.value.key] ?? 0,
+          ),
+        )
+        .toList();
+
+    // 일별 지출 집계: day → amount (period 기준)
+    final List<MapEntry<int, int>> currDailyData = periodStart != null
+        ? _groupExpensesByDay(expenses, periodStart)
+        : <MapEntry<int, int>>[];
+    final List<MapEntry<int, int>> prevDailyData =
+        prevPeriodStart != null && prevExpenses.isNotEmpty
+            ? _groupExpensesByDay(prevExpenses, prevPeriodStart)
+            : <MapEntry<int, int>>[];
+
     // ── PDF 문서 생성 ──
     final pw.Document pdf = pw.Document(
       title: 'Household Ledger Report',
@@ -249,6 +289,7 @@ class ExportPdfReportService {
         name: name,
         email: email,
         period: periodLabel,
+        reportTitle: reportTitle,
         strings: strings,
         ts: ts,
         tsD: tsD,
@@ -278,6 +319,9 @@ class ExportPdfReportService {
           strings: strings,
           ts: ts,
           tsD: tsD,
+          pieSlices: pieSlices,
+          currDailyData: currDailyData,
+          prevDailyData: prevDailyData,
         ),
       ),
     );
@@ -309,7 +353,47 @@ class ExportPdfReportService {
       );
     }
 
-    // 4. 전체 거래내역 (부록)
+    // 4. 전월동기 소비 비교
+    if (options.includePrevComparison && prevExpenses.isNotEmpty) {
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(36),
+          header: (pw.Context ctx) => _pageHeader(name, periodLabel, ts, tsD),
+          footer: (pw.Context ctx) => _pageFooter(ctx, ts),
+          build: (pw.Context ctx) => _buildPrevComparisonWidgets(
+            expenses: expenses,
+            prevExpenses: prevExpenses,
+            currency: currency,
+            strings: strings,
+            ts: ts,
+          ),
+        ),
+      );
+    }
+
+    // 5. 카테고리별 전월동기 비교
+    if (options.includePrevCategoryAnalysis && prevExpenses.isNotEmpty) {
+      pdf.addPage(
+        pw.MultiPage(
+          pageFormat: PdfPageFormat.a4,
+          margin: const pw.EdgeInsets.all(36),
+          header: (pw.Context ctx) => _pageHeader(name, periodLabel, ts, tsD),
+          footer: (pw.Context ctx) => _pageFooter(ctx, ts),
+          build: (pw.Context ctx) => _buildPrevCategoryAnalysisWidgets(
+            expenses: expenses,
+            prevExpenses: prevExpenses,
+            currency: currency,
+            tagLabel: tagLabel,
+            strings: strings,
+            ts: ts,
+            tsD: tsD,
+          ),
+        ),
+      );
+    }
+
+    // 6. 전체 거래내역 (부록)
     if (options.includeDetailedData) {
       pdf.addPage(
         pw.MultiPage(
@@ -352,6 +436,7 @@ class ExportPdfReportService {
     required String name,
     required String email,
     required String period,
+    required String reportTitle,
     required Map<String, String> strings,
     required _TsFn ts,
     required _TsFn tsD,
@@ -372,7 +457,7 @@ class ExportPdfReportService {
               mainAxisAlignment: pw.MainAxisAlignment.center,
               children: <pw.Widget>[
                 pw.Text(
-                  'Household Ledger',
+                  reportTitle,
                   style: ts(size: 28, bold: true, color: _kWhite),
                   textAlign: pw.TextAlign.center,
                 ),
@@ -420,7 +505,7 @@ class ExportPdfReportService {
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: <pw.Widget>[
                 pw.Text(
-                  'Household Ledger App',
+                  reportTitle,
                   style: ts(size: 8, color: _kGrey),
                 ),
                 pw.Text(now, style: ts(size: 8, color: _kGrey)),
@@ -519,6 +604,9 @@ class ExportPdfReportService {
     required Map<String, String> strings,
     required _TsFn ts,
     required _TsFn tsD,
+    required List<(String, int, PdfColor, int)> pieSlices,
+    required List<MapEntry<int, int>> currDailyData,
+    required List<MapEntry<int, int>> prevDailyData,
   }) {
     final List<pw.Widget> out = <pw.Widget>[
       _sectionHeader(strings['pdfSectionOverview'] ?? '이번 달 한눈에 보기', ts),
@@ -581,6 +669,21 @@ class ExportPdfReportService {
           ),
         ),
       );
+    }
+
+    // ── 소비구분 분석 차트 (도넛) ──
+    if (pieSlices.isNotEmpty) {
+      out
+        ..add(pw.SizedBox(height: 12))
+        ..add(
+          _sectionHeader(
+            strings['pdfSectionCategoryChart'] ?? '소비구분 분석 차트',
+            ts,
+          ),
+        )
+        ..add(pw.SizedBox(height: 8))
+        ..add(_buildPieChartWidget(pieSlices, combinedExpense, currency, strings, ts, tsD))
+        ..add(pw.SizedBox(height: 16));
     }
 
     // ── 고정지출 ──
@@ -716,7 +819,524 @@ class ExportPdfReportService {
       }
     }
 
+    // ── 일별 지출 추이 차트 ──
+    if (currDailyData.isNotEmpty) {
+      out
+        ..add(
+          _sectionHeader(
+            strings['pdfSectionDailyChart'] ?? '일별 지출 추이 차트',
+            ts,
+          ),
+        )
+        ..add(pw.SizedBox(height: 8))
+        ..add(_buildLineChartWidget(currDailyData, prevDailyData, currency, strings, ts))
+        ..add(pw.SizedBox(height: 16));
+    }
+
     return out;
+  }
+
+  // ─── 도넛(파이) 차트 위젯 ────────────────────────────────────────
+
+  pw.Widget _buildPieChartWidget(
+    List<(String, int, PdfColor, int)> slices,
+    int total,
+    String currency,
+    Map<String, String> strings,
+    _TsFn ts,
+    _TsFn tsD,
+  ) {
+    final List<(int, PdfColor)> drawData =
+        slices.map((s) => (s.$2, s.$3)).toList();
+    final String countUnit = strings['pdfChartCountUnit'] ?? '건';
+
+    return pw.Row(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: <pw.Widget>[
+        pw.CustomPaint(
+          size: const PdfPoint(120, 120),
+          painter: (PdfGraphics canvas, PdfPoint size) {
+            final int tot =
+                drawData.fold(0, (int s, (int, PdfColor) e) => s + e.$1);
+            if (tot == 0) return;
+            final double cx = size.x / 2;
+            final double cy = size.y / 2;
+            final double r = math.min(cx, cy) * 0.90;
+            final double innerR = r * 0.52;
+            // π/2 = 12시 방향, 음수 sweep = 시계방향
+            double startAngle = math.pi / 2;
+            for (final (int amount, PdfColor color) in drawData) {
+              if (amount == 0) continue;
+              final double sweep = -(amount / tot * 2 * math.pi);
+              final int steps =
+                  math.max(8, (sweep.abs() / math.pi * 30).ceil());
+              final double dt = sweep / steps;
+              canvas.setFillColor(color);
+              canvas.moveTo(cx, cy);
+              canvas.lineTo(
+                cx + r * math.cos(startAngle),
+                cy + r * math.sin(startAngle),
+              );
+              for (int i = 1; i <= steps; i++) {
+                final double a = startAngle + dt * i;
+                canvas.lineTo(cx + r * math.cos(a), cy + r * math.sin(a));
+              }
+              canvas.closePath();
+              canvas.fillPath();
+              startAngle += sweep;
+            }
+            // 도넛 구멍
+            const double k = 0.5523;
+            canvas.setFillColor(PdfColors.white);
+            canvas.moveTo(cx + innerR, cy);
+            canvas.curveTo(cx + innerR, cy + innerR * k, cx + innerR * k,
+                cy + innerR, cx, cy + innerR);
+            canvas.curveTo(cx - innerR * k, cy + innerR, cx - innerR,
+                cy + innerR * k, cx - innerR, cy);
+            canvas.curveTo(cx - innerR, cy - innerR * k, cx - innerR * k,
+                cy - innerR, cx, cy - innerR);
+            canvas.curveTo(cx + innerR * k, cy - innerR, cx + innerR,
+                cy - innerR * k, cx + innerR, cy);
+            canvas.closePath();
+            canvas.fillPath();
+          },
+        ),
+        pw.SizedBox(width: 14),
+        pw.Expanded(
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: slices.map((s) {
+              final double pct = total > 0 ? s.$2 / total * 100 : 0;
+              return pw.Padding(
+                padding: const pw.EdgeInsets.only(bottom: 5),
+                child: pw.Row(
+                  children: <pw.Widget>[
+                    pw.Container(width: 8, height: 8, color: s.$3),
+                    pw.SizedBox(width: 5),
+                    pw.Expanded(
+                      child: pw.Text(
+                        s.$1,
+                        style: tsD(size: 8),
+                        overflow: pw.TextOverflow.clip,
+                      ),
+                    ),
+                    pw.Text(
+                      '${s.$4}$countUnit  ${pct.round()}%  $currency${_fmtAmount(s.$2)}',
+                      style: ts(size: 8),
+                    ),
+                  ],
+                ),
+              );
+            }).toList(),
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ─── 꺾은선 차트 위젯 ────────────────────────────────────────────
+
+  pw.Widget _buildLineChartWidget(
+    List<MapEntry<int, int>> currData,
+    List<MapEntry<int, int>> prevData,
+    String currency,
+    Map<String, String> strings,
+    _TsFn ts,
+  ) {
+    const PdfColor prevColor = PdfColor.fromInt(0xFFFF8C42);
+    const double canvasW = 446;
+    const double canvasH = 100;
+    const double yLabelW = 48;
+    const double pT = 6.0;
+    const double pB = 6.0;
+    const double chartBottom = pB;
+    const double chartTop = canvasH - pT;
+    const double chartH = chartTop - chartBottom;
+
+    final int maxDay = math.max(
+      currData.isEmpty ? 1 : currData.last.key,
+      prevData.isEmpty ? 1 : prevData.last.key,
+    );
+    final int maxAmt = math.max(
+      currData.isEmpty
+          ? 0
+          : currData.map((MapEntry<int, int> e) => e.value).reduce(math.max),
+      prevData.isEmpty
+          ? 0
+          : prevData.map((MapEntry<int, int> e) => e.value).reduce(math.max),
+    );
+
+    MapEntry<int, int>? maxOf(List<MapEntry<int, int>> d) =>
+        d.isEmpty ? null : d.reduce((a, b) => a.value >= b.value ? a : b);
+    MapEntry<int, int>? minOf(List<MapEntry<int, int>> d) =>
+        d.isEmpty ? null : d.reduce((a, b) => a.value <= b.value ? a : b);
+
+    final MapEntry<int, int>? currMax = maxOf(currData);
+    final MapEntry<int, int>? currMin = minOf(currData);
+    final MapEntry<int, int>? prevMax = maxOf(prevData);
+    final MapEntry<int, int>? prevMin = minOf(prevData);
+
+    final String daySuffix = strings['chartDateDaySuffix'] ?? '일';
+    final String maxLabel =
+        strings['analysisDailyMaxLabel'] ?? '가장 지출이 많은 날';
+    final String minLabel =
+        strings['analysisDailyMinLabel'] ?? '가장 지출이 적은 날';
+    final String currLbl = strings['analysisDailyCurrMonth'] ?? '이번달';
+    final String prevLbl = strings['analysisDailyPrevMonth'] ?? '전월';
+
+    final List<pw.Widget> stats = <pw.Widget>[];
+    if (currMax != null) {
+      stats.add(pw.Padding(
+        padding: const pw.EdgeInsets.only(bottom: 3),
+        child: pw.Text(
+          '$currLbl  $maxLabel : ${currMax.key}$daySuffix  $currency${_fmtAmount(currMax.value)}',
+          style: ts(size: 8, color: _kRed),
+        ),
+      ));
+    }
+    if (currMin != null) {
+      stats.add(pw.Padding(
+        padding: const pw.EdgeInsets.only(bottom: 3),
+        child: pw.Text(
+          '$currLbl  $minLabel : ${currMin.key}$daySuffix  $currency${_fmtAmount(currMin.value)}',
+          style: ts(size: 8, color: _kGreen),
+        ),
+      ));
+    }
+    if (prevMax != null) {
+      stats.add(pw.Padding(
+        padding: const pw.EdgeInsets.only(bottom: 3),
+        child: pw.Text(
+          '$prevLbl  $maxLabel : ${prevMax.key}$daySuffix  $currency${_fmtAmount(prevMax.value)}',
+          style: ts(size: 8, color: _kRed),
+        ),
+      ));
+    }
+    if (prevMin != null) {
+      stats.add(pw.Padding(
+        padding: const pw.EdgeInsets.only(bottom: 3),
+        child: pw.Text(
+          '$prevLbl  $minLabel : ${prevMin.key}$daySuffix  $currency${_fmtAmount(prevMin.value)}',
+          style: ts(size: 8, color: _kGreen),
+        ),
+      ));
+    }
+
+    // Y축 레이블 (pw.Positioned 오버레이 — canvas.drawString 불필요)
+    final List<pw.Widget> yLabels = <pw.Widget>[];
+    if (maxAmt > 0) {
+      for (int i = 4; i >= 1; i--) {
+        final double canvasY = chartBottom + chartH * i / 4;
+        final double widgetTop = canvasH - canvasY - 4;
+        yLabels.add(pw.Positioned(
+          right: 2,
+          top: widgetTop,
+          child: pw.Text(
+            _pdfYLabelAscii((maxAmt * i / 4).round()),
+            style: ts(size: 6, color: _kGrey),
+          ),
+        ));
+      }
+    }
+
+    // X축 레이블
+    final List<pw.Widget> xLabels = _computeXLabelDays(maxDay).map((int day) {
+      final double x =
+          maxDay <= 1 ? 0.0 : (day - 1) / (maxDay - 1) * canvasW;
+      return pw.Positioned(
+        left: math.max(0.0, x - 4),
+        top: 0,
+        child: pw.Text('$day', style: ts(size: 6, color: _kGrey)),
+      );
+    }).toList();
+
+    return pw.Column(
+      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      children: <pw.Widget>[
+        pw.Row(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: <pw.Widget>[
+            // Y축 레이블 오버레이
+            pw.SizedBox(
+              width: yLabelW,
+              height: canvasH,
+              child: pw.Stack(children: yLabels),
+            ),
+            pw.SizedBox(width: 4),
+            // 차트 캔버스 (격자·선·점만 — 텍스트 없음)
+            pw.CustomPaint(
+              size: const PdfPoint(canvasW, canvasH),
+              painter: (PdfGraphics canvas, PdfPoint size) {
+                if (maxAmt == 0) return;
+                final double w = size.x;
+
+                double px(int day) => maxDay <= 1
+                    ? 0.0
+                    : (day - 1) / (maxDay - 1) * w;
+                double py(int amount) =>
+                    chartBottom + (amount / maxAmt) * chartH;
+
+                // Y 격자선
+                canvas.setLineWidth(0.4);
+                for (int i = 1; i <= 4; i++) {
+                  final double y = chartBottom + chartH * i / 4;
+                  canvas.setStrokeColor(const PdfColor.fromInt(0xFFE0E0E0));
+                  canvas.drawLine(0, y, w, y);
+                }
+
+                // X축선
+                canvas.setStrokeColor(const PdfColor.fromInt(0xFFAAAAAA));
+                canvas.setLineWidth(0.6);
+                canvas.drawLine(0, chartBottom, w, chartBottom);
+
+                // 전월 선 + 점
+                if (prevData.isNotEmpty) {
+                  canvas.setStrokeColor(prevColor);
+                  canvas.setLineWidth(1.0);
+                  for (int i = 0; i < prevData.length - 1; i++) {
+                    canvas.drawLine(
+                      px(prevData[i].key), py(prevData[i].value),
+                      px(prevData[i + 1].key), py(prevData[i + 1].value),
+                    );
+                  }
+                  canvas.setFillColor(prevColor);
+                  for (final MapEntry<int, int> e in prevData) {
+                    _drawDot(canvas, px(e.key), py(e.value), 1.8);
+                  }
+                }
+
+                // 이번달 선 + 점
+                if (currData.length >= 2) {
+                  canvas.setStrokeColor(_kBlue);
+                  canvas.setLineWidth(1.8);
+                  for (int i = 0; i < currData.length - 1; i++) {
+                    canvas.drawLine(
+                      px(currData[i].key), py(currData[i].value),
+                      px(currData[i + 1].key), py(currData[i + 1].value),
+                    );
+                  }
+                }
+                canvas.setFillColor(_kBlue);
+                for (final MapEntry<int, int> e in currData) {
+                  _drawDot(canvas, px(e.key), py(e.value), 2.2);
+                }
+              },
+            ),
+          ],
+        ),
+        // X축 레이블 행
+        pw.Row(
+          children: <pw.Widget>[
+            pw.SizedBox(width: yLabelW + 4),
+            pw.SizedBox(
+              width: canvasW,
+              height: 14,
+              child: pw.Stack(children: xLabels),
+            ),
+          ],
+        ),
+        pw.SizedBox(height: 4),
+        // 범례
+        pw.Row(
+          children: <pw.Widget>[
+            pw.Container(width: 16, height: 3, color: _kBlue),
+            pw.SizedBox(width: 4),
+            pw.Text(currLbl, style: ts(size: 8)),
+            if (prevData.isNotEmpty) ...<pw.Widget>[
+              pw.SizedBox(width: 12),
+              pw.Container(width: 16, height: 3, color: prevColor),
+              pw.SizedBox(width: 4),
+              pw.Text(prevLbl, style: ts(size: 8)),
+            ],
+          ],
+        ),
+        if (stats.isNotEmpty) ...<pw.Widget>[
+          pw.SizedBox(height: 8),
+          ...stats,
+        ],
+      ],
+    );
+  }
+
+  // ─── 전월동기 소비 비교 섹션 ──────────────────────────────────────
+
+  List<pw.Widget> _buildPrevComparisonWidgets({
+    required List<ExpenseEntry> expenses,
+    required List<ExpenseEntry> prevExpenses,
+    required String currency,
+    required Map<String, String> strings,
+    required _TsFn ts,
+  }) {
+    final int currTotal = expenses.fold(0, (int s, ExpenseEntry e) => s + e.amount);
+    final int prevTotal =
+        prevExpenses.fold(0, (int s, ExpenseEntry e) => s + e.amount);
+    final int diff = currTotal - prevTotal;
+    final String diffStr =
+        '${diff >= 0 ? '+' : ''}$currency${_fmtAmount(diff)}';
+    final PdfColor diffColor = diff > 0 ? _kRed : _kGreen;
+
+    return <pw.Widget>[
+      _sectionHeader(
+        strings['pdfSectionPrevComparison'] ?? '전월동기 소비 비교',
+        ts,
+      ),
+      pw.SizedBox(height: 12),
+      pw.TableHelper.fromTextArray(
+        headers: <String>[
+          strings['pdfColType'] ?? '구분',
+          strings['pdfCurrentPeriod'] ?? '이번 달',
+          strings['pdfPrevPeriod'] ?? '전월동기',
+          strings['pdfDiffLabel'] ?? '차이',
+        ],
+        data: <List<String>>[
+          <String>[
+            strings['pdfTotalExpense'] ?? '총 지출액',
+            '$currency${_fmtAmount(currTotal)}',
+            '$currency${_fmtAmount(prevTotal)}',
+            diffStr,
+          ],
+        ],
+        border: pw.TableBorder.all(color: _kBorder, width: 0.5),
+        headerStyle: ts(size: 9, bold: true, color: _kWhite),
+        headerDecoration: const pw.BoxDecoration(color: _kBlue),
+        cellStyle: ts(size: 10),
+        cellAlignments: <int, pw.Alignment>{
+          1: pw.Alignment.centerRight,
+          2: pw.Alignment.centerRight,
+          3: pw.Alignment.centerRight,
+        },
+        cellPadding: const pw.EdgeInsets.all(6),
+      ),
+      pw.SizedBox(height: 16),
+      // 요약 박스
+      pw.Row(
+        children: <pw.Widget>[
+          pw.Expanded(
+            child: _summaryBox(
+              strings['pdfCurrentPeriod'] ?? '이번 달',
+              '$currency${_fmtAmount(currTotal)}',
+              _kBlue,
+              ts,
+            ),
+          ),
+          pw.SizedBox(width: 8),
+          pw.Expanded(
+            child: _summaryBox(
+              strings['pdfPrevPeriod'] ?? '전월동기',
+              '$currency${_fmtAmount(prevTotal)}',
+              _kGrey,
+              ts,
+            ),
+          ),
+          pw.SizedBox(width: 8),
+          pw.Expanded(
+            child: _summaryBox(
+              strings['pdfDiffLabel'] ?? '차이',
+              diffStr,
+              diffColor,
+              ts,
+            ),
+          ),
+        ],
+      ),
+    ];
+  }
+
+  // ─── 카테고리별 전월동기 비교 섹션 ───────────────────────────────
+
+  List<pw.Widget> _buildPrevCategoryAnalysisWidgets({
+    required List<ExpenseEntry> expenses,
+    required List<ExpenseEntry> prevExpenses,
+    required String currency,
+    required String Function(MetadataTagType, String) tagLabel,
+    required Map<String, String> strings,
+    required _TsFn ts,
+    required _TsFn tsD,
+  }) {
+    final Map<String, int> currCat = <String, int>{};
+    for (final ExpenseEntry e in expenses) {
+      currCat.update(e.categoryCode, (int v) => v + e.amount,
+          ifAbsent: () => e.amount);
+    }
+    final Map<String, int> prevCat = <String, int>{};
+    for (final ExpenseEntry e in prevExpenses) {
+      prevCat.update(e.categoryCode, (int v) => v + e.amount,
+          ifAbsent: () => e.amount);
+    }
+
+    final Set<String> allCodes = <String>{...currCat.keys, ...prevCat.keys};
+    final List<(String, int, int)> rows = allCodes
+        .map((String code) => (
+              tagLabel(MetadataTagType.category, code),
+              currCat[code] ?? 0,
+              prevCat[code] ?? 0,
+            ))
+        .toList()
+      ..sort(
+        ((String, int, int) a, (String, int, int) b) => b.$2.compareTo(a.$2),
+      );
+
+    return <pw.Widget>[
+      _sectionHeader(
+        strings['pdfSectionPrevCategoryAnalysis'] ?? '카테고리별 전월동기 비교',
+        ts,
+      ),
+      pw.SizedBox(height: 12),
+      pw.TableHelper.fromTextArray(
+        headers: <String>[
+          strings['categoryLabel'] ?? '카테고리',
+          strings['pdfCurrentPeriod'] ?? '이번 달',
+          strings['pdfPrevPeriod'] ?? '전월동기',
+          strings['pdfDiffLabel'] ?? '차이',
+        ],
+        data: rows.map(((String, int, int) r) {
+          final int diff = r.$2 - r.$3;
+          return <String>[
+            r.$1,
+            '$currency${_fmtAmount(r.$2)}',
+            '$currency${_fmtAmount(r.$3)}',
+            '${diff >= 0 ? '+' : ''}$currency${_fmtAmount(diff)}',
+          ];
+        }).toList(),
+        border: pw.TableBorder.all(color: _kBorder, width: 0.5),
+        headerStyle: ts(size: 9, bold: true, color: _kWhite),
+        headerDecoration: const pw.BoxDecoration(color: _kBlue),
+        cellStyle: tsD(size: 9),
+        cellAlignments: <int, pw.Alignment>{
+          1: pw.Alignment.centerRight,
+          2: pw.Alignment.centerRight,
+          3: pw.Alignment.centerRight,
+        },
+        cellPadding: const pw.EdgeInsets.all(5),
+        oddRowDecoration: const pw.BoxDecoration(color: _kLightGrey),
+      ),
+    ];
+  }
+
+  // ─── 헬퍼: 일별 지출 집계 ────────────────────────────────────────
+
+  static List<MapEntry<int, int>> _groupExpensesByDay(
+    List<ExpenseEntry> expenses,
+    DateTime periodStart,
+  ) {
+    final DateTime base = DateTime(
+      periodStart.year,
+      periodStart.month,
+      periodStart.day,
+    );
+    final Map<int, int> daily = <int, int>{};
+    for (final ExpenseEntry e in expenses) {
+      final int day =
+          DateTime(e.spentAt.year, e.spentAt.month, e.spentAt.day)
+                  .difference(base)
+                  .inDays +
+              1;
+      if (day < 1) continue;
+      daily.update(day, (int v) => v + e.amount, ifAbsent: () => e.amount);
+    }
+    return daily.entries.toList()
+      ..sort((MapEntry<int, int> a, MapEntry<int, int> b) =>
+          a.key.compareTo(b.key));
   }
 
   // ─── Top 10 섹션 ─────────────────────────────────────────────────
@@ -888,6 +1508,43 @@ class ExportPdfReportService {
           ],
         ),
       );
+
+  // ─── 차트 헬퍼 ───────────────────────────────────────────────────
+
+  /// 베지어 근사로 원형 점을 그린다.
+  static void _drawDot(PdfGraphics canvas, double x, double y, double r) {
+    const double k = 0.5523;
+    canvas.moveTo(x + r, y);
+    canvas.curveTo(x + r, y + r * k, x + r * k, y + r, x, y + r);
+    canvas.curveTo(x - r * k, y + r, x - r, y + r * k, x - r, y);
+    canvas.curveTo(x - r, y - r * k, x - r * k, y - r, x, y - r);
+    canvas.curveTo(x + r * k, y - r, x + r, y - r * k, x + r, y);
+    canvas.closePath();
+    canvas.fillPath();
+  }
+
+  /// 금액을 ASCII 약식 표현으로 변환한다 (예: 1200000 → "1.2M", 45000 → "45K").
+  static String _pdfYLabelAscii(int amount) {
+    if (amount == 0) return '0';
+    if (amount >= 1000000) {
+      final double m = amount / 1000000;
+      return '${m % 1 == 0 ? m.round() : m.toStringAsFixed(1)}M';
+    }
+    if (amount >= 1000) {
+      final double k = amount / 1000;
+      return '${k % 1 == 0 ? k.round() : k.toStringAsFixed(1)}K';
+    }
+    return '$amount';
+  }
+
+  /// X축에 표시할 대표 날짜 목록을 반환한다.
+  static List<int> _computeXLabelDays(int maxDay) {
+    if (maxDay <= 7) {
+      return List<int>.generate(maxDay, (int i) => i + 1);
+    }
+    const List<int> candidates = <int>[1, 5, 10, 15, 20, 25, 31];
+    return candidates.where((int d) => d <= maxDay).toList();
+  }
 
   /// 가로 바 형태의 진행률 행을 생성한다.
   ///

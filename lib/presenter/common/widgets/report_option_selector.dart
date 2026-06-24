@@ -8,11 +8,15 @@ class ReportOptionSelector extends StatelessWidget {
     required this.includeFixedExpenses,
     required this.includePaymentSummary,
     required this.includeDetailedData,
+    required this.includePrevComparison,
+    required this.includePrevCategoryAnalysis,
     required this.strings,
     required this.onTop10Changed,
     required this.onFixedChanged,
     required this.onPaymentChanged,
     required this.onDetailedChanged,
+    required this.onPrevComparisonChanged,
+    required this.onPrevCategoryAnalysisChanged,
     super.key,
   });
 
@@ -20,11 +24,15 @@ class ReportOptionSelector extends StatelessWidget {
   final bool includeFixedExpenses;
   final bool includePaymentSummary;
   final bool includeDetailedData;
+  final bool includePrevComparison;
+  final bool includePrevCategoryAnalysis;
   final Map<String, String> strings;
   final ValueChanged<bool> onTop10Changed;
   final ValueChanged<bool> onFixedChanged;
   final ValueChanged<bool> onPaymentChanged;
   final ValueChanged<bool> onDetailedChanged;
+  final ValueChanged<bool> onPrevComparisonChanged;
+  final ValueChanged<bool> onPrevCategoryAnalysisChanged;
 
   String _text(String key, [String fallback = '']) =>
       strings[key] ?? fallback;
@@ -73,6 +81,30 @@ class ReportOptionSelector extends StatelessWidget {
             ),
             value: includeDetailedData,
             onChanged: (bool? v) => onDetailedChanged(v ?? true),
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
+          CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(
+              _text(
+                'reportIncludePrevComparison',
+                '전월동기대비 소비데이터 포함',
+              ),
+            ),
+            value: includePrevComparison,
+            onChanged: (bool? v) => onPrevComparisonChanged(v ?? false),
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
+          CheckboxListTile(
+            contentPadding: EdgeInsets.zero,
+            title: Text(
+              _text(
+                'reportIncludePrevCategoryAnalysis',
+                '전월동기대비 카테고리별 분석결과 포함',
+              ),
+            ),
+            value: includePrevCategoryAnalysis,
+            onChanged: (bool? v) => onPrevCategoryAnalysisChanged(v ?? false),
             controlAffinity: ListTileControlAffinity.leading,
           ),
         ],
