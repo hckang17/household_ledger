@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/model/data_search_filter.dart';
+import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
+import 'package:household_ledger/presenter/common/widgets/expense_editor_sheet.dart';
+import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
 import 'package:household_ledger/provider/data_manage_provider.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
@@ -713,6 +716,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
     Map<String, String> strings,
     DataManageState s,
     List<MetadataTag> categoryTags,
+    List<MetadataTag> subcategoryTags,
     List<MetadataTag> paymentTags,
     String currency,
   ) {
@@ -733,52 +737,76 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
           itemCount: s.expenses.length,
           separatorBuilder: (_, _) => const SizedBox(height: 6),
           itemBuilder: (BuildContext ctx, int i) {
-            final e = s.expenses[i];
+            final ExpenseEntry e = s.expenses[i];
             final bool selected = s.isSelected(e.id);
-            return BootstrapSectionCard(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-              child: Row(
-                children: <Widget>[
-                  Checkbox(
-                    value: selected,
-                    onChanged: (_) => ref
-                        .read(dataManageProvider.notifier)
-                        .toggleSelection(e.id),
-                    visualDensity: VisualDensity.compact,
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      _formatDate(e.spentAt),
-                      style: Theme.of(ctx).textTheme.bodySmall,
+            return GestureDetector(
+              onTap: () => showExpenseDetailDialog(
+                context: context,
+                entry: e,
+                categoryTags: categoryTags,
+                subcategoryTags: subcategoryTags,
+                paymentTags: paymentTags,
+                strings: strings,
+                currency: currency,
+              ),
+              child: BootstrapSectionCard(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                child: Row(
+                  children: <Widget>[
+                    Checkbox(
+                      value: selected,
+                      onChanged: (_) => ref
+                          .read(dataManageProvider.notifier)
+                          .toggleSelection(e.id),
+                      visualDensity: VisualDensity.compact,
                     ),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      _tagLabel(categoryTags, e.categoryCode),
-                      overflow: TextOverflow.ellipsis,
-                      style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
+                    Expanded(
+                      flex: 2,
+                      child: Text(
+                        _formatDate(e.spentAt),
+                        style: Theme.of(ctx).textTheme.bodySmall,
                       ),
                     ),
-                  ),
-                  Expanded(
-                    flex: 3,
-                    child: Text(e.description, overflow: TextOverflow.ellipsis),
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Text(
-                      '${e.amount.toCurrency()}$currency',
-                      textAlign: TextAlign.right,
-                      style: const TextStyle(
-                        color: Color(0xFFDC3545),
-                        fontWeight: FontWeight.w700,
+                    Expanded(
+                      flex: 2,
+                      child: Text(
+                        _tagLabel(categoryTags, e.categoryCode),
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                    Expanded(
+                      flex: 3,
+                      child: Text(
+                        e.description,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    Expanded(
+                      flex: 2,
+                      child: Text(
+                        '${e.amount.toCurrency()}$currency',
+                        textAlign: TextAlign.right,
+                        style: const TextStyle(
+                          color: Color(0xFFDC3545),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                    IconButton(
+                      visualDensity: VisualDensity.compact,
+                      icon: const Icon(Icons.edit_outlined, size: 18),
+                      onPressed: () => showExpenseEditorSheet(
+                        context: context,
+                        ref: ref,
+                        entry: e,
+                        initialDate: e.spentAt,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           },
@@ -911,6 +939,9 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
     final List<MetadataTag> categoryTags = ledger.tagsByType(
       MetadataTagType.category,
     );
+    final List<MetadataTag> subcategoryTags = ledger.tagsByType(
+      MetadataTagType.subcategory,
+    );
     final List<MetadataTag> paymentTags = ledger.tagsByType(
       MetadataTagType.paymentMethod,
     );
@@ -971,6 +1002,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                   strings,
                   manageState,
                   categoryTags,
+                  subcategoryTags,
                   paymentTags,
                   currency,
                 ),

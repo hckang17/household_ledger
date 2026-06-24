@@ -103,6 +103,11 @@ class LocalizationService {
     'homeCompLessCategoryMsg': '지난달 보다 {category}의 지출이 적은것 같아요.',
     'analysisPrevMonthDiff': '전월동기 대비',
     'analysisPrevRangeDiff': '1개월전 동기 대비',
+    'analysisNoCurrMonthData': '이번 달 소비 데이터가 없습니다.',
+    'analysisNoPrevPeriodData': '전월동기 비교 데이터가 없습니다.',
+    'analysisCompPeriodHint': '{start} ~ {end} 기간과 비교한 결과도 표시됩니다.',
+    'analysisDailyCurrMonth': '이번달',
+    'analysisDailyPrevMonth': '전월',
   };
 
   /// 선택한 로케일 파일을 읽어 문자열 맵으로 반환한다.

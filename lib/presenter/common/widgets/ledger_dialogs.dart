@@ -181,15 +181,15 @@ Future<void> showExpenseDetailDialog({
     MapEntry(strings['dateLabel'] ?? '날짜', entry.formattedDate),
     MapEntry(
       strings['categoryLabel'] ?? '구분',
-      _resolveTagLabel(categoryTags, entry.categoryCode),
+      categoryTags.labelFor(entry.categoryCode),
     ),
     MapEntry(
       strings['subcategoryLabel'] ?? '소구분',
-      _resolveTagLabel(subcategoryTags, entry.subcategoryCode),
+      subcategoryTags.labelFor(entry.subcategoryCode),
     ),
     MapEntry(
       strings['paymentMethodLabel'] ?? '지불수단',
-      _resolveTagLabel(paymentTags, entry.paymentMethodCode),
+      paymentTags.labelFor(entry.paymentMethodCode),
     ),
     if (entry.note.isNotEmpty)
       MapEntry(strings['noteLabel'] ?? '비고', entry.note),
@@ -230,11 +230,11 @@ Future<void> showFixedExpenseDetailDialog({
     MapEntry(strings['selectMonth'] ?? '적용 월', appliedMonthText),
     MapEntry(
       strings['categoryLabel'] ?? '구분',
-      _resolveTagLabel(categoryTags, entry.categoryCode),
+      categoryTags.labelFor(entry.categoryCode),
     ),
     MapEntry(
       strings['paymentMethodLabel'] ?? '지불수단',
-      _resolveTagLabel(paymentTags, entry.paymentMethodCode),
+      paymentTags.labelFor(entry.paymentMethodCode),
     ),
     if (entry.note.isNotEmpty)
       MapEntry(strings['noteLabel'] ?? '비고', entry.note),
@@ -257,16 +257,6 @@ Future<void> showFixedExpenseDetailDialog({
       );
     },
   );
-}
-
-// ── Private helper ───────────────────────────────────────────────────────────
-
-String _resolveTagLabel(List<MetadataTag> tags, String code) {
-  try {
-    return tags.firstWhere((MetadataTag tag) => tag.code == code).label;
-  } catch (_) {
-    return '';
-  }
 }
 
 // ── Receipt dialog ───────────────────────────────────────────────────────────

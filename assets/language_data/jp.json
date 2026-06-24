@@ -257,5 +257,10 @@
   "homeCompLessAmountMsg": "先月同日までより{amount}少なく使っています！このまま管理を続けましょう！",
   "homeCompLessCategoryMsg": "先月同日までより{category}の支出が少ないようです。",
   "analysisPrevMonthDiff": "前月同期比",
-  "analysisPrevRangeDiff": "1ヶ月前同期比"
+  "analysisPrevRangeDiff": "1ヶ月前同期比",
+  "analysisNoCurrMonthData": "今月の支出データがありません。",
+  "analysisNoPrevPeriodData": "前月同期の比較データがありません。",
+  "analysisCompPeriodHint": "{start}〜{end}の前月同期データとの比較結果も表示されます。",
+  "analysisDailyCurrMonth": "今月",
+  "analysisDailyPrevMonth": "前月"
 }
