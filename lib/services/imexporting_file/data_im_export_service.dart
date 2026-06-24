@@ -12,6 +12,7 @@ import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/model/ledger_state.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/model/user_profile.dart';
+import 'package:household_ledger/services/tutorial_service.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
@@ -91,6 +92,8 @@ class DataImExportService {
     required String email,
     required String passkey,
     required String timestamp,
+    bool tutorialCompleted = false,
+    int tutorialVersion = 1,
   }) {
     final buffer = StringBuffer();
     final signature = _generateSignature(email, passkey);
@@ -168,6 +171,12 @@ class DataImExportService {
     buffer.writeln(
       _csvRow(['userAge', ledgerState.userProfile.age.toString()]),
     );
+    buffer.writeln(
+      _csvRow(['tutorial_completed', tutorialCompleted.toString()]),
+    );
+    buffer.writeln(
+      _csvRow(['tutorial_version', tutorialVersion.toString()]),
+    );
     buffer.writeln();
 
     buffer.writeln(_sectionTags);
@@ -196,6 +205,12 @@ class DataImExportService {
       throw UnsupportedError('Web export is not supported in this version.');
     }
 
+    final tutorialValues = await TutorialService().exportValues();
+    final tutorialCompleted =
+        tutorialValues['tutorial_completed'] == 'true';
+    final tutorialVersion =
+        int.tryParse(tutorialValues['tutorial_version'] ?? '1') ?? 1;
+
     final csvContent = buildCsvContent(
       expenses: expenses,
       fixedExpenses: fixedExpenses,
@@ -204,6 +219,8 @@ class DataImExportService {
       email: email,
       passkey: passkey,
       timestamp: timestamp,
+      tutorialCompleted: tutorialCompleted,
+      tutorialVersion: tutorialVersion,
     );
 
     // UTF-8 BOM을 추가해 스프레드시트에서 한글·일본어가 올바르게 표시되도록 한다.
@@ -247,11 +264,11 @@ class DataImExportService {
   }
 
   /// CSV 파일 내용을 파싱해 가계부 데이터를 복원한다. 서명 불일치 시 실패를 반환한다.
-  ImportResult importFromCsv({
+  Future<ImportResult> importFromCsv({
     required String csvContent,
     required String email,
     required String passkey,
-  }) {
+  }) async {
     try {
       // BOM 제거
       final content = csvContent.startsWith('﻿')
@@ -290,6 +307,13 @@ class DataImExportService {
         name: settingsMap['userName'] ?? '',
         age: int.tryParse(settingsMap['userAge'] ?? '') ?? 0,
       );
+
+      if (settingsMap.containsKey('tutorial_completed')) {
+        await TutorialService().restoreFromCsv(
+          completed: settingsMap['tutorial_completed'] == 'true',
+          version: int.tryParse(settingsMap['tutorial_version'] ?? '1') ?? 1,
+        );
+      }
 
       final ledgerState = LedgerState.initial().copyWith(
         settings: settings,

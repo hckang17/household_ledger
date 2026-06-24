@@ -6,12 +6,32 @@ import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widg
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 
+/// 튜토리얼 모드에서 사용할 초기값 프리셋.
+class TutorialExpensePreset {
+  const TutorialExpensePreset({
+    required this.categoryCode,
+    required this.subcategoryCode,
+    required this.paymentMethodCode,
+    required this.description,
+    required this.amount,
+    required this.note,
+  });
+
+  final String categoryCode;
+  final String subcategoryCode;
+  final String paymentMethodCode;
+  final String description;
+  final String amount;
+  final String note;
+}
+
 /// 소비 기록 입력/수정 시트를 표시하고 저장한다.
 Future<void> showExpenseEditorSheet({
   required BuildContext context,
   required WidgetRef ref,
   ExpenseEntry? entry,
   DateTime? initialDate,
+  TutorialExpensePreset? tutorialPreset,
 }) async {
   final ledger = ref.read(ledgerProvider).asData?.value;
   final strings = ref.read(localizedStringsProvider);
@@ -39,6 +59,7 @@ Future<void> showExpenseEditorSheet({
         subcategoryTags: subcategoryTags,
         paymentTags: paymentTags,
         strings: strings,
+        tutorialPreset: tutorialPreset,
       );
     },
   );
@@ -62,6 +83,7 @@ class _ExpenseEditorSheetBody extends StatefulWidget {
     required this.subcategoryTags,
     required this.paymentTags,
     required this.strings,
+    this.tutorialPreset,
   });
 
   final ExpenseEntry? entry;
@@ -70,6 +92,7 @@ class _ExpenseEditorSheetBody extends StatefulWidget {
   final List<MetadataTag> subcategoryTags;
   final List<MetadataTag> paymentTags;
   final Map<String, String> strings;
+  final TutorialExpensePreset? tutorialPreset;
 
   @override
   State<_ExpenseEditorSheetBody> createState() =>
@@ -98,19 +121,26 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
   void initState() {
     super.initState();
     selectedDate = widget.selectedInitialDate;
-    categoryCode = widget.entry?.categoryCode ?? widget.categoryTags.first.code;
-    subcategoryCode =
-        widget.entry?.subcategoryCode ?? widget.subcategoryTags.first.code;
-    paymentCode =
-        widget.entry?.paymentMethodCode ?? widget.paymentTags.first.code;
+    final preset = widget.tutorialPreset;
+    categoryCode = preset?.categoryCode ??
+        widget.entry?.categoryCode ??
+        widget.categoryTags.first.code;
+    subcategoryCode = preset?.subcategoryCode ??
+        widget.entry?.subcategoryCode ??
+        widget.subcategoryTags.first.code;
+    paymentCode = preset?.paymentMethodCode ??
+        widget.entry?.paymentMethodCode ??
+        widget.paymentTags.first.code;
 
     descriptionController = TextEditingController(
-      text: widget.entry?.description ?? '',
+      text: preset?.description ?? widget.entry?.description ?? '',
     );
     amountController = TextEditingController(
-      text: widget.entry?.amount.toString() ?? '',
+      text: preset?.amount ?? widget.entry?.amount.toString() ?? '',
     );
-    noteController = TextEditingController(text: widget.entry?.note ?? '');
+    noteController = TextEditingController(
+      text: preset?.note ?? widget.entry?.note ?? '',
+    );
     dateController = TextEditingController(
       text: ExpenseEntry.normalizeDate(
         selectedDate,

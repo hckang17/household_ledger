@@ -91,7 +91,7 @@ class _ImportDataPageState extends ConsumerState<ImportDataPage> {
 
     try {
       final csvContent = await File(filePath).readAsString();
-      final result = _service.importFromCsv(
+      final result = await _service.importFromCsv(
         csvContent: csvContent,
         email: email,
         passkey: passkey,

@@ -10,8 +10,11 @@ import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
 import 'package:household_ledger/provider/data_manage_provider.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
+import 'package:household_ledger/provider/tutorial_provider.dart';
 import 'package:household_ledger/router/app_router.dart';
+import 'package:household_ledger/services/mock_data_service.dart';
 import 'package:intl/intl.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 /// 데이터 관리 페이지 — 검색 조건으로 데이터를 조회하고 일괄 삭제/태그 변경을 제공한다.
 class DataManagingPage extends ConsumerStatefulWidget {
@@ -25,11 +28,72 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
   final TextEditingController _descController = TextEditingController();
   final TextEditingController _noteController = TextEditingController();
 
+  final GlobalKey _filterCardKey = GlobalKey();
+  final GlobalKey _settingsNavKey = GlobalKey();
+  bool _showcaseStarted = false;
+  BuildContext? _showcaseContext;
+
   @override
   void dispose() {
     _descController.dispose();
     _noteController.dispose();
     super.dispose();
+  }
+
+  void _maybeStartShowcase() {
+    if (_showcaseStarted) return;
+    if (_showcaseContext == null) return;
+    final state = ref.read(tutorialProvider);
+    if (!state.isActive || state.phase != TutorialPhase.dataManage) return;
+    _showcaseStarted = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _showcaseContext == null) return;
+      ShowCaseWidget.of(_showcaseContext!).startShowCase([
+        _filterCardKey,
+        _settingsNavKey,
+      ]);
+    });
+  }
+
+  void _onShowcaseComplete(int? index, GlobalKey key) {
+    if (key == _settingsNavKey) {
+      ref.read(tutorialProvider.notifier).setPhase(TutorialPhase.settings);
+      Navigator.of(context).pushNamed(AppRouter.settingsRoute);
+    }
+  }
+
+  Future<void> _handleBackDuringTutorial() async {
+    if (_showcaseContext != null) {
+      try { ShowCaseWidget.of(_showcaseContext!).dismiss(); } catch (_) {}
+    }
+    final strings = ref.read(localizedStringsProvider);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(strings['tutorialExitTitle'] ?? '튜토리얼 종료'),
+        content: Text(strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(strings['tutorialContinue'] ?? '계속하기'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(strings['tutorialExitConfirm'] ?? '종료'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await ref.read(mockDataServiceProvider).cleanupMockData(ref);
+      await ref.read(tutorialProvider.notifier).exitTutorial();
+    } else if (mounted) {
+      _showcaseStarted = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _maybeStartShowcase();
+      });
+    }
   }
 
   String _s(Map<String, String> strings, String key, String fallback) {
@@ -931,6 +995,11 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
     final ledger = ref.watch(ledgerProvider).asData?.value;
     final DataManageState manageState = ref.watch(dataManageProvider);
     final DataSearchFilter filter = manageState.filter;
+    final isTutorial = ref.watch(
+      tutorialProvider.select(
+        (s) => s.isActive && s.phase == TutorialPhase.dataManage,
+      ),
+    );
 
     if (ledger == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
@@ -948,70 +1017,104 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
     final String currency = strings['currencyUnit'] ?? '';
     final bool isIncome = filter.tableType == DataTableType.income;
 
-    return PopScope(
-      canPop: !manageState.isOperating,
-      onPopInvokedWithResult: (bool didPop, Object? result) {
-        if (!didPop) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(
-                _s(
-                  strings,
-                  'dataManageOperatingWarn',
-                  '작업이 진행 중입니다. 완료 후 이동하세요.',
+    Widget buildInner(BuildContext showcaseCtx) {
+      _showcaseContext = showcaseCtx;
+      _maybeStartShowcase();
+
+      final page = PopScope(
+        canPop: !manageState.isOperating,
+        onPopInvokedWithResult: (bool didPop, Object? result) {
+          if (!didPop) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  _s(
+                    strings,
+                    'dataManageOperatingWarn',
+                    '작업이 진행 중입니다. 완료 후 이동하세요.',
+                  ),
                 ),
+              ),
+            );
+          }
+        },
+        child: BootstrapPage(
+          title: _s(strings, 'dataManageTitle', '데이터 관리'),
+          actions: <Widget>[
+            Showcase(
+              key: _settingsNavKey,
+              title: strings['tutDataManageSettingsNavTitle'] ?? '설정 화면으로 이동',
+              description: strings['tutDataManageSettingsNavDesc'] ?? '다음은 앱 설정 화면을 살펴볼게요!\n설정에서 태그 관리, 데이터 백업 등을 할 수 있어요.',
+              tooltipPosition: TooltipPosition.top,
+              child: IconButton(
+                onPressed: () =>
+                    Navigator.of(context).pushNamed(AppRouter.settingsRoute),
+                icon: const Icon(Icons.settings_outlined),
               ),
             ),
-          );
-        }
-      },
-      child: BootstrapPage(
-        title: _s(strings, 'dataManageTitle', '데이터 관리'),
-        actions: <Widget>[
-          IconButton(
-            onPressed: () =>
-                Navigator.of(context).pushNamed(AppRouter.settingsRoute),
-            icon: const Icon(Icons.settings_outlined),
-          ),
-        ],
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: <Widget>[
-              _buildFilterCard(
-                strings,
-                filter,
-                categoryTags,
-                paymentTags,
-                isIncome,
-              ),
-              const SizedBox(height: 12),
-              if (manageState.isSearching)
-                const Center(child: CircularProgressIndicator()),
-              if (manageState.isOperating)
-                _buildOperationProgress(strings, manageState),
-              if (manageState.hasResults &&
-                  !manageState.isOperating) ...<Widget>[
-                _buildActionBar(
-                  strings,
-                  manageState,
-                  categoryTags,
-                  paymentTags,
+          ],
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: <Widget>[
+                Showcase(
+                  key: _filterCardKey,
+                  title: strings['tutDataManageFilterTitle'] ?? '데이터 검색',
+                  description: strings['tutDataManageFilterDesc'] ?? '소비수단, 기간, 카테고리 등 조건으로 기록을 조회하고\n일괄 삭제 또는 태그 변경을 할 수 있어요.',
+                  tooltipPosition: TooltipPosition.top,
+                  child: _buildFilterCard(
+                    strings,
+                    filter,
+                    categoryTags,
+                    paymentTags,
+                    isIncome,
+                  ),
                 ),
-                _buildResultList(
-                  strings,
-                  manageState,
-                  categoryTags,
-                  subcategoryTags,
-                  paymentTags,
-                  currency,
-                ),
-                const SizedBox(height: 24),
+                const SizedBox(height: 12),
+                if (manageState.isSearching)
+                  const Center(child: CircularProgressIndicator()),
+                if (manageState.isOperating)
+                  _buildOperationProgress(strings, manageState),
+                if (manageState.hasResults &&
+                    !manageState.isOperating) ...<Widget>[
+                  _buildActionBar(
+                    strings,
+                    manageState,
+                    categoryTags,
+                    paymentTags,
+                  ),
+                  _buildResultList(
+                    strings,
+                    manageState,
+                    categoryTags,
+                    subcategoryTags,
+                    paymentTags,
+                    currency,
+                  ),
+                  const SizedBox(height: 24),
+                ],
               ],
-            ],
+            ),
           ),
         ),
-      ),
+      );
+
+      if (isTutorial) {
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) _handleBackDuringTutorial();
+          },
+          child: page,
+        );
+      }
+      return page;
+    }
+
+    return ShowCaseWidget(
+      onComplete: _onShowcaseComplete,
+      enableAutoScroll: true,
+      builder: buildInner,
     );
   }
 }

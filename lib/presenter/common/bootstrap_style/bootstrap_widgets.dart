@@ -99,6 +99,7 @@ class BootstrapSummaryTile extends StatelessWidget {
     required this.color,
     super.key,
     this.fontSize = 18,
+    this.tooltipContent,
   });
 
   /// 타일 라벨을 보관한다.
@@ -113,6 +114,9 @@ class BootstrapSummaryTile extends StatelessWidget {
   /// 강조 색상을 보관한다.
   final Color color;
 
+  /// null 이 아니면 라벨 옆에 (?) 아이콘과 툴팁을 표시한다.
+  final InlineSpan? tooltipContent;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -125,7 +129,45 @@ class BootstrapSummaryTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(label, style: Theme.of(context).textTheme.labelLarge),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Flexible(
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+              ),
+              if (tooltipContent != null) ...<Widget>[
+                const SizedBox(width: 4),
+                Tooltip(
+                  richMessage: tooltipContent,
+                  triggerMode: TooltipTriggerMode.tap,
+                  showDuration: const Duration(seconds: 30),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: const <BoxShadow>[
+                      BoxShadow(
+                        color: Color.fromARGB(40, 152, 152, 152),
+                        blurRadius: 12,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  child: Icon(
+                    Icons.help_outline_rounded,
+                    size: 15,
+                    color: Colors.grey.shade500,
+                  ),
+                ),
+              ],
+            ],
+          ),
           const SizedBox(height: 8),
           Text(
             value,

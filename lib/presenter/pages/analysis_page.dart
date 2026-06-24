@@ -10,8 +10,12 @@ import 'package:household_ledger/presenter/common/widgets/analysis_income_tab.da
 import 'package:household_ledger/presenter/common/widgets/analysis_period_control_card.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
+import 'package:household_ledger/provider/nav_tab_provider.dart';
+import 'package:household_ledger/provider/tutorial_provider.dart';
 import 'package:household_ledger/router/app_router.dart';
+import 'package:household_ledger/services/mock_data_service.dart';
 import 'package:intl/intl.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 /// 기간 선택 모드를 정의한다.
 enum _PeriodMode { monthly, range }
@@ -31,6 +35,68 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
   DateTimeRange? _selectedRange;
   _PeriodMode _periodMode = _PeriodMode.monthly;
   bool _showExpense = true;
+
+  final GlobalKey _periodControlKey = GlobalKey();
+  final GlobalKey _pdfBtnKey = GlobalKey();
+  bool _showcaseStarted = false;
+  BuildContext? _showcaseContext;
+
+  void _maybeStartShowcase() {
+    if (_showcaseStarted) return;
+    if (_showcaseContext == null) return;
+    final state = ref.read(tutorialProvider);
+    if (!state.isActive || state.phase != TutorialPhase.analysis) return;
+    _showcaseStarted = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _showcaseContext == null) return;
+      ShowCaseWidget.of(_showcaseContext!).startShowCase([
+        _periodControlKey,
+        _pdfBtnKey,
+      ]);
+    });
+  }
+
+  void _onShowcaseComplete(int? index, GlobalKey key) {
+    if (key == _pdfBtnKey) {
+      // 분석 튜토리얼 완료 → PDF 리포트 페이지로 이동
+      ref.read(tutorialProvider.notifier).setPhase(TutorialPhase.pdfReport);
+      Navigator.of(context).pushNamed(AppRouter.generatingReportRoute);
+    }
+  }
+
+  Future<void> _handleBackDuringTutorial() async {
+    if (_showcaseContext != null) {
+      try { ShowCaseWidget.of(_showcaseContext!).dismiss(); } catch (_) {}
+    }
+    final strings = ref.read(localizedStringsProvider);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(strings['tutorialExitTitle'] ?? '튜토리얼 종료'),
+        content: Text(strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(strings['tutorialContinue'] ?? '계속하기'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(strings['tutorialExitConfirm'] ?? '종료'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await ref.read(mockDataServiceProvider).cleanupMockData(ref);
+      await ref.read(tutorialProvider.notifier).exitTutorial();
+    } else if (mounted) {
+      _showcaseStarted = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _maybeStartShowcase();
+      });
+    }
+  }
 
   @override
   void initState() {
@@ -223,27 +289,50 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
         ? '${_selectedRange!.start}-${_selectedRange!.end}'
         : _selectedMonth.toString();
 
-    return BootstrapPage(
-      title: _text(strings, 'analysis', '지출 분석'),
-      actions: <Widget>[
-        IconButton(
-          onPressed: () =>
-              Navigator.of(context).pushNamed(AppRouter.dataManageRoute),
-          icon: const Icon(Icons.manage_search_rounded),
-          tooltip: strings['dataManageTitle'] ?? '데이터 관리',
-        ),
-        IconButton(
-          onPressed: () =>
-              Navigator.of(context).pushNamed(AppRouter.settingsRoute),
-          icon: const Icon(Icons.settings_outlined),
-          tooltip: strings['settingsTitle'] ?? '설정',
-        ),
-      ],
-      child: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            // ── 상단 컨트롤 카드 ──
-            AnalysisPeriodControlCard(
+    final isTutorial = ref.watch(
+      tutorialProvider.select(
+        (s) => s.isActive && s.phase == TutorialPhase.analysis,
+      ),
+    );
+
+    ref.listen(currentNavTabProvider, (_, tab) {
+      if (tab == 1 &&
+          ref.read(tutorialProvider).phase == TutorialPhase.analysis) {
+        _showcaseStarted = false;
+        _maybeStartShowcase();
+      }
+    });
+
+    Widget buildInner(BuildContext showcaseCtx) {
+      _showcaseContext = showcaseCtx;
+      _maybeStartShowcase();
+
+      final page = BootstrapPage(
+        title: _text(strings, 'analysis', '지출 분석'),
+        actions: <Widget>[
+          IconButton(
+            onPressed: () =>
+                Navigator.of(context).pushNamed(AppRouter.dataManageRoute),
+            icon: const Icon(Icons.manage_search_rounded),
+            tooltip: strings['dataManageTitle'] ?? '데이터 관리',
+          ),
+          IconButton(
+            onPressed: () =>
+                Navigator.of(context).pushNamed(AppRouter.settingsRoute),
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: strings['settingsTitle'] ?? '설정',
+          ),
+        ],
+        child: SingleChildScrollView(
+          child: Column(
+            children: <Widget>[
+              // ── 상단 컨트롤 카드 ──
+              Showcase(
+                key: _periodControlKey,
+                title: strings['tutAnalysisPeriodTitle'] ?? '분석 기간 선택',
+                description: strings['tutAnalysisPeriodDesc'] ?? '월별 또는 기간별로 지출 데이터를 분석할 수 있어요.\n이전/다음 화살표로 월을 이동하거나 달력 기간을 직접 설정해보세요.',
+                tooltipPosition: TooltipPosition.top,
+                child: AnalysisPeriodControlCard(
               showExpense: _showExpense,
               isRangeMode: _periodMode == _PeriodMode.range,
               selectedMonth: _selectedMonth,
@@ -273,7 +362,8 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                 _selectedRange = null;
               }),
             ),
-            const SizedBox(height: 16),
+            ),
+              const SizedBox(height: 16),
 
             // ── 전월동기 비교 안내 배너 (지출 탭에서만 표시) ──
             if (_showExpense)
@@ -308,25 +398,31 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
 
             // ── PDF 출력 버튼 (지출 탭에서만 표시) ──
             if (_showExpense)
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: OutlinedButton.icon(
-                    onPressed: () => Navigator.of(
-                      context,
-                    ).pushNamed(AppRouter.generatingReportRoute),
-                    icon: const Icon(
-                      Icons.picture_as_pdf_rounded,
-                      color: Color(0xFFDC3545),
-                    ),
-                    label: Text(
-                      _text(strings, 'analysisExportPdf', 'PDF로 출력하기'),
-                      style: const TextStyle(color: Color(0xFFDC3545)),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      side: const BorderSide(color: Color(0xFFDC3545)),
-                      padding: const EdgeInsets.symmetric(vertical: 14),
+              Showcase(
+                key: _pdfBtnKey,
+                title: strings['tutAnalysisPdfBtnTitle'] ?? 'PDF 리포트 출력',
+                description: strings['tutAnalysisPdfBtnDesc'] ?? '지출 분석 결과를 PDF로 출력하고 공유할 수 있어요!\n다음 단계에서 PDF 설정 화면을 살펴볼게요.',
+                tooltipPosition: TooltipPosition.top,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => Navigator.of(
+                        context,
+                      ).pushNamed(AppRouter.generatingReportRoute),
+                      icon: const Icon(
+                        Icons.picture_as_pdf_rounded,
+                        color: Color(0xFFDC3545),
+                      ),
+                      label: Text(
+                        _text(strings, 'analysisExportPdf', 'PDF로 출력하기'),
+                        style: const TextStyle(color: Color(0xFFDC3545)),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFFDC3545)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
                     ),
                   ),
                 ),
@@ -349,5 +445,23 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
         ),
       ),
     );
+
+    if (isTutorial) {
+      return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) _handleBackDuringTutorial();
+        },
+        child: page,
+      );
+    }
+    return page;
   }
+
+  return ShowCaseWidget(
+    onComplete: _onShowcaseComplete,
+    enableAutoScroll: true,
+    builder: buildInner,
+  );
+}
 }
