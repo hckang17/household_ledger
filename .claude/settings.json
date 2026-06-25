@@ -4,7 +4,8 @@
       "Skill(artifact-design)",
       "Skill(artifact-design:*)",
       "Bash(grep -r \"scrollEnable\\\\|enableAutoScroll\\\\|autoScroll\\\\|scrollEnabled\" \"C:/MyFlutterProject/household_ledger/.pub-cache\" --include=\"*.dart\" -l 2>/dev/null | head -5; grep -r \"scrollEnable\\\\|enableAutoScroll\\\\|autoScroll\\\\|scrollEnabled\" \"C:/Users/user01/AppData/Local/Pub/Cache\" --include=\"*.dart\" -l 2>/dev/null | head -5)",
-      "Read(//c/Users/user01/AppData/Local/Pub/Cache/**)"
+      "Read(//c/Users/user01/AppData/Local/Pub/Cache/**)",
+      "Bash(xargs grep -l \"Theme.of\\(context\\)\")"
     ]
   }
 }
