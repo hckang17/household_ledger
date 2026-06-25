@@ -367,5 +367,16 @@
   "tutExportSignatureTitle": "이메일 및 패스키 서명",
   "tutExportSignatureDesc": "내보내기 파일에 서명을 추가해요.\n이메일과 패스키는 나중에 가져오기 시 본인 확인에 사용됩니다.",
   "tutExportBtnTitle": "데이터 내보내기",
-  "tutExportBtnDesc": "버튼을 탭하면 모든 데이터가 CSV 파일로 저장돼요!\n이것으로 튜토리얼이 완료됩니다. 수고하셨어요!"
+  "tutExportBtnDesc": "버튼을 탭하면 모든 데이터가 CSV 파일로 저장돼요!\n이것으로 튜토리얼이 완료됩니다. 수고하셨어요!",
+
+  "loadingIndicatorText1" : "... 화면을 그리고 있어요",
+  "loadingIndicatorText2" : "... 가계부 기록을 꺼내고 있어요",
+  "loadingIndicatorText3" : "... 기록을 분석중이에요",
+  "dataManageSearching1" : "DB에서 검색중입니다...",
+  "dataManageSearching2" : "데이터를 불러오고 있어요...",
+  "dataManageSearching3" : "화면을 그리고 있어요...",
+  "loadingWarmup1" : "... 수입 화면 준비중",
+  "loadingWarmup2" : "... 분석 화면 준비중",
+  "loadingWarmup3" : "... 지출 화면 준비중",
+  "loadingWarmup4" : "... 고정지출 화면 준비중"
 }

@@ -25,7 +25,7 @@ class OnboardingPage extends ConsumerWidget {
         // 튜토리얼 미완료 → 홈으로 가되 튜토리얼 홈 단계 시작
         ref.read(tutorialProvider.notifier).setPhase(TutorialPhase.home);
       }
-      Navigator.of(context).pushReplacementNamed(AppRouter.homeRoute);
+      Navigator.of(context).pushReplacementNamed(AppRouter.loadingRoute);
     } else {
       // 초기 설정 미완료 → 설정 화면으로 이동하면서 튜토리얼 시작
       ref.read(tutorialProvider.notifier).startTutorial();

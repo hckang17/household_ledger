@@ -358,5 +358,16 @@
   "tutExportSignatureTitle": "メールアドレスとパスキー署名",
   "tutExportSignatureDesc": "出力ファイルに署名を追加します。\nメールアドレスとパスキーは後で取り込む際の本人確認に使用されます。",
   "tutExportBtnTitle": "データを出力",
-  "tutExportBtnDesc": "ボタンをタップするとすべてのデータがCSVファイルに保存されます！\nこれでチュートリアルが完了です。お疲れさまでした！"
+  "tutExportBtnDesc": "ボタンをタップするとすべてのデータがCSVファイルに保存されます！\nこれでチュートリアルが完了です。お疲れさまでした！",
+
+  "loadingIndicatorText1" : "... 画面を描画しています",
+  "loadingIndicatorText2" : "... 家計簿の記録を取得しています",
+  "loadingIndicatorText3" : "... 記録を分析中です",
+  "dataManageSearching1" : "DBを検索中です...",
+  "dataManageSearching2" : "データを読み込んでいます...",
+  "dataManageSearching3" : "画面を描画しています...",
+  "loadingWarmup1" : "... 収入画面を準備中",
+  "loadingWarmup2" : "... 分析画面を準備中",
+  "loadingWarmup3" : "... 支出画面を準備中",
+  "loadingWarmup4" : "... 固定支出画面を準備中"
 }

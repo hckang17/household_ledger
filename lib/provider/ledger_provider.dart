@@ -193,10 +193,23 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
     _logLedgerProvider('build', '앱 상태 초기 로드 시작');
     final settingsState = await _localStorageService.loadState();
     final nowMonth = DateTime.now();
-    var currentMonthExpenses = await _expenseDatabaseService
-        .loadExpensesByMonth(nowMonth);
-    var allFixedExpenses = await _fixedExpenseDatabaseService
-        .loadAllFixedExpenses();
+    final prevQuery = computePrevSamePeriodQuery(nowMonth);
+
+    // 3개 쿼리를 병렬로 실행해 초기 로드 시간을 단축한다.
+    _logLedgerProvider('build', 'DB 병렬 쿼리 시작');
+    final rawResults = await Future.wait(<Future<dynamic>>[
+      _expenseDatabaseService.loadExpensesByMonth(nowMonth),
+      _fixedExpenseDatabaseService.loadAllFixedExpenses(),
+      _expenseDatabaseService.loadExpensesByRange(
+        start: prevQuery.start,
+        endExclusive: prevQuery.endExclusive,
+      ),
+    ]);
+    _logLedgerProvider('build', 'DB 병렬 쿼리 완료');
+
+    var currentMonthExpenses = rawResults[0] as List<ExpenseEntry>;
+    var allFixedExpenses = rawResults[1] as List<FixedExpense>;
+    final prevPeriodExpenses = rawResults[2] as List<ExpenseEntry>;
 
     // 기존 shared_preferences에 남아 있는 구버전 지출내역이 있으면 SQLite로 1회 마이그레이션한다.
     if (currentMonthExpenses.isEmpty && settingsState.expenses.isNotEmpty) {
@@ -214,13 +227,6 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
       allFixedExpenses = await _fixedExpenseDatabaseService
           .loadAllFixedExpenses();
     }
-
-    // 홈화면 전월동기 비교를 위해 전월 데이터를 미리 로드한다.
-    final prevQuery = computePrevSamePeriodQuery(nowMonth);
-    final prevPeriodExpenses = await _expenseDatabaseService.loadExpensesByRange(
-      start: prevQuery.start,
-      endExclusive: prevQuery.endExclusive,
-    );
 
     _logLedgerProvider('build', '초기 상태 반환(이번 달 지출내역 + 전월 동기 데이터 적용)');
     return settingsState.copyWith(
