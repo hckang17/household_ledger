@@ -283,6 +283,7 @@
   "tooltipRemainingTotal": "総支出額",
   "tooltipRemainingSuffix": "を引いた残りの金額です。",
 
+  "tutorialAgainButtonTitle": "チュートリアルを再度する",
   "tutorialExitTitle": "チュートリアル終了",
   "tutorialExitMessage": "チュートリアルを終了しますか？\n完了として処理されます。",
   "tutorialContinue": "続ける",

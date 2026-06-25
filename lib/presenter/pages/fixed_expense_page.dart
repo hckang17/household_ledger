@@ -264,7 +264,7 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                         key: _totalKey,
                         title: strings['tutFixedTotalTitle'] ?? '고정지출 합계',
                         description: strings['tutFixedTotalDesc'] ?? '이번달 등록된 고정지출의 합계입니다.\n고정지출은 홈 화면 지출가능금액 계산에서 자동으로 차감됩니다.',
-                        tooltipPosition: TooltipPosition.top,
+                        tooltipPosition: TooltipPosition.bottom,
                         child: BootstrapSummaryTile(
                           label: _totalLabel(strings),
                           value: '${total.toCurrency()}$currency',

@@ -200,7 +200,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           key: _totalSpentKey,
                           title: strings['tutHomeTotalSpentTitle'] ?? '총 지출금액',
                           description: strings['tutHomeTotalSpentDesc'] ?? '고정지출을 제외한, 이번달 소비금액의 총 합입니다.\n? 아이콘을 탭하면 더 자세한 설명이 보여요.',
-                          tooltipPosition: TooltipPosition.top,
+                          tooltipPosition: TooltipPosition.bottom,
                           child: BootstrapSummaryTile(
                             label: strings['totalSpent'] ?? 'error_label',
                             value:
@@ -236,7 +236,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                           key: _remainingKey,
                           title: strings['tutHomeRemainingTitle'] ?? '지출가능금액',
                           description: strings['tutHomeRemainingDesc'] ?? '이번달 총 소득에서 고정금액과 총 지출금액을 제외한 남은 예산입니다.',
-                          tooltipPosition: TooltipPosition.top,
+                          tooltipPosition: TooltipPosition.bottom,
                           child: BootstrapSummaryTile(
                             label:
                                 strings['remainingBudget'] ?? 'error_label',
@@ -295,7 +295,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 key: _compCardKey,
                 title: strings['tutHomeCompCardTitle'] ?? '전월 비교 카드',
                 description: strings['tutHomeCompCardDesc'] ?? '지난달과 이번달 소비를 비교해드려요.\n어느 카테고리에서 지출이 늘었는지 한눈에 확인하세요.',
-                tooltipPosition: TooltipPosition.top,
+                tooltipPosition: TooltipPosition.bottom,
                 child: ComparisonCard(
                   result: compResult,
                   strings: strings,
@@ -309,7 +309,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 key: _compCardKey,
                 title: strings['tutHomeCompCardTitle'] ?? '전월 비교 카드',
                 description: strings['tutHomeCompCardNoDataDesc'] ?? '전월 데이터가 쌓이면 여기에 전월 대비 소비 비교 카드가 표시됩니다.',
-                tooltipPosition: TooltipPosition.top,
+                tooltipPosition: TooltipPosition.bottom,
                 child: const SizedBox.shrink(),
               ),
             ],
@@ -318,7 +318,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               key: _quickExpenseKey,
               title: strings['tutHomeQuickExpenseTitle'] ?? '빠른 지출 기록',
               description: strings['tutHomeQuickExpenseDesc'] ?? '홈 화면에서 바로 소비내역을 입력할 수 있어요.\n버튼을 탭하면 입력 시트가 열립니다.',
-              tooltipPosition: TooltipPosition.top,
+              tooltipPosition: TooltipPosition.bottom,
               child: BootstrapActionButton(
                 label: strings['quickExpense'] ?? '',
                 icon: Icons.add_circle_outline_rounded,
@@ -369,7 +369,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               key: _recentListKey,
               title: strings['tutHomeRecentListTitle'] ?? '최근 소비 기록',
               description: strings['tutHomeRecentListDesc'] ?? '이번달에 기록된 소비 내역이 최신순으로 보입니다.\n항목을 탭하면 상세 정보를, 길게 탭하면 수정·삭제 옵션이 나와요.',
-              tooltipPosition: TooltipPosition.top,
+              tooltipPosition: TooltipPosition.bottom,
               child: recentExpensesAsync.when(
                 loading: () => const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20),
