@@ -4,9 +4,15 @@ import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/provider/nav_tab_provider.dart';
+import 'package:household_ledger/provider/tutorial_provider.dart';
+import 'package:household_ledger/router/app_router.dart';
 import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
+import 'package:household_ledger/presenter/common/widgets/income_editor_sheet.dart';
 import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
+import 'package:household_ledger/services/mock_data_service.dart';
 import 'package:intl/intl.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 /// 수입 관리 페이지다.
 class IncomePage extends ConsumerStatefulWidget {
@@ -20,11 +26,39 @@ class IncomePage extends ConsumerStatefulWidget {
 class _IncomePageState extends ConsumerState<IncomePage> {
   late DateTime _focusedMonth;
 
+  final GlobalKey _budgetTileKey = GlobalKey();
+  final GlobalKey _fabKey = GlobalKey();
+  bool _showcaseStarted = false;
+  BuildContext? _showcaseContext;
+
   @override
   void initState() {
     super.initState();
     final now = DateTime.now();
     _focusedMonth = DateTime(now.year, now.month);
+  }
+
+  void _maybeStartShowcase() {
+    if (_showcaseStarted) return;
+    if (_showcaseContext == null) return;
+    final state = ref.read(tutorialProvider);
+    if (!state.isActive || state.phase != TutorialPhase.income) return;
+    _showcaseStarted = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _showcaseContext == null) return;
+      ShowCaseWidget.of(_showcaseContext!).startShowCase([
+        _budgetTileKey,
+        _fabKey,
+      ]);
+    });
+  }
+
+  void _onShowcaseComplete(int? index, GlobalKey key) {
+    if (key == _fabKey) {
+      // 수입 탭 튜토리얼 완료 → 고정지출 탭으로 이동
+      ref.read(currentNavTabProvider.notifier).setTab(4);
+      ref.read(tutorialProvider.notifier).setPhase(TutorialPhase.fixedExpense);
+    }
   }
 
   String _text(Map<String, String> strings, String key, String fallback) {
@@ -41,141 +75,6 @@ class _IncomePageState extends ConsumerState<IncomePage> {
     return DateFormat('yyyy년 M월').format(month);
   }
 
-  Future<void> _showEditor(
-    Map<String, String> strings, {
-    IncomeEntry? item,
-  }) async {
-    final dateController = TextEditingController(
-      text: DateFormat(
-        'yyyy-MM-dd HH:mm',
-      ).format(item?.earnedAt ?? _focusedMonth),
-    );
-    final amountController = TextEditingController(
-      text: item?.amount.toString() ?? '',
-    );
-    final descriptionController = TextEditingController(
-      text: item?.description ?? '',
-    );
-    var selectedDate = item?.earnedAt ?? _focusedMonth;
-    var isSaving = false;
-
-    final saved = await showModalBottomSheet<IncomeEntry>(
-      context: context,
-      isScrollControlled: true,
-      builder: (BuildContext sheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              top: 20,
-              bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 24,
-            ),
-            child: StatefulBuilder(
-              builder: (BuildContext context, StateSetter setModalState) {
-                return SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      TextField(
-                        controller: dateController,
-                        readOnly: true,
-                        decoration: InputDecoration(
-                          labelText: _text(strings, 'dateLabel', '날짜'),
-                        ),
-                        onTap: () async {
-                          final pickedDate = await showDatePicker(
-                            context: context,
-                            initialDate: selectedDate,
-                            firstDate: DateTime(2020),
-                            lastDate: DateTime(2100),
-                          );
-                          if (pickedDate == null) {
-                            return;
-                          }
-
-                          setModalState(() {
-                            selectedDate = DateTime(
-                              pickedDate.year,
-                              pickedDate.month,
-                              pickedDate.day,
-                              selectedDate.hour,
-                              selectedDate.minute,
-                            );
-                            dateController.text = DateFormat(
-                              'yyyy-MM-dd HH:mm',
-                            ).format(selectedDate);
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: amountController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: _text(strings, 'amountLabel', '금액'),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: descriptionController,
-                        decoration: InputDecoration(
-                          labelText: _text(strings, 'descriptionLabel', '내용'),
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      BootstrapActionButton(
-                        label: _text(strings, 'save', '저장'),
-                        icon: Icons.save_outlined,
-                        onPressed: () async {
-                          if (isSaving) {
-                            return;
-                          }
-                          setModalState(() {
-                            isSaving = true;
-                          });
-
-                          final amount =
-                              int.tryParse(amountController.text.trim()) ?? 0;
-                          final next = IncomeEntry.create(
-                            id: item?.id,
-                            earnedAt: selectedDate,
-                            amount: amount,
-                            description: descriptionController.text,
-                          );
-                          if (sheetContext.mounted) {
-                            Navigator.of(sheetContext).pop(next);
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        );
-      },
-    );
-
-    if (saved == null) {
-      return;
-    }
-    if (!mounted) {
-      return;
-    }
-    if (saved.id == null) {
-      await ref.read(ledgerProvider.notifier).addIncome(saved);
-    } else {
-      await ref.read(ledgerProvider.notifier).updateIncome(saved);
-    }
-    if (!mounted) {
-      return;
-    }
-
-    ref.invalidate(monthlyIncomesProvider(_focusedMonth));
-  }
-
   Future<void> _delete(Map<String, String> strings, IncomeEntry item) async {
     final confirmed = await showLedgerConfirmDialog(
       context: context,
@@ -185,27 +84,66 @@ class _IncomePageState extends ConsumerState<IncomePage> {
       confirmLabel: _text(strings, 'delete', '삭제'),
       cancelLabel: _text(strings, 'cancel', '취소'),
     );
-    if (!confirmed) {
-      return;
-    }
-    if (item.id == null) {
-      return;
-    }
-    if (!mounted) {
-      return;
-    }
+    if (!confirmed) return;
+    if (item.id == null) return;
 
     await ref.read(ledgerProvider.notifier).deleteIncome(item.id!);
-    if (!mounted) {
-      return;
-    }
+    if (!mounted) return;
     ref.invalidate(monthlyIncomesProvider(_focusedMonth));
+  }
+
+  Future<void> _handleBackDuringTutorial() async {
+    if (_showcaseContext != null) {
+      try { ShowCaseWidget.of(_showcaseContext!).dismiss(); } catch (_) {}
+    }
+    final strings = ref.read(localizedStringsProvider);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(strings['tutorialExitTitle'] ?? '튜토리얼 종료'),
+        content: Text(strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(strings['tutorialContinue'] ?? '계속하기'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(strings['tutorialExitConfirm'] ?? '종료'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await ref.read(mockDataServiceProvider).cleanupMockData(ref);
+      await ref.read(tutorialProvider.notifier).exitTutorial();
+    } else if (mounted) {
+      _showcaseStarted = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _maybeStartShowcase();
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final strings = ref.watch(localizedStringsProvider);
     final ledger = ref.watch(ledgerProvider).asData?.value;
+    final isTutorial = ref.watch(
+      tutorialProvider.select(
+        (s) => s.isActive && s.phase == TutorialPhase.income,
+      ),
+    );
+
+    ref.listen(currentNavTabProvider, (_, tab) {
+      if (tab == 0 &&
+          ref.read(tutorialProvider).phase == TutorialPhase.income) {
+        _showcaseStarted = false;
+        _maybeStartShowcase();
+      }
+    });
+
     if (ledger == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -225,115 +163,177 @@ class _IncomePageState extends ConsumerState<IncomePage> {
         ? monthlyIncome
         : ledger.settings.monthlyBudget;
 
-    return BootstrapPage(
-      title: strings['incomeManage'] ?? '',
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showEditor(strings),
-        label: Text(_text(strings, 'addIncome', '소득 추가')),
-        icon: const Icon(Icons.add),
-      ),
-      child: Column(
-        children: <Widget>[
-          BootstrapSectionCard(
-            child: Column(
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    IconButton(
-                      onPressed: () => _changeFocusedMonth(-1),
-                      icon: const Icon(Icons.chevron_left),
-                    ),
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          _monthLabel(_focusedMonth),
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => _changeFocusedMonth(1),
-                      icon: const Icon(Icons.chevron_right),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: BootstrapSummaryTile(
-                        label: _text(strings, 'incomeTotal', '월 소득 합계'),
-                        value:
-                            '${monthlyIncome.toCurrency()} ${strings['currencyUnit'] ?? ''}',
-                        color: const Color(0xFF0D6EFD),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: BootstrapSummaryTile(
-                        label: _text(strings, 'budgetLabel', '월 예산'),
-                        value:
-                            '${monthlyBudget.toCurrency()} ${strings['currencyUnit'] ?? ''}',
-                        color: const Color(0xFF198754),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+    Widget buildInner(BuildContext showcaseCtx) {
+      _showcaseContext = showcaseCtx;
+      _maybeStartShowcase();
+
+      final fab = Showcase(
+        key: _fabKey,
+        title: strings['tutIncomeFabTitle'] ?? '수입 추가',
+        description: strings['tutIncomeFabDesc'] ?? '이번달 소득을 기록해보세요!\n버튼을 탭하면 수입 입력 시트가 열립니다.',
+        tooltipPosition: TooltipPosition.top,
+        child: FloatingActionButton.extended(
+          onPressed: () => showIncomeEditorSheet(
+            context: context,
+            ref: ref,
+            focusedMonth: _focusedMonth,
+            strings: strings,
           ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: incomes.isEmpty
-                ? Center(child: Text(_text(strings, 'emptyData', '데이터 없음')))
-                : ListView.separated(
-                    itemCount: incomes.length,
-                    separatorBuilder: (BuildContext context, int index) =>
-                        const SizedBox(height: 12),
-                    itemBuilder: (BuildContext context, int index) {
-                      final item = incomes[index];
-                      return BootstrapSectionCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              item.description,
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w700),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              DateFormat(
-                                'yyyy-MM-dd HH:mm',
-                              ).format(item.earnedAt),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '${item.amount.toCurrency()} ${strings['currencyUnit'] ?? ''}',
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: <Widget>[
-                                TextButton(
-                                  onPressed: () =>
-                                      _showEditor(strings, item: item),
-                                  child: Text(_text(strings, 'edit', '수정')),
-                                ),
-                                TextButton(
-                                  onPressed: () => _delete(strings, item),
-                                  child: Text(_text(strings, 'delete', '삭제')),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+          label: Text(_text(strings, 'addIncome', '소득 추가')),
+          icon: const Icon(Icons.add),
+        ),
+      );
+
+      final page = BootstrapPage(
+        title: strings['incomeManage'] ?? '',
+        actions: <Widget>[
+          IconButton(
+            onPressed: () =>
+                Navigator.of(context).pushNamed(AppRouter.dataManageRoute),
+            icon: const Icon(Icons.manage_search_rounded),
+            tooltip: strings['dataManageTitle'] ?? '데이터 관리',
+          ),
+          IconButton(
+            onPressed: () =>
+                Navigator.of(context).pushNamed(AppRouter.settingsRoute),
+            icon: const Icon(Icons.settings_outlined),
           ),
         ],
-      ),
+        floatingActionButton: fab,
+        child: Column(
+          children: <Widget>[
+            BootstrapSectionCard(
+              child: Column(
+                children: <Widget>[
+                  Row(
+                    children: <Widget>[
+                      IconButton(
+                        onPressed: () => _changeFocusedMonth(-1),
+                        icon: const Icon(Icons.chevron_left),
+                      ),
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            _monthLabel(_focusedMonth),
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                      ),
+                      IconButton(
+                        onPressed: () => _changeFocusedMonth(1),
+                        icon: const Icon(Icons.chevron_right),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Showcase(
+                    key: _budgetTileKey,
+                    title: strings['tutIncomeSummaryTitle'] ?? '수입 요약',
+                    description: strings['tutIncomeSummaryDesc'] ?? '이번달 소득 합계와 예산이 표시됩니다.\n소득을 입력하면 홈 화면의 지출가능금액도 자동으로 업데이트돼요.',
+                    tooltipPosition: TooltipPosition.bottom,
+                    child: Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: BootstrapSummaryTile(
+                            label:
+                                _text(strings, 'incomeTotal', '월 소득 합계'),
+                            value:
+                                '${monthlyIncome.toCurrency()} ${strings['currencyUnit'] ?? ''}',
+                            color: const Color(0xFF0D6EFD),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: BootstrapSummaryTile(
+                            label:
+                                _text(strings, 'budgetLabel', '월 예산'),
+                            value:
+                                '${monthlyBudget.toCurrency()} ${strings['currencyUnit'] ?? ''}',
+                            color: const Color(0xFF198754),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: incomes.isEmpty
+                  ? Center(child: Text(_text(strings, 'emptyData', '데이터 없음')))
+                  : ListView.separated(
+                      itemCount: incomes.length,
+                      separatorBuilder: (BuildContext context, int index) =>
+                          const SizedBox(height: 12),
+                      itemBuilder: (BuildContext context, int index) {
+                        final item = incomes[index];
+                        return BootstrapSectionCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Text(
+                                item.description,
+                                style: Theme.of(context).textTheme.titleMedium
+                                    ?.copyWith(fontWeight: FontWeight.w700),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                DateFormat(
+                                  'yyyy-MM-dd HH:mm',
+                                ).format(item.earnedAt),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                '${item.amount.toCurrency()} ${strings['currencyUnit'] ?? ''}',
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                children: <Widget>[
+                                  TextButton(
+                                    onPressed: () => showIncomeEditorSheet(
+                                      context: context,
+                                      ref: ref,
+                                      focusedMonth: _focusedMonth,
+                                      strings: strings,
+                                      item: item,
+                                    ),
+                                    child: Text(_text(strings, 'edit', '수정')),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => _delete(strings, item),
+                                    child:
+                                        Text(_text(strings, 'delete', '삭제')),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      );
+
+      if (isTutorial) {
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) _handleBackDuringTutorial();
+          },
+          child: page,
+        );
+      }
+      return page;
+    }
+
+    return ShowCaseWidget(
+      onComplete: _onShowcaseComplete,
+      enableAutoScroll: true,
+      builder: buildInner,
     );
   }
 }

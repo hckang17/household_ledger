@@ -1,3 +1,5 @@
+import 'dart:ui' show PlatformDispatcher;
+
 import 'package:household_ledger/model/app_settings.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
@@ -13,6 +15,7 @@ class LedgerState {
     required this.metadataTags,
     required this.expenses,
     required this.fixedExpenses,
+    this.prevPeriodExpenses = const <ExpenseEntry>[],
   });
 
   /// 앱 전역 설정을 보관한다.
@@ -30,26 +33,86 @@ class LedgerState {
   /// 고정지출 목록을 보관한다.
   final List<FixedExpense> fixedExpenses;
 
+  /// 전월동기 지출내역을 보관한다 (런타임 전용, 영속화 불필요).
+  final List<ExpenseEntry> prevPeriodExpenses;
+
   /// 기본 상태를 생성한다.
+  ///
+  /// 기기 언어가 일본어(ja)이면 일본어 레이블을, 그 외에는 한국어 레이블을 사용한다.
+  /// 사용자가 직접 추가하는 태그는 현지화 대상이 아니며, 초기 디폴트 태그에만 적용된다.
   factory LedgerState.initial() {
+    String deviceLang = 'ko';
+    try {
+      deviceLang = PlatformDispatcher.instance.locale.languageCode;
+    } catch (_) {}
+    final bool isJa = deviceLang == 'ja';
+
     return LedgerState(
       settings: AppSettings.initial(),
       userProfile: UserProfile.empty(),
-      metadataTags: const <MetadataTag>[
-        MetadataTag(type: MetadataTagType.category, code: 'F', label: '외식비'),
-        MetadataTag(type: MetadataTagType.category, code: 'T', label: '교통비'),
-        MetadataTag(type: MetadataTagType.category, code: 'L', label: '생활비'),
-        MetadataTag(type: MetadataTagType.subcategory, code: '_', label: '없음'),
-        MetadataTag(type: MetadataTagType.subcategory, code: 'f', label: '여행중'),
+      metadataTags: <MetadataTag>[
+        // 소비구분 (category) — 코드 알파벳순
         MetadataTag(
-          type: MetadataTagType.paymentMethod,
-          code: '_s',
-          label: '신용카드',
+          type: MetadataTagType.category,
+          code: 'C',
+          label: isJa ? 'カフェ' : '카페',
         ),
+        MetadataTag(
+          type: MetadataTagType.category,
+          code: 'D',
+          label: isJa ? '日用品＆衣料' : '일용품&의류',
+        ),
+        MetadataTag(
+          type: MetadataTagType.category,
+          code: 'F',
+          label: isJa ? '外食費' : '외식비',
+        ),
+        MetadataTag(
+          type: MetadataTagType.category,
+          code: 'G',
+          label: isJa ? '食料品' : '식료품',
+        ),
+        MetadataTag(
+          type: MetadataTagType.category,
+          code: 'H',
+          label: isJa ? 'ヒーリング＆趣味' : '힐링&취미',
+        ),
+        MetadataTag(
+          type: MetadataTagType.category,
+          code: 'L',
+          label: isJa ? '生活費' : '생활비',
+        ),
+        MetadataTag(
+          type: MetadataTagType.category,
+          code: 'S',
+          label: isJa ? 'スポーツ' : '스포츠',
+        ),
+        MetadataTag(
+          type: MetadataTagType.category,
+          code: 'T',
+          label: isJa ? '交通費' : '교통비',
+        ),
+        // 소비 소구분 (subcategory)
+        MetadataTag(
+          type: MetadataTagType.subcategory,
+          code: '_',
+          label: isJa ? '普段' : '평상시',
+        ),
+        MetadataTag(
+          type: MetadataTagType.subcategory,
+          code: 't',
+          label: isJa ? '旅行' : '여행',
+        ),
+        // 소비수단 (paymentMethod)
         MetadataTag(
           type: MetadataTagType.paymentMethod,
           code: '_c',
-          label: '현금',
+          label: isJa ? '現金' : '현금',
+        ),
+        MetadataTag(
+          type: MetadataTagType.paymentMethod,
+          code: '_s',
+          label: isJa ? 'クレジットカード' : '신용카드',
         ),
       ],
       expenses: const <ExpenseEntry>[],
@@ -105,6 +168,7 @@ class LedgerState {
     List<MetadataTag>? metadataTags,
     List<ExpenseEntry>? expenses,
     List<FixedExpense>? fixedExpenses,
+    List<ExpenseEntry>? prevPeriodExpenses,
   }) {
     return LedgerState(
       settings: settings ?? this.settings,
@@ -112,6 +176,7 @@ class LedgerState {
       metadataTags: metadataTags ?? this.metadataTags,
       expenses: expenses ?? this.expenses,
       fixedExpenses: fixedExpenses ?? this.fixedExpenses,
+      prevPeriodExpenses: prevPeriodExpenses ?? this.prevPeriodExpenses,
     );
   }
 

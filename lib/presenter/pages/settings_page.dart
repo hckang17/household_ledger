@@ -1,10 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
-import 'package:household_ledger/provider/ledger_provider.dart';
-import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
+import 'package:household_ledger/presenter/common/widgets/tag_management_section.dart';
+import 'package:household_ledger/provider/ledger_provider.dart';
+import 'package:household_ledger/provider/localization_provider.dart';
+import 'package:household_ledger/provider/tutorial_provider.dart';
+import 'package:household_ledger/router/app_router.dart';
+import 'package:household_ledger/services/mock_data_service.dart';
+import 'package:household_ledger/services/tutorial_service.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 /// 환경설정 화면이다.
 class SettingsPage extends ConsumerStatefulWidget {
@@ -19,9 +25,70 @@ class SettingsPage extends ConsumerStatefulWidget {
 class _SettingsPageState extends ConsumerState<SettingsPage> {
   late final TextEditingController _nameController;
   late final TextEditingController _ageController;
-  bool _isCategoryExpanded = false;
-  bool _isSubcategoryExpanded = false;
-  bool _isPaymentExpanded = false;
+
+  final GlobalKey _tagSectionKey = GlobalKey();
+  final GlobalKey _dataManageSectionKey = GlobalKey();
+  bool _showcaseStarted = false;
+  BuildContext? _showcaseContext;
+
+  void _maybeStartShowcase() {
+    if (_showcaseStarted) return;
+    if (_showcaseContext == null) return;
+    final state = ref.read(tutorialProvider);
+    if (!state.isActive || state.phase != TutorialPhase.settings) return;
+    _showcaseStarted = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _showcaseContext == null) return;
+      ShowCaseWidget.of(
+        _showcaseContext!,
+      ).startShowCase([_tagSectionKey, _dataManageSectionKey]);
+    });
+  }
+
+  void _onShowcaseComplete(int? index, GlobalKey key) {
+    if (key == _dataManageSectionKey) {
+      ref.read(tutorialProvider.notifier).setPhase(TutorialPhase.exportData);
+      Navigator.of(context).pushNamed(AppRouter.exportDataRoute);
+    }
+  }
+
+  Future<void> _handleBackDuringTutorial() async {
+    if (_showcaseContext != null) {
+      try {
+        ShowCaseWidget.of(_showcaseContext!).dismiss();
+      } catch (_) {}
+    }
+    final strings = ref.read(localizedStringsProvider);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(strings['tutorialExitTitle'] ?? '튜토리얼 종료'),
+        content: Text(
+          strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(strings['tutorialContinue'] ?? '계속하기'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(strings['tutorialExitConfirm'] ?? '종료'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await ref.read(mockDataServiceProvider).cleanupMockData(ref);
+      await ref.read(tutorialProvider.notifier).exitTutorial();
+    } else if (mounted) {
+      _showcaseStarted = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _maybeStartShowcase();
+      });
+    }
+  }
 
   String _text(Map<String, String> strings, String tag) {
     return strings[tag] ??
@@ -241,118 +308,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     }
   }
 
-  bool _isSectionExpanded(MetadataTagType type) {
-    switch (type) {
-      case MetadataTagType.category:
-        return _isCategoryExpanded;
-      case MetadataTagType.subcategory:
-        return _isSubcategoryExpanded;
-      case MetadataTagType.paymentMethod:
-        return _isPaymentExpanded;
-    }
-  }
-
-  void _toggleSection(MetadataTagType type) {
-    setState(() {
-      switch (type) {
-        case MetadataTagType.category:
-          _isCategoryExpanded = !_isCategoryExpanded;
-        case MetadataTagType.subcategory:
-          _isSubcategoryExpanded = !_isSubcategoryExpanded;
-        case MetadataTagType.paymentMethod:
-          _isPaymentExpanded = !_isPaymentExpanded;
-      }
-    });
-  }
-
-  /// 태그 관리 섹션을 렌더링한다.
-  Widget _buildTagSection({
-    required BuildContext context,
-    required String title,
-    required List<MetadataTag> tags,
-    required MetadataTagType type,
-    required Map<String, String> strings,
-  }) {
-    final expanded = _isSectionExpanded(type);
-    return BootstrapSectionCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: GestureDetector(
-                  onTap: () => _toggleSection(type),
-                  child: Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: () => _addTag(type),
-                icon: const Icon(Icons.add_circle_outline),
-              ),
-              IconButton(
-                onPressed: () => _toggleSection(type),
-                icon: Icon(expanded ? Icons.expand_less : Icons.expand_more),
-              ),
-            ],
-          ),
-          if (expanded) const SizedBox(height: 12),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeInOut,
-            child: !expanded
-                ? const SizedBox.shrink()
-                : Column(
-                    children: tags.map((MetadataTag tag) {
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF6F9FF),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: Text(
-                                '${tag.code} : ${tag.label}',
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                            IconButton(
-                              visualDensity: VisualDensity.compact,
-                              tooltip: _text(strings, 'edit'),
-                              onPressed: () => _editTag(tag),
-                              icon: const Icon(Icons.edit_outlined),
-                            ),
-                            IconButton(
-                              visualDensity: VisualDensity.compact,
-                              tooltip: _text(strings, 'delete'),
-                              onPressed: tags.length > 1
-                                  ? () => _deleteTag(tag)
-                                  : null,
-                              icon: const Icon(Icons.delete_outline),
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   void dispose() {
     _nameController.dispose();
@@ -364,6 +319,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   Widget build(BuildContext context) {
     final strings = ref.watch(localizedStringsProvider);
     final ledger = ref.watch(ledgerProvider).asData?.value;
+    final isTutorial = ref.watch(
+      tutorialProvider.select(
+        (s) => s.isActive && s.phase == TutorialPhase.settings,
+      ),
+    );
+
     if (ledger == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
@@ -372,118 +333,210 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       ledger.settings.currencyUnit,
     );
 
-    return BootstrapPage(
-      title: _text(strings, 'settingsTitle'),
-      child: SingleChildScrollView(
-        child: Column(
-          children: <Widget>[
-            BootstrapSectionCard(
-              child: Column(
-                children: <Widget>[
-                  TextField(
-                    controller: _nameController,
-                    decoration: InputDecoration(
-                      labelText: _text(strings, 'nameLabel'),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  TextField(
-                    controller: _ageController,
-                    keyboardType: TextInputType.number,
-                    decoration: InputDecoration(
-                      labelText: _text(strings, 'ageLabel'),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  // 월 예산 기능은 현재 사용하지 않아 UI/저장 경로를 비활성화한다.
-                  // TextField(
-                  //   controller: _budgetController,
-                  //   keyboardType: TextInputType.number,
-                  //   decoration: InputDecoration(
-                  //     labelText: _text(strings, 'budgetLabel'),
-                  //   ),
-                  // ),
-                  DropdownButtonFormField<String>(
-                    initialValue: ledger.settings.localeCode,
-                    decoration: InputDecoration(
-                      labelText: _text(strings, 'languageLabel'),
-                    ),
-                    items: const <DropdownMenuItem<String>>[
-                      DropdownMenuItem<String>(value: 'ko', child: Text('한국어')),
-                      DropdownMenuItem<String>(value: 'jp', child: Text('日本語')),
-                    ],
-                    onChanged: (String? value) {
-                      if (value == null) {
-                        return;
-                      }
+    Widget buildInner(BuildContext showcaseCtx) {
+      _showcaseContext = showcaseCtx;
+      _maybeStartShowcase();
 
-                      ref.read(ledgerProvider.notifier).changeLocale(value);
-                    },
-                  ),
-                  const SizedBox(height: 12),
-                  DropdownButtonFormField<String>(
-                    initialValue: selectedCurrencyUnit,
-                    decoration: InputDecoration(
-                      labelText: _text(strings, 'currencyLabel'),
+      final page = BootstrapPage(
+        title: _text(strings, 'settingsTitle'),
+        child: SingleChildScrollView(
+          child: Column(
+            children: <Widget>[
+              BootstrapSectionCard(
+                child: Column(
+                  children: <Widget>[
+                    TextField(
+                      controller: _nameController,
+                      decoration: InputDecoration(
+                        labelText: _text(strings, 'nameLabel'),
+                      ),
                     ),
-                    items: <DropdownMenuItem<String>>[
-                      DropdownMenuItem<String>(
-                        value: '₩',
-                        child: Text(_text(strings, 'currencyWonLabel')),
+                    const SizedBox(height: 12),
+                    TextField(
+                      controller: _ageController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: _text(strings, 'ageLabel'),
                       ),
-                      DropdownMenuItem<String>(
-                        value: '¥',
-                        child: Text(_text(strings, 'currencyYenLabel')),
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      initialValue: ledger.settings.localeCode,
+                      decoration: InputDecoration(
+                        labelText: _text(strings, 'languageLabel'),
                       ),
-                    ],
-                    onChanged: (String? value) {
-                      if (value == null) {
-                        return;
-                      }
-
-                      ref
-                          .read(ledgerProvider.notifier)
-                          .changeCurrencyUnit(value);
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  // 기존 예산 저장 버튼은 비활성화하고, 프로필 저장 버튼으로 대체한다.
-                  BootstrapActionButton(
-                    label: _text(strings, 'save'),
-                    icon: Icons.save,
-                    onPressed: () => _saveProfile(strings),
-                  ),
-                ],
+                      items: const <DropdownMenuItem<String>>[
+                        DropdownMenuItem<String>(
+                          value: 'ko',
+                          child: Text('한국어'),
+                        ),
+                        DropdownMenuItem<String>(
+                          value: 'jp',
+                          child: Text('日本語'),
+                        ),
+                      ],
+                      onChanged: (String? value) {
+                        if (value == null) return;
+                        ref.read(ledgerProvider.notifier).changeLocale(value);
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      initialValue: selectedCurrencyUnit,
+                      decoration: InputDecoration(
+                        labelText: _text(strings, 'currencyLabel'),
+                      ),
+                      items: <DropdownMenuItem<String>>[
+                        DropdownMenuItem<String>(
+                          value: '₩',
+                          child: Text(_text(strings, 'currencyWonLabel')),
+                        ),
+                        DropdownMenuItem<String>(
+                          value: '¥',
+                          child: Text(_text(strings, 'currencyYenLabel')),
+                        ),
+                      ],
+                      onChanged: (String? value) {
+                        if (value == null) return;
+                        ref
+                            .read(ledgerProvider.notifier)
+                            .changeCurrencyUnit(value);
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    BootstrapActionButton(
+                      label: _text(strings, 'save'),
+                      icon: Icons.save,
+                      onPressed: () => _saveProfile(strings),
+                    ),
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 16),
+              const SizedBox(height: 16),
 
-            /// 태그 관리 섹션
-            _buildTagSection(
-              context: context,
-              title: _sectionTitle(MetadataTagType.category, strings),
-              tags: ledger.tagsByType(MetadataTagType.category),
-              type: MetadataTagType.category,
-              strings: strings,
-            ),
-            const SizedBox(height: 16),
-            _buildTagSection(
-              context: context,
-              title: _sectionTitle(MetadataTagType.subcategory, strings),
-              tags: ledger.tagsByType(MetadataTagType.subcategory),
-              type: MetadataTagType.subcategory,
-              strings: strings,
-            ),
-            const SizedBox(height: 16),
-            _buildTagSection(
-              context: context,
-              title: _sectionTitle(MetadataTagType.paymentMethod, strings),
-              tags: ledger.tagsByType(MetadataTagType.paymentMethod),
-              type: MetadataTagType.paymentMethod,
-              strings: strings,
-            ),
-          ],
+              Showcase(
+                key: _tagSectionKey,
+                title: strings['tutSettingsTagTitle'] ?? '태그 관리',
+                description:
+                    strings['tutSettingsTagDesc'] ??
+                    '소비구분, 소비세부, 소비수단 태그를 추가·수정·삭제할 수 있어요.\n나만의 태그로 지출 분류를 맞춤 설정해보세요!',
+                tooltipPosition: TooltipPosition.bottom,
+                child: Column(
+                  children: <Widget>[
+                    TagManagementSection(
+                      title: _sectionTitle(MetadataTagType.category, strings),
+                      tags: ledger.tagsByType(MetadataTagType.category),
+                      strings: strings,
+                      onAdd: () => _addTag(MetadataTagType.category),
+                      onEdit: _editTag,
+                      onDelete: _deleteTag,
+                    ),
+                    const SizedBox(height: 16),
+                    TagManagementSection(
+                      title: _sectionTitle(
+                        MetadataTagType.subcategory,
+                        strings,
+                      ),
+                      tags: ledger.tagsByType(MetadataTagType.subcategory),
+                      strings: strings,
+                      onAdd: () => _addTag(MetadataTagType.subcategory),
+                      onEdit: _editTag,
+                      onDelete: _deleteTag,
+                    ),
+                    const SizedBox(height: 16),
+                    TagManagementSection(
+                      title: _sectionTitle(
+                        MetadataTagType.paymentMethod,
+                        strings,
+                      ),
+                      tags: ledger.tagsByType(MetadataTagType.paymentMethod),
+                      strings: strings,
+                      onAdd: () => _addTag(MetadataTagType.paymentMethod),
+                      onEdit: _editTag,
+                      onDelete: _deleteTag,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              Showcase(
+                key: _dataManageSectionKey,
+                title: strings['tutSettingsDataManageTitle'] ?? '데이터 관리',
+                description:
+                    strings['tutSettingsDataManageDesc'] ??
+                    '데이터를 CSV 파일로 내보내거나 가져올 수 있어요.\n다음 단계에서 데이터 내보내기 화면을 살펴볼게요!',
+                tooltipPosition: TooltipPosition.top,
+                child: _buildDataManagementSection(context, strings),
+              ),
+            ],
+          ),
         ),
+      );
+
+      if (isTutorial) {
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) _handleBackDuringTutorial();
+          },
+          child: page,
+        );
+      }
+      return page;
+    }
+
+    return ShowCaseWidget(
+      onComplete: _onShowcaseComplete,
+      enableAutoScroll: true,
+      builder: buildInner,
+    );
+  }
+
+  Widget _buildDataManagementSection(
+    BuildContext context,
+    Map<String, String> strings,
+  ) {
+    return BootstrapSectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Text(
+            _text(strings, 'dataManagementSectionTitle'),
+            style: Theme.of(
+              context,
+            ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+          ),
+          const SizedBox(height: 16),
+          BootstrapActionButton(
+            label: _text(strings, 'exportDataMenuLabel'),
+            icon: Icons.upload_file_outlined,
+            onPressed: () {
+              Navigator.of(context).pushNamed(AppRouter.exportDataRoute);
+            },
+          ),
+          const SizedBox(height: 12),
+          BootstrapActionButton(
+            label: _text(strings, 'importDataMenuLabel'),
+            icon: Icons.download_outlined,
+            backgroundColor: const Color(0xFF198754),
+            onPressed: () {
+              Navigator.of(context).pushNamed(AppRouter.importDataRoute);
+            },
+          ),
+          const SizedBox(height: 12),
+          BootstrapActionButton(
+            label: _text(strings, 'tutorialAgainButtonTitle'),
+            icon: Icons.replay_outlined,
+            backgroundColor: const Color(0xFF6C757D),
+            onPressed: () async {
+              final nav = Navigator.of(context);
+              await TutorialService().resetTutorial();
+              ref.read(tutorialProvider.notifier).startTutorial();
+              nav.pushNamed(AppRouter.setupRoute);
+            },
+          ),
+        ],
       ),
     );
   }

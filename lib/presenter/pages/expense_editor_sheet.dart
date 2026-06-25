@@ -50,6 +50,7 @@ Future<void> showExpenseEditorSheet({
     final savedEntry = await showModalBottomSheet<ExpenseEntry>(
       context: context,
       isScrollControlled: true,
+      useSafeArea: true,
       builder: (BuildContext sheetContext) {
         return SafeArea(
           child: Padding(

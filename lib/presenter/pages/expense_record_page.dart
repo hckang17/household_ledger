@@ -7,9 +7,15 @@ import 'package:household_ledger/presenter/common/extension/currency_extension.d
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/provider/nav_tab_provider.dart';
+import 'package:household_ledger/provider/tutorial_provider.dart';
+import 'package:household_ledger/router/app_router.dart';
+import 'package:household_ledger/presenter/common/widgets/expense_entry_tile.dart';
+import 'package:household_ledger/presenter/common/widgets/expense_calendar_section.dart';
 import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
 import 'package:household_ledger/presenter/common/widgets/expense_editor_sheet.dart';
-import 'package:intl/intl.dart';
+import 'package:household_ledger/services/mock_data_service.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 /// 소비 기록 페이지다.
 class ExpenseRecordPage extends ConsumerStatefulWidget {
@@ -24,8 +30,12 @@ class ExpenseRecordPage extends ConsumerStatefulWidget {
 class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
   DateTime _selectedDay = DateTime.now();
   late DateTime _focusedMonth;
-  bool _isCalendarExpanded = false;
   bool _filterBySelectedDay = false;
+
+  final GlobalKey _calendarKey = GlobalKey();
+  final GlobalKey _fabKey = GlobalKey();
+  bool _showcaseStarted = false;
+  BuildContext? _showcaseContext;
 
   @override
   void initState() {
@@ -38,11 +48,10 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     return DateTime(value.year, value.month, value.day);
   }
 
-  bool _sameDay(DateTime left, DateTime right) {
-    return left.year == right.year &&
-        left.month == right.month &&
-        left.day == right.day;
-  }
+  bool _sameDay(DateTime left, DateTime right) =>
+      left.year == right.year &&
+      left.month == right.month &&
+      left.day == right.day;
 
   String _currencyUnit(Map<String, String> strings) {
     return strings['currencyUnit'] ?? 'null';
@@ -64,47 +73,6 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
         .replaceAll('{day}', date.day.toString().padLeft(2, '0'));
   }
 
-  void _changeFocusedMonth(int monthDelta) {
-    setState(() {
-      _focusedMonth = DateTime(
-        _focusedMonth.year,
-        _focusedMonth.month + monthDelta,
-      );
-      _selectedDay = DateTime(_focusedMonth.year, _focusedMonth.month, 1);
-      _filterBySelectedDay = false;
-    });
-  }
-
-  List<DateTime?> _calendarCells(DateTime month) {
-    final first = DateTime(month.year, month.month, 1);
-    final leading = first.weekday % 7;
-    final daysInMonth = DateUtils.getDaysInMonth(month.year, month.month);
-    final total = leading + daysInMonth;
-    final trailing = (7 - (total % 7)) % 7;
-
-    return <DateTime?>[
-      for (int i = 0; i < leading; i++) null,
-      for (int day = 1; day <= daysInMonth; day++)
-        DateTime(month.year, month.month, day),
-      for (int i = 0; i < trailing; i++) null,
-    ];
-  }
-
-  Map<int, int> _dailyTotals(List<ExpenseEntry> entries) {
-    final totals = <int, int>{};
-    for (final entry in entries) {
-      if (entry.spentAt.year == _focusedMonth.year &&
-          entry.spentAt.month == _focusedMonth.month) {
-        totals.update(
-          entry.spentAt.day,
-          (int value) => value + entry.amount,
-          ifAbsent: () => entry.amount,
-        );
-      }
-    }
-    return totals;
-  }
-
   List<MapEntry<DateTime, List<ExpenseEntry>>> _groupEntriesByDay(
     List<ExpenseEntry> entries,
   ) {
@@ -124,7 +92,6 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
         .toList();
   }
 
-  /// 소비 기록 삭제 여부를 확인한 뒤 삭제한다.
   Future<void> _delete(ExpenseEntry entry) async {
     final strings = ref.read(localizedStringsProvider);
     final currency = _currencyUnit(strings);
@@ -137,23 +104,11 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
       confirmLabel: _text(strings, 'delete'),
       cancelLabel: _text(strings, 'cancel'),
     );
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     await ref.read(ledgerProvider.notifier).deleteExpense(entry.id);
     ref.invalidate(monthlyExpensesProvider);
     ref.invalidate(rangeExpensesProvider);
-  }
-
-  /// 코드에 해당하는 태그 라벨을 반환한다. <- 반복되는 코드임.
-  String _resolveTagLabel(List<MetadataTag> tags, String code) {
-    final match = tags.where((MetadataTag tag) => tag.code == code);
-    if (match.isEmpty) {
-      return code;
-    }
-
-    return match.first.label;
   }
 
   void _showDetail(
@@ -174,25 +129,89 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     );
   }
 
-  /// Builder에서 소비 기록 데이터를 로딩하여 화면에 표시한다.
+  void _maybeStartShowcase() {
+    if (_showcaseStarted) return;
+    if (_showcaseContext == null) return;
+    final state = ref.read(tutorialProvider);
+    if (!state.isActive || state.phase != TutorialPhase.expenseRecord) return;
+    _showcaseStarted = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _showcaseContext == null) return;
+      ShowCaseWidget.of(_showcaseContext!).startShowCase([
+        _calendarKey,
+        _fabKey,
+      ]);
+    });
+  }
+
+  void _onShowcaseComplete(int? index, GlobalKey key) {
+    if (key == _fabKey) {
+      // 소비기록 튜토리얼 완료 → 분석 탭으로 이동
+      ref.read(currentNavTabProvider.notifier).setTab(1);
+      ref.read(tutorialProvider.notifier).setPhase(TutorialPhase.analysis);
+    }
+  }
+
+  Future<void> _handleBackDuringTutorial() async {
+    if (_showcaseContext != null) {
+      try { ShowCaseWidget.of(_showcaseContext!).dismiss(); } catch (_) {}
+    }
+    final strings = ref.read(localizedStringsProvider);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(strings['tutorialExitTitle'] ?? '튜토리얼 종료'),
+        content: Text(strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(strings['tutorialContinue'] ?? '계속하기'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(strings['tutorialExitConfirm'] ?? '종료'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await ref.read(mockDataServiceProvider).cleanupMockData(ref);
+      await ref.read(tutorialProvider.notifier).exitTutorial();
+    } else if (mounted) {
+      _showcaseStarted = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _maybeStartShowcase();
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    /// 로컬라이징 문자열 프로바이더를 읽어온다.
     final strings = ref.watch(localizedStringsProvider);
-
-    /// 가계부 데이터 프로바이더를 읽어온다.
     final ledger = ref.watch(ledgerProvider).asData?.value;
+    final isTutorial = ref.watch(
+      tutorialProvider.select(
+        (s) => s.isActive && s.phase == TutorialPhase.expenseRecord,
+      ),
+    );
+
+    ref.listen(currentNavTabProvider, (_, tab) {
+      if (tab == 3 &&
+          ref.read(tutorialProvider).phase == TutorialPhase.expenseRecord) {
+        _showcaseStarted = false;
+        _maybeStartShowcase();
+      }
+    });
+
     if (ledger == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    /// 선택된 월의 소비 기록과 수입 기록을 로딩한다. 로딩 중이거나 에러가 발생하면 로딩 인디케이터 또는 에러 메시지를 표시한다.
     final monthEntriesAsync = ref.watch(monthlyExpensesProvider(_focusedMonth));
     if (monthEntriesAsync.isLoading) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
-
-    /// 에러가 발생한 경우 에러 메시지를 표시한다.
     if (monthEntriesAsync.hasError) {
       return Scaffold(
         body: Center(child: Text(monthEntriesAsync.error.toString())),
@@ -212,7 +231,6 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     final monthlyIncomeEntries =
         incomeEntriesAsync.asData?.value ?? const <IncomeEntry>[];
 
-    /// 선택된 날짜로 소비 기록을 필터링한다.
     final visibleEntries = _filterBySelectedDay
         ? monthEntries
               .where(
@@ -221,12 +239,8 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
               .toList()
         : monthEntries;
 
-    /// 달력 셀, 일별 합계, 날짜별 소비 기록 그룹, 통화 단위를 계산한다.
-    final calendarCells = _calendarCells(_focusedMonth);
-    final dailyTotals = _dailyTotals(monthEntries);
     final groupedEntries = _groupEntriesByDay(visibleEntries);
     final currency = _currencyUnit(strings);
-    final todayText = DateFormat('yyyy-MM-dd').format(DateTime.now());
     final categoryTags = ledger.tagsByType(MetadataTagType.category);
     final subcategoryTags = ledger.tagsByType(MetadataTagType.subcategory);
     final paymentTags = ledger.tagsByType(MetadataTagType.paymentMethod);
@@ -253,378 +267,163 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     final monthlyFixedExpense = ledger.fixedExpenseTotalForMonth(_focusedMonth);
     final monthlyRemaining = monthlyBudget - monthlySpent - monthlyFixedExpense;
 
-    /// 페이지를 렌더링한다.
-    return BootstrapPage(
-      title: _text(strings, 'expenseRecordTitle'),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => showExpenseEditorSheet(
-          context: context,
-          ref: ref,
-          initialDate: _selectedDay,
-        ),
-        label: Text(_text(strings, 'addExpense')),
-        icon: const Icon(Icons.add),
-      ),
-      child: Column(
-        children: <Widget>[
-          /// 달력과 일별/월별 보기 토글 버튼을 렌더링한다.
-          BootstrapSectionCard(
-            child: Column(
-              children: <Widget>[
-                Row(
-                  children: <Widget>[
-                    Expanded(
-                      child: Text(
-                        (strings['todayDateCompact'] ??
-                                '${strings['failedReadingData']}+todayDateCompact')
-                            .replaceAll('{date}', todayText),
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                    IconButton(
-                      tooltip: _isCalendarExpanded
-                          ? (strings['calendarFold'] ??
-                                "${strings['failedReadingData']}+calendarFold")
-                          : (strings['calendarUnfold'] ??
-                                "${strings['failedReadingData']}+calendarUnfold"),
-                      onPressed: () {
-                        setState(() {
-                          _isCalendarExpanded = !_isCalendarExpanded;
-                        });
-                      },
-                      icon: Icon(
-                        _isCalendarExpanded
-                            ? Icons.expand_less
-                            : Icons.expand_more,
-                      ),
-                    ),
-                  ],
-                ),
-                AnimatedSize(
-                  duration: const Duration(milliseconds: 220),
-                  curve: Curves.easeInOut,
-                  child: _isCalendarExpanded
-                      ? Column(
-                          children: <Widget>[
-                            const SizedBox(height: 12),
-                            Row(
-                              children: <Widget>[
-                                IconButton(
-                                  onPressed: () => _changeFocusedMonth(-1),
-                                  icon: const Icon(Icons.chevron_left),
-                                ),
-                                Expanded(
-                                  child: Center(
-                                    child: Text(
-                                      DateFormat(
-                                        'yyyy-MM',
-                                      ).format(_focusedMonth),
-                                      style: Theme.of(context)
-                                          .textTheme
-                                          .titleMedium
-                                          ?.copyWith(
-                                            fontWeight: FontWeight.w700,
-                                          ),
-                                    ),
-                                  ),
-                                ),
-                                IconButton(
-                                  onPressed: () => _changeFocusedMonth(1),
-                                  icon: const Icon(Icons.chevron_right),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              children: const <Widget>[
-                                Expanded(child: Center(child: Text('Sun'))),
-                                Expanded(child: Center(child: Text('Mon'))),
-                                Expanded(child: Center(child: Text('Tue'))),
-                                Expanded(child: Center(child: Text('Wed'))),
-                                Expanded(child: Center(child: Text('Thu'))),
-                                Expanded(child: Center(child: Text('Fri'))),
-                                Expanded(child: Center(child: Text('Sat'))),
-                              ],
-                            ),
-                            const SizedBox(height: 6),
-                            GridView.builder(
-                              shrinkWrap: true,
-                              physics: const NeverScrollableScrollPhysics(),
-                              itemCount: calendarCells.length,
-                              gridDelegate:
-                                  const SliverGridDelegateWithFixedCrossAxisCount(
-                                    crossAxisCount: 7,
-                                    mainAxisExtent: 40,
-                                    mainAxisSpacing: 2,
-                                    crossAxisSpacing: 2,
-                                  ),
-                              itemBuilder: (BuildContext context, int index) {
-                                final date = calendarCells[index];
-                                if (date == null) {
-                                  return const SizedBox.shrink();
-                                }
+    Widget buildInner(BuildContext showcaseCtx) {
+      _showcaseContext = showcaseCtx;
+      _maybeStartShowcase();
 
-                                final isSelected = _sameDay(date, _selectedDay);
-                                final amount = dailyTotals[date.day] ?? 0;
-
-                                return InkWell(
-                                  onTap: () {
-                                    setState(() {
-                                      _selectedDay = _dateOnly(date);
-                                    });
-                                  },
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: Container(
-                                    decoration: BoxDecoration(
-                                      color: isSelected
-                                          ? const Color(0xFFE7F1FF)
-                                          : Colors.transparent,
-                                      borderRadius: BorderRadius.circular(10),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 4,
-                                      horizontal: 2,
-                                    ),
-                                    child: Column(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: <Widget>[
-                                        Text(
-                                          '${date.day}',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .labelMedium
-                                              ?.copyWith(
-                                                fontWeight: isSelected
-                                                    ? FontWeight.w700
-                                                    : FontWeight.w500,
-                                              ),
-                                        ),
-                                        FittedBox(
-                                          fit: BoxFit.scaleDown,
-                                          child: amount != 0
-                                              ? Text(
-                                                  '${amount.toCurrency()}$currency',
-                                                  maxLines: 1,
-                                                  style: Theme.of(context)
-                                                      .textTheme
-                                                      .labelSmall
-                                                      ?.copyWith(
-                                                        color: const Color(
-                                                          0xFF0D6EFD,
-                                                        ),
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                        fontSize: 9,
-                                                        height: 1,
-                                                      ),
-                                                )
-                                              : const SizedBox.shrink(),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                            const SizedBox(height: 12),
-                            Row(
-                              children: <Widget>[
-                                Expanded(
-                                  child: BootstrapActionButton(
-                                    label: strings['queryByDate'] ?? '조회하기',
-                                    icon: Icons.search,
-                                    onPressed: () {
-                                      setState(() {
-                                        _filterBySelectedDay = true;
-                                      });
-                                    },
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: BootstrapActionButton(
-                                    label: strings['viewMonthly'] ?? '월 전체 보기',
-                                    icon: Icons.view_list,
-                                    onPressed: () {
-                                      setState(() {
-                                        _filterBySelectedDay = false;
-                                      });
-                                    },
-                                    backgroundColor: const Color(0xFF6C757D),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        )
-                      : const SizedBox.shrink(),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: <Widget>[
-                    /// 월 총 지출 표시 타일
-                    Expanded(
-                      child: BootstrapSummaryTile(
-                        label: totalSpentLabel,
-                        value: '${monthlySpent.toCurrency()} $currency',
-                        color: const Color(0xFFDC3545),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-
-                    /// 잔여 예산 표시 타일
-                    Expanded(
-                      child: BootstrapSummaryTile(
-                        label: remainingBudgetLabel,
-                        value: '${monthlyRemaining.toCurrency()} $currency',
-                        color: const Color(0xFF198754),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+      final fab = Showcase(
+        key: _fabKey,
+        title: strings['tutExpenseFabTitle'] ?? '지출 추가',
+        description: strings['tutExpenseFabDesc'] ?? '오늘의 소비를 기록해보세요!\n날짜를 선택한 후 + 버튼을 탭하면 해당 날짜로 입력창이 열려요.',
+        tooltipPosition: TooltipPosition.top,
+        child: FloatingActionButton.extended(
+          onPressed: () => showExpenseEditorSheet(
+            context: context,
+            ref: ref,
+            initialDate: _selectedDay,
           ),
-          const SizedBox(height: 16),
+          label: Text(_text(strings, 'addExpense')),
+          icon: const Icon(Icons.add),
+        ),
+      );
 
-          /// 소비 기록 리스트를 렌더링한다. 기록이 없으면 안내 메시지를 표시한다.
-          Expanded(
-            child: visibleEntries.isEmpty
-                ? Center(child: Text(_text(strings, 'emptyData')))
-                : ListView.builder(
-                    itemCount: groupedEntries.length,
-                    itemBuilder: (BuildContext context, int sectionIndex) {
-                      final section = groupedEntries[sectionIndex];
-                      final sectionDate = section.key;
-                      final sectionItems = section.value;
-                      final sectionLabel = _daySectionLabel(
-                        strings,
-                        sectionDate,
-                      );
-
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 14),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Padding(
-                              padding: const EdgeInsets.only(
-                                left: 4,
-                                bottom: 8,
-                              ),
-                              child: Text(
-                                sectionLabel,
-                                style: Theme.of(context).textTheme.titleSmall
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w800,
-                                      color: const Color(0xFF1F3A5F),
-                                    ),
-                              ),
-                            ),
-                            ...sectionItems.map((ExpenseEntry entry) {
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: GestureDetector(
-                                  onTap: () => _showDetail(
-                                    entry,
-                                    categoryTags,
-                                    subcategoryTags,
-                                    paymentTags,
-                                    strings,
-                                  ),
-                                  child: BootstrapSectionCard(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 14,
-                                      vertical: 10,
-                                    ),
-                                    child: Row(
-                                      children: <Widget>[
-                                        Expanded(
-                                          flex: 3,
-                                          child: Text(
-                                            _resolveTagLabel(
-                                              categoryTags,
-                                              entry.categoryCode,
-                                            ),
-                                            overflow: TextOverflow.ellipsis,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodySmall
-                                                ?.copyWith(
-                                                  fontWeight: FontWeight.w700,
-                                                ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Expanded(
-                                          flex: 4,
-                                          child: Text(
-                                            entry.description,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.copyWith(
-                                                  fontWeight: FontWeight.w600,
-                                                ),
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
-
-                                        /// 소비내역 기록 파일
-                                        Expanded(
-                                          flex: 3,
-                                          child: Text(
-                                            '${entry.amount.toCurrency()}$currency',
-                                            textAlign: TextAlign.right,
-                                            overflow: TextOverflow.ellipsis,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .bodyMedium
-                                                ?.copyWith(
-                                                  fontWeight: FontWeight.w700,
-                                                  color: entry.amount < 0
-                                                      ? const Color(0xFF0D6EFD)
-                                                      : const Color(0xFFDC3545),
-                                                ),
-                                          ),
-                                        ),
-                                        IconButton(
-                                          visualDensity: VisualDensity.compact,
-                                          onPressed: () =>
-                                              showExpenseEditorSheet(
-                                                context: context,
-                                                ref: ref,
-                                                entry: entry,
-                                                initialDate: _selectedDay,
-                                              ),
-                                          icon: const Icon(Icons.edit_outlined),
-                                          tooltip: _text(strings, 'edit'),
-                                        ),
-                                        IconButton(
-                                          visualDensity: VisualDensity.compact,
-                                          onPressed: () => _delete(entry),
-                                          icon: const Icon(
-                                            Icons.delete_outline,
-                                          ),
-                                          tooltip: _text(strings, 'delete'),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              );
-                            }),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+      final page = BootstrapPage(
+        title: _text(strings, 'expenseRecordTitle'),
+        actions: <Widget>[
+          IconButton(
+            onPressed: () =>
+                Navigator.of(context).pushNamed(AppRouter.dataManageRoute),
+            icon: const Icon(Icons.manage_search_rounded),
+            tooltip: strings['dataManageTitle'] ?? '데이터 관리',
+          ),
+          IconButton(
+            onPressed: () =>
+                Navigator.of(context).pushNamed(AppRouter.settingsRoute),
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: strings['settingsTitle'] ?? '설정',
           ),
         ],
-      ),
+        floatingActionButton: fab,
+        child: Column(
+          children: <Widget>[
+            Showcase(
+              key: _calendarKey,
+              title: strings['tutExpenseCalendarTitle'] ?? '캘린더',
+              description: strings['tutExpenseCalendarDesc'] ?? '날짜별로 소비 내역을 확인할 수 있어요.\n날짜를 탭하면 해당 날짜의 지출만 필터링됩니다.',
+              tooltipPosition: TooltipPosition.bottom,
+              child: ExpenseCalendarSection(
+                focusedMonth: _focusedMonth,
+                selectedDay: _selectedDay,
+                entries: monthEntries,
+                currency: currency,
+                strings: strings,
+                totalSpentLabel: totalSpentLabel,
+                remainingBudgetLabel: remainingBudgetLabel,
+                monthlySpent: monthlySpent,
+                monthlyRemaining: monthlyRemaining,
+                onFocusedMonthChanged: (DateTime newMonth) => setState(() {
+                  _focusedMonth = newMonth;
+                  _selectedDay = DateTime(newMonth.year, newMonth.month, 1);
+                  _filterBySelectedDay = false;
+                }),
+                onSelectedDayChanged: (DateTime day) =>
+                    setState(() => _selectedDay = day),
+                onQueryByDate: () =>
+                    setState(() => _filterBySelectedDay = true),
+                onViewMonthly: () =>
+                    setState(() => _filterBySelectedDay = false),
+              ),
+            ),
+
+            const SizedBox(height: 4),
+
+            Expanded(
+              child: visibleEntries.isEmpty
+                  ? Center(child: Text(_text(strings, 'emptyData')))
+                  : ListView.builder(
+                      itemCount: groupedEntries.length,
+                      itemBuilder: (BuildContext context, int sectionIndex) {
+                        final section = groupedEntries[sectionIndex];
+                        final sectionDate = section.key;
+                        final sectionItems = section.value;
+                        final sectionLabel = _daySectionLabel(
+                          strings,
+                          sectionDate,
+                        );
+
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 7),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: <Widget>[
+                              Padding(
+                                padding: const EdgeInsets.only(
+                                  left: 4,
+                                  bottom: 8,
+                                ),
+                                child: Text(
+                                  sectionLabel,
+                                  style: Theme.of(context).textTheme.titleSmall
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w800,
+                                        color: const Color(0xFF1F3A5F),
+                                      ),
+                                ),
+                              ),
+                              ...sectionItems.map((ExpenseEntry entry) {
+                                return Padding(
+                                  padding: const EdgeInsets.only(bottom: 5),
+                                  child: ExpenseEntryTile(
+                                    entry: entry,
+                                    categoryLabel: categoryTags.labelFor(
+                                      entry.categoryCode,
+                                    ),
+                                    currency: currency,
+                                    editTooltip: _text(strings, 'edit'),
+                                    deleteTooltip: _text(strings, 'delete'),
+                                    onTap: () => _showDetail(
+                                      entry,
+                                      categoryTags,
+                                      subcategoryTags,
+                                      paymentTags,
+                                      strings,
+                                    ),
+                                    onEdit: () => showExpenseEditorSheet(
+                                      context: context,
+                                      ref: ref,
+                                      entry: entry,
+                                      initialDate: _selectedDay,
+                                    ),
+                                    onDelete: () => _delete(entry),
+                                  ),
+                                );
+                              }),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+            ),
+          ],
+        ),
+      );
+
+      if (isTutorial) {
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) _handleBackDuringTutorial();
+          },
+          child: page,
+        );
+      }
+      return page;
+    }
+
+    return ShowCaseWidget(
+      onComplete: _onShowcaseComplete,
+      enableAutoScroll: true,
+      builder: buildInner,
     );
   }
 }

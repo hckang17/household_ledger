@@ -6,12 +6,32 @@ import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widg
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 
+/// 튜토리얼 모드에서 사용할 초기값 프리셋.
+class TutorialExpensePreset {
+  const TutorialExpensePreset({
+    required this.categoryCode,
+    required this.subcategoryCode,
+    required this.paymentMethodCode,
+    required this.description,
+    required this.amount,
+    required this.note,
+  });
+
+  final String categoryCode;
+  final String subcategoryCode;
+  final String paymentMethodCode;
+  final String description;
+  final String amount;
+  final String note;
+}
+
 /// 소비 기록 입력/수정 시트를 표시하고 저장한다.
 Future<void> showExpenseEditorSheet({
   required BuildContext context,
   required WidgetRef ref,
   ExpenseEntry? entry,
   DateTime? initialDate,
+  TutorialExpensePreset? tutorialPreset,
 }) async {
   final ledger = ref.read(ledgerProvider).asData?.value;
   final strings = ref.read(localizedStringsProvider);
@@ -30,6 +50,7 @@ Future<void> showExpenseEditorSheet({
   final savedEntry = await showModalBottomSheet<ExpenseEntry>(
     context: context,
     isScrollControlled: true,
+    useSafeArea: true,
     builder: (BuildContext sheetContext) {
       return _ExpenseEditorSheetBody(
         entry: entry,
@@ -38,6 +59,7 @@ Future<void> showExpenseEditorSheet({
         subcategoryTags: subcategoryTags,
         paymentTags: paymentTags,
         strings: strings,
+        tutorialPreset: tutorialPreset,
       );
     },
   );
@@ -61,6 +83,7 @@ class _ExpenseEditorSheetBody extends StatefulWidget {
     required this.subcategoryTags,
     required this.paymentTags,
     required this.strings,
+    this.tutorialPreset,
   });
 
   final ExpenseEntry? entry;
@@ -69,6 +92,7 @@ class _ExpenseEditorSheetBody extends StatefulWidget {
   final List<MetadataTag> subcategoryTags;
   final List<MetadataTag> paymentTags;
   final Map<String, String> strings;
+  final TutorialExpensePreset? tutorialPreset;
 
   @override
   State<_ExpenseEditorSheetBody> createState() =>
@@ -87,23 +111,36 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
   late DateTime selectedDate;
   bool isSaving = false;
 
+  /// 내용 필드 에러 메시지. null이면 에러 없음.
+  String? descriptionError;
+
+  /// 금액 필드 에러 메시지. null이면 에러 없음.
+  String? amountError;
+
   @override
   void initState() {
     super.initState();
     selectedDate = widget.selectedInitialDate;
-    categoryCode = widget.entry?.categoryCode ?? widget.categoryTags.first.code;
-    subcategoryCode =
-        widget.entry?.subcategoryCode ?? widget.subcategoryTags.first.code;
-    paymentCode =
-        widget.entry?.paymentMethodCode ?? widget.paymentTags.first.code;
+    final preset = widget.tutorialPreset;
+    categoryCode = preset?.categoryCode ??
+        widget.entry?.categoryCode ??
+        widget.categoryTags.first.code;
+    subcategoryCode = preset?.subcategoryCode ??
+        widget.entry?.subcategoryCode ??
+        widget.subcategoryTags.first.code;
+    paymentCode = preset?.paymentMethodCode ??
+        widget.entry?.paymentMethodCode ??
+        widget.paymentTags.first.code;
 
     descriptionController = TextEditingController(
-      text: widget.entry?.description ?? '',
+      text: preset?.description ?? widget.entry?.description ?? '',
     );
     amountController = TextEditingController(
-      text: widget.entry?.amount.toString() ?? '',
+      text: preset?.amount ?? widget.entry?.amount.toString() ?? '',
     );
-    noteController = TextEditingController(text: widget.entry?.note ?? '');
+    noteController = TextEditingController(
+      text: preset?.note ?? widget.entry?.note ?? '',
+    );
     dateController = TextEditingController(
       text: ExpenseEntry.normalizeDate(
         selectedDate,
@@ -236,7 +273,14 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
                 controller: descriptionController,
                 decoration: InputDecoration(
                   labelText: widget.strings['descriptionLabel'],
+                  hintText: widget.strings['descriptionHint'],
+                  errorText: descriptionError,
                 ),
+                onChanged: (_) {
+                  if (descriptionError != null) {
+                    setState(() => descriptionError = null);
+                  }
+                },
               ),
               const SizedBox(height: 12),
               TextField(
@@ -244,13 +288,21 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
                   labelText: widget.strings['amountLabel'],
+                  hintText: widget.strings['amountHint'],
+                  errorText: amountError,
                 ),
+                onChanged: (_) {
+                  if (amountError != null) {
+                    setState(() => amountError = null);
+                  }
+                },
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: noteController,
                 decoration: InputDecoration(
                   labelText: widget.strings['noteLabel'],
+                  hintText: widget.strings['noteHint'],
                 ),
               ),
               const SizedBox(height: 16),
@@ -262,12 +314,39 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
                     return;
                   }
 
+                  // ── 유효성 검사 ──────────────────────────────
+                  final String rawDesc = descriptionController.text.trim();
+                  final String rawAmount = amountController.text.trim();
+                  final int? parsedAmount = int.tryParse(rawAmount);
+
+                  String? newDescError;
+                  String? newAmountError;
+
+                  if (rawDesc.isEmpty) {
+                    newDescError =
+                        widget.strings['descriptionRequired'] ?? '내용을 입력해주세요.';
+                  }
+                  if (rawAmount.isEmpty) {
+                    newAmountError =
+                        widget.strings['amountRequired'] ?? '금액을 입력해주세요.';
+                  } else if (parsedAmount == null) {
+                    newAmountError =
+                        widget.strings['amountInvalid'] ?? '올바른 숫자를 입력해주세요.';
+                  }
+
+                  if (newDescError != null || newAmountError != null) {
+                    setState(() {
+                      descriptionError = newDescError;
+                      amountError = newAmountError;
+                    });
+                    return;
+                  }
+
                   setState(() {
                     isSaving = true;
                   });
 
-                  final amount =
-                      int.tryParse(amountController.text.trim()) ?? 0;
+                  final amount = parsedAmount!;
                   final next = ExpenseEntry.create(
                     id: widget.entry?.id,
                     spentAt: selectedDate,

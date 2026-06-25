@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/presenter/pages/analysis_page.dart';
+import 'package:household_ledger/presenter/pages/data_managing_page.dart';
+import 'package:household_ledger/presenter/pages/export_data_page.dart';
+import 'package:household_ledger/presenter/pages/generating_report_page.dart';
 import 'package:household_ledger/presenter/pages/expense_management_page.dart';
 import 'package:household_ledger/presenter/pages/expense_record_page.dart';
 import 'package:household_ledger/presenter/pages/fixed_expense_page.dart';
-import 'package:household_ledger/presenter/pages/home_page.dart';
+import 'package:household_ledger/presenter/pages/main_shell_page.dart';
+import 'package:household_ledger/presenter/pages/import_data_page.dart';
 import 'package:household_ledger/presenter/pages/income_page.dart';
+import 'package:household_ledger/presenter/pages/loading_page.dart';
 import 'package:household_ledger/presenter/pages/onboarding_page.dart';
 import 'package:household_ledger/presenter/pages/settings_page.dart';
 import 'package:household_ledger/presenter/pages/setup_page.dart';
@@ -22,6 +27,9 @@ class AppRouter {
 
   /// 초기 설정 라우트 이름을 정의한다.
   static const String setupRoute = '/setup';
+
+  /// 로딩 화면 라우트 이름을 정의한다.
+  static const String loadingRoute = '/loading';
 
   /// 메인 라우트 이름을 정의한다.
   static const String homeRoute = '/home';
@@ -44,6 +52,18 @@ class AppRouter {
   /// 분석 라우트 이름을 정의한다.
   static const String analysisRoute = '/analysis';
 
+  /// 가계부 데이터 추출 라우트 이름을 정의한다.
+  static const String exportDataRoute = '/export-data';
+
+  /// 가계부 데이터 가져오기 라우트 이름을 정의한다.
+  static const String importDataRoute = '/import-data';
+
+  /// PDF 리포트 생성 라우트 이름을 정의한다.
+  static const String generatingReportRoute = '/generating-report';
+
+  /// 데이터 관리 라우트 이름을 정의한다.
+  static const String dataManageRoute = '/data-manage';
+
   /// 이름 기반 라우팅을 생성한다.
   Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -51,8 +71,10 @@ class AppRouter {
         return _buildRoute(const OnboardingPage(), settings);
       case setupRoute:
         return _buildRoute(const SetupPage(), settings);
+      case loadingRoute:
+        return _buildRoute(const LoadingPage(), settings);
       case homeRoute:
-        return _buildRoute(const HomePage(), settings);
+        return _buildRoute(const MainShellPage(), settings);
       case expenseManagementRoute:
         return _buildRoute(const ExpenseManagementPage(), settings);
       case fixedExpenseRoute:
@@ -65,6 +87,16 @@ class AppRouter {
         return _buildRoute(const IncomePage(), settings);
       case analysisRoute:
         return _buildRoute(const AnalysisPage(), settings);
+      case exportDataRoute:
+        return _buildRoute(const ExportDataPage(), settings);
+      case importDataRoute:
+        final args = settings.arguments as Map<String, dynamic>?;
+        final fromSetup = args?['fromSetup'] as bool? ?? false;
+        return _buildRoute(ImportDataPage(fromSetup: fromSetup), settings);
+      case generatingReportRoute:
+        return _buildRoute(const GeneratingReportPage(), settings);
+      case dataManageRoute:
+        return _buildRoute(const DataManagingPage(), settings);
       default:
         return _buildRoute(const OnboardingPage(), settings);
     }

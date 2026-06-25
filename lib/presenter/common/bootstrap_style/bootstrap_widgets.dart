@@ -6,7 +6,7 @@ class BootstrapSectionCard extends StatelessWidget {
   const BootstrapSectionCard({
     required this.child,
     super.key,
-    this.padding = const EdgeInsets.all(20),
+    this.padding = const EdgeInsets.all(16),
     this.width = double.infinity,
   });
 
@@ -49,10 +49,13 @@ class BootstrapActionButton extends StatelessWidget {
     super.key,
     this.backgroundColor = const Color(0xFF0D6EFD),
     this.foregroundColor = Colors.white,
+    this.padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
   });
 
   /// 버튼 라벨을 보관한다.
   final String label;
+
+  final EdgeInsetsGeometry padding;
 
   /// 버튼 아이콘을 보관한다.
   final IconData icon;
@@ -75,7 +78,7 @@ class BootstrapActionButton extends StatelessWidget {
         style: FilledButton.styleFrom(
           backgroundColor: backgroundColor,
           foregroundColor: foregroundColor,
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          padding: padding,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
           ),
@@ -96,6 +99,7 @@ class BootstrapSummaryTile extends StatelessWidget {
     required this.color,
     super.key,
     this.fontSize = 18,
+    this.tooltipContent,
   });
 
   /// 타일 라벨을 보관한다.
@@ -110,6 +114,9 @@ class BootstrapSummaryTile extends StatelessWidget {
   /// 강조 색상을 보관한다.
   final Color color;
 
+  /// null 이 아니면 라벨 옆에 (?) 아이콘과 툴팁을 표시한다.
+  final InlineSpan? tooltipContent;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -122,7 +129,45 @@ class BootstrapSummaryTile extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          Text(label, style: Theme.of(context).textTheme.labelLarge),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: <Widget>[
+              Flexible(
+                child: Text(
+                  label,
+                  style: Theme.of(context).textTheme.labelLarge,
+                ),
+              ),
+              if (tooltipContent != null) ...<Widget>[
+                const SizedBox(width: 4),
+                Tooltip(
+                  richMessage: tooltipContent,
+                  triggerMode: TooltipTriggerMode.tap,
+                  showDuration: const Duration(seconds: 30),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(10),
+                    boxShadow: const <BoxShadow>[
+                      BoxShadow(
+                        color: Color.fromARGB(40, 152, 152, 152),
+                        blurRadius: 12,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
+                  child: Icon(
+                    Icons.help_outline_rounded,
+                    size: 15,
+                    color: Colors.grey.shade500,
+                  ),
+                ),
+              ],
+            ],
+          ),
           const SizedBox(height: 8),
           Text(
             value,
@@ -147,6 +192,7 @@ class BootstrapPage extends StatelessWidget {
     super.key,
     this.actions,
     this.floatingActionButton,
+    this.bottomNavigationBar,
   });
 
   /// 페이지 제목을 보관한다.
@@ -161,12 +207,15 @@ class BootstrapPage extends StatelessWidget {
   /// 플로팅 버튼을 보관한다.
   final Widget? floatingActionButton;
 
+  /// 하단 내비게이션 바를 보관한다. null 이면 표시하지 않는다.
+  final Widget? bottomNavigationBar;
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       /// 앱바는 페이지마다 일관된 스타일을 유지하되, 제목과 액션은 페이지별로 다르게 설정할 수 있도록 한다.
       appBar: AppBar(
-        titleSpacing: 24,
+        titleSpacing: 16,
         scrolledUnderElevation: 0,
         actionsPadding: const EdgeInsets.only(right: 16),
         title: Text(
@@ -183,6 +232,9 @@ class BootstrapPage extends StatelessWidget {
       /// 프롤팅 버튼이 있을 경우, 플로팅 버튼을 상속받아온다.
       floatingActionButton: floatingActionButton,
 
+      /// 하단 내비게이션 바가 있을 경우 표시한다.
+      bottomNavigationBar: bottomNavigationBar,
+
       /// 페이지 본문은 공통된 배경과 여백을 갖게 한다.
       body: DecoratedBox(
         decoration: const BoxDecoration(
@@ -194,7 +246,7 @@ class BootstrapPage extends StatelessWidget {
         ),
         child: SafeArea(
           child: Padding(
-            padding: const EdgeInsets.all(20),
+            padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
             child: SizedBox.expand(child: child),
           ),
         ),

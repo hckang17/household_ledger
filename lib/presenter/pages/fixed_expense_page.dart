@@ -2,10 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/provider/nav_tab_provider.dart';
+import 'package:household_ledger/provider/tutorial_provider.dart';
+import 'package:household_ledger/router/app_router.dart';
+import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
+import 'package:household_ledger/presenter/common/widgets/fixed_expense_editor_sheet.dart';
+import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
+import 'package:household_ledger/presenter/common/widgets/month_navigator_bar.dart';
+import 'package:household_ledger/presenter/common/widgets/month_selector_dialog.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
-import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
-import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
+import 'package:household_ledger/services/mock_data_service.dart';
+import 'package:showcaseview/showcaseview.dart';
 
 /// 고정지출 관리 페이지다.
 class FixedExpensePage extends ConsumerStatefulWidget {
@@ -16,217 +25,85 @@ class FixedExpensePage extends ConsumerStatefulWidget {
   ConsumerState<FixedExpensePage> createState() => _FixedExpensePageState();
 }
 
-/// 고정지출 관리 페이지의 입력 상태를 관리한다.
 class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
+  late DateTime _focusedMonth;
+
+  final GlobalKey _totalKey = GlobalKey();
+  final GlobalKey _fabKey = GlobalKey();
+  bool _showcaseStarted = false;
+  BuildContext? _showcaseContext;
+
+  @override
+  void initState() {
+    super.initState();
+    final now = DateTime.now();
+    _focusedMonth = DateTime(now.year, now.month, 1);
+  }
+
+  void _prevMonth() {
+    setState(() {
+      _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month - 1, 1);
+    });
+  }
+
+  void _nextMonth() {
+    setState(() {
+      _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month + 1, 1);
+    });
+  }
+
+  Future<void> _pickMonth() async {
+    final strings = ref.read(localizedStringsProvider);
+    final picked = await showMonthSelectorDialog(
+      context: context,
+      initialMonth: _focusedMonth,
+      strings: strings,
+      allowFuture: true,
+    );
+    if (picked == null) return;
+    setState(() => _focusedMonth = DateTime(picked.year, picked.month, 1));
+  }
+
   String _text(Map<String, String> strings, String tag) {
     return strings[tag] ??
         '${strings['failedReadingData'] ?? 'ErrorCode: 4401'}+$tag';
   }
 
-  String _monthText(DateTime date) {
-    return '${date.year}-${date.month.toString().padLeft(2, '0')}';
+  String _monthNavLabel(Map<String, String> strings) {
+    final template = strings['monthYearLabel'] ?? '{year}년 {month}월';
+    return template
+        .replaceAll('{year}', _focusedMonth.year.toString())
+        .replaceAll('{month}', _focusedMonth.month.toString().padLeft(2, '0'));
   }
 
-  /// 고정지출 입력 시트를 표시한다.
-  Future<void> _showEditor({FixedExpense? item}) async {
-    final ledger = ref.read(ledgerProvider).asData?.value;
-    final strings = ref.read(localizedStringsProvider);
-    if (ledger == null) {
-      return;
-    }
+  String _totalLabel(Map<String, String> strings) {
+    final template =
+        strings['fixedExpenseMonthlyTotalLabel'] ?? '{year}년 {month}월 고정지출 합계';
+    return template
+        .replaceAll('{year}', _focusedMonth.year.toString())
+        .replaceAll('{month}', _focusedMonth.month.toString().padLeft(2, '0'));
+  }
 
-    final descriptionController = TextEditingController(
-      text: item?.description ?? '',
-    );
-    final amountController = TextEditingController(
-      text: item?.amount.toString() ?? '',
-    );
-    final noteController = TextEditingController(text: item?.note ?? '');
-    String categoryCode =
-        item?.categoryCode ??
-        ledger.tagsByType(MetadataTagType.category).first.code;
-    String paymentCode =
-        item?.paymentMethodCode ??
-        ledger.tagsByType(MetadataTagType.paymentMethod).first.code;
-    DateTime appliedAt =
-        item?.appliedAt ??
-        DateTime(DateTime.now().year, DateTime.now().month, 1);
-    bool isSaving = false;
-
-    final savedItem = await showModalBottomSheet<FixedExpense>(
+  Future<void> _showDetail({
+    required FixedExpense item,
+    required List<MetadataTag> categoryTags,
+    required List<MetadataTag> paymentTags,
+    required Map<String, String> strings,
+    required String currency,
+  }) async {
+    final monthLabel = _monthNavLabel(strings);
+    await showFixedExpenseDetailDialog(
       context: context,
-      isScrollControlled: true,
-      builder: (BuildContext sheetContext) {
-        return SafeArea(
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              top: 20,
-              bottom: MediaQuery.of(sheetContext).viewInsets.bottom + 24,
-            ),
-            child: StatefulBuilder(
-              builder: (BuildContext context, StateSetter setState) {
-                return SingleChildScrollView(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: <Widget>[
-                      DropdownButtonFormField<String>(
-                        initialValue: categoryCode,
-                        decoration: InputDecoration(
-                          labelText: strings['categoryLabel'],
-                        ),
-                        items: ledger
-                            .tagsByType(MetadataTagType.category)
-                            .map(
-                              (MetadataTag tag) => DropdownMenuItem<String>(
-                                value: tag.code,
-                                child: Text('${tag.code} · ${tag.label}'),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (String? value) {
-                          if (value == null) {
-                            return;
-                          }
-
-                          setState(() {
-                            categoryCode = value;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      DropdownButtonFormField<String>(
-                        initialValue: paymentCode,
-                        decoration: InputDecoration(
-                          labelText: strings['paymentMethodLabel'],
-                        ),
-                        items: ledger
-                            .tagsByType(MetadataTagType.paymentMethod)
-                            .map(
-                              (MetadataTag tag) => DropdownMenuItem<String>(
-                                value: tag.code,
-                                child: Text('${tag.code} · ${tag.label}'),
-                              ),
-                            )
-                            .toList(),
-                        onChanged: (String? value) {
-                          if (value == null) {
-                            return;
-                          }
-
-                          setState(() {
-                            paymentCode = value;
-                          });
-                        },
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: descriptionController,
-                        decoration: InputDecoration(
-                          labelText: strings['descriptionLabel'],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: amountController,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          labelText: strings['amountLabel'],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      TextField(
-                        controller: noteController,
-                        decoration: InputDecoration(
-                          labelText: strings['noteLabel'],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        children: <Widget>[
-                          Expanded(
-                            child: Text(
-                              '${strings['yearLabel'] ?? '연도'}-${strings['monthLabel'] ?? '월'}: ${_monthText(appliedAt)}',
-                            ),
-                          ),
-                          TextButton(
-                            onPressed: () async {
-                              final picked = await showDatePicker(
-                                context: context,
-                                initialDate: appliedAt,
-                                firstDate: DateTime(2000),
-                                lastDate: DateTime(2100),
-                              );
-                              if (picked == null) {
-                                return;
-                              }
-
-                              setState(() {
-                                appliedAt = DateTime(
-                                  picked.year,
-                                  picked.month,
-                                  1,
-                                );
-                              });
-                            },
-                            child: Text(strings['selectMonth'] ?? '달 선택'),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 16),
-                      BootstrapActionButton(
-                        label: strings['save'] ?? '',
-                        icon: Icons.save_outlined,
-                        onPressed: () async {
-                          if (isSaving) {
-                            return;
-                          }
-
-                          setState(() {
-                            isSaving = true;
-                          });
-
-                          final amount =
-                              int.tryParse(amountController.text.trim()) ?? 0;
-                          final next = FixedExpense.create(
-                            id: item?.id,
-                            appliedAt: appliedAt,
-                            categoryCode: categoryCode,
-                            paymentMethodCode: paymentCode,
-                            description: descriptionController.text,
-                            amount: amount,
-                            note: noteController.text,
-                          );
-                          if (sheetContext.mounted) {
-                            Navigator.of(sheetContext).pop(next);
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        );
-      },
+      entry: item,
+      categoryTags: categoryTags,
+      paymentTags: paymentTags,
+      strings: strings,
+      currency: currency,
+      appliedMonthText: monthLabel,
     );
-
-    if (savedItem != null && mounted) {
-      if (item == null) {
-        await ref.read(ledgerProvider.notifier).addFixedExpense(savedItem);
-      } else {
-        await ref.read(ledgerProvider.notifier).updateFixedExpense(savedItem);
-      }
-
-      ref.invalidate(ledgerProvider);
-    }
   }
 
-  /// 고정지출 삭제 여부를 확인한 뒤 삭제한다.
-  Future<void> _delete(String id) async {
-    final strings = ref.read(localizedStringsProvider);
+  Future<void> _delete(String id, Map<String, String> strings) async {
     final confirmed = await showLedgerConfirmDialog(
       context: context,
       title: _text(strings, 'confirmDelete'),
@@ -234,111 +111,289 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
       confirmLabel: _text(strings, 'delete'),
       cancelLabel: _text(strings, 'cancel'),
     );
-    if (!confirmed) {
-      return;
-    }
+    if (!confirmed) return;
 
     await ref.read(ledgerProvider.notifier).deleteFixedExpense(id);
     ref.invalidate(ledgerProvider);
+    ref.invalidate(monthlyFixedExpensesProvider);
   }
 
-  /// 코드에 해당하는 태그 이름을 반환한다.
-  String _resolveTagLabel(List<MetadataTag> tags, String code) {
-    return tags.firstWhere((MetadataTag tag) => tag.code == code).label;
+  void _maybeStartShowcase() {
+    if (_showcaseStarted) return;
+    if (_showcaseContext == null) return;
+    final state = ref.read(tutorialProvider);
+    if (!state.isActive || state.phase != TutorialPhase.fixedExpense) return;
+    _showcaseStarted = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _showcaseContext == null) return;
+      ShowCaseWidget.of(_showcaseContext!).startShowCase([
+        _totalKey,
+        _fabKey,
+      ]);
+    });
+  }
+
+  void _onShowcaseComplete(int? index, GlobalKey key) {
+    if (key == _fabKey) {
+      // 고정지출 튜토리얼 완료 → 소비기록 탭으로 이동
+      ref.read(currentNavTabProvider.notifier).setTab(3);
+      ref.read(tutorialProvider.notifier).setPhase(TutorialPhase.expenseRecord);
+    }
+  }
+
+  Future<void> _handleBackDuringTutorial() async {
+    if (_showcaseContext != null) {
+      try { ShowCaseWidget.of(_showcaseContext!).dismiss(); } catch (_) {}
+    }
+    final strings = ref.read(localizedStringsProvider);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(strings['tutorialExitTitle'] ?? '튜토리얼 종료'),
+        content: Text(strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(strings['tutorialContinue'] ?? '계속하기'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(strings['tutorialExitConfirm'] ?? '종료'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      await ref.read(mockDataServiceProvider).cleanupMockData(ref);
+      await ref.read(tutorialProvider.notifier).exitTutorial();
+    } else if (mounted) {
+      _showcaseStarted = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _maybeStartShowcase();
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     final strings = ref.watch(localizedStringsProvider);
     final ledger = ref.watch(ledgerProvider).asData?.value;
+    final isTutorial = ref.watch(
+      tutorialProvider.select(
+        (s) => s.isActive && s.phase == TutorialPhase.fixedExpense,
+      ),
+    );
+
+    ref.listen(currentNavTabProvider, (_, tab) {
+      if (tab == 4 &&
+          ref.read(tutorialProvider).phase == TutorialPhase.fixedExpense) {
+        _showcaseStarted = false;
+        _maybeStartShowcase();
+      }
+    });
+
     if (ledger == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
     final categoryTags = ledger.tagsByType(MetadataTagType.category);
     final paymentTags = ledger.tagsByType(MetadataTagType.paymentMethod);
-    final nowMonth = DateTime(DateTime.now().year, DateTime.now().month, 1);
-    final monthlyFixedExpense = ledger.fixedExpenseTotalForMonth(nowMonth);
+    final currency = strings['currencyUnit'] ?? '';
+    final fixedExpensesAsync = ref.watch(
+      monthlyFixedExpensesProvider(_focusedMonth),
+    );
 
-    return BootstrapPage(
-      title: strings['fixedExpenseTitle'] ?? '',
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _showEditor(),
-        label: Text(strings['addFixedExpense'] ?? ''),
-        icon: const Icon(Icons.add),
-      ),
-      child: Column(
-        children: <Widget>[
-          BootstrapSectionCard(
-            child: Row(
-              children: <Widget>[
-                Expanded(
-                  child: BootstrapSummaryTile(
-                    label: strings['fixedExpenseTotal'] ?? '',
-                    value:
-                        '$monthlyFixedExpense ${strings['currencyUnit'] ?? ''}',
-                    color: const Color(0xFF0D6EFD),
-                  ),
-                ),
-              ],
-            ),
+    Widget buildInner(BuildContext showcaseCtx) {
+      _showcaseContext = showcaseCtx;
+      _maybeStartShowcase();
+
+      final fab = Showcase(
+        key: _fabKey,
+        title: strings['tutFixedFabTitle'] ?? '고정지출 추가',
+        description: strings['tutFixedFabDesc'] ?? '매달 반복되는 지출(월세, 구독료 등)을 고정지출로 등록해두면\n자동으로 지출가능금액에 반영돼요!',
+        tooltipPosition: TooltipPosition.top,
+        child: FloatingActionButton.extended(
+          onPressed: () => showFixedExpenseEditorSheet(
+            context: context,
+            ref: ref,
+            focusedMonth: _focusedMonth,
           ),
-          const SizedBox(height: 16),
-          Expanded(
-            child: ledger.fixedExpenses.isEmpty
-                ? Center(child: Text(strings['emptyData'] ?? ''))
-                : ListView.separated(
-                    itemCount: ledger.fixedExpenses.length,
-                    separatorBuilder: (BuildContext context, int index) =>
-                        const SizedBox(height: 12),
-                    itemBuilder: (BuildContext context, int index) {
-                      final item = ledger.fixedExpenses[index];
-                      return BootstrapSectionCard(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            Text(
-                              item.description,
-                              style: Theme.of(context).textTheme.titleMedium
-                                  ?.copyWith(fontWeight: FontWeight.w700),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '${_resolveTagLabel(categoryTags, item.categoryCode)} · ${_resolveTagLabel(paymentTags, item.paymentMethodCode)}',
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '${_text(strings, 'selectMonth')}: ${_monthText(item.appliedAt)}',
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              '${item.amount} ${strings['currencyUnit'] ?? ''}',
-                            ),
-                            if (item.note.isNotEmpty) ...<Widget>[
-                              const SizedBox(height: 6),
-                              Text(item.note),
-                            ],
-                            const SizedBox(height: 12),
-                            Row(
-                              children: <Widget>[
-                                TextButton(
-                                  onPressed: () => _showEditor(item: item),
-                                  child: Text(strings['edit'] ?? ''),
-                                ),
-                                TextButton(
-                                  onPressed: () => _delete(item.id),
-                                  child: Text(strings['delete'] ?? ''),
-                                ),
-                              ],
-                            ),
-                          ],
+          label: Text(strings['addFixedExpense'] ?? ''),
+          icon: const Icon(Icons.add),
+        ),
+      );
+
+      final page = BootstrapPage(
+        title: strings['fixedExpenseTitle'] ?? '',
+        actions: <Widget>[
+          IconButton(
+            onPressed: () =>
+                Navigator.of(context).pushNamed(AppRouter.dataManageRoute),
+            icon: const Icon(Icons.manage_search_rounded),
+            tooltip: strings['dataManageTitle'] ?? '데이터 관리',
+          ),
+          IconButton(
+            onPressed: () =>
+                Navigator.of(context).pushNamed(AppRouter.settingsRoute),
+            icon: const Icon(Icons.settings_outlined),
+          ),
+        ],
+        floatingActionButton: fab,
+        child: Column(
+          children: <Widget>[
+            BootstrapSectionCard(
+              child: Column(
+                children: <Widget>[
+                  MonthNavigatorBar(
+                    displayText: _monthNavLabel(strings),
+                    onPrevious: _prevMonth,
+                    onNext: _nextMonth,
+                    onTap: _pickMonth,
+                  ),
+                  const SizedBox(height: 12),
+                  fixedExpensesAsync.when(
+                    loading: () => const LinearProgressIndicator(),
+                    error: (Object e, _) => Text(e.toString()),
+                    data: (List<FixedExpense> items) {
+                      final total = items.fold<int>(
+                        0,
+                        (int sum, FixedExpense e) => sum + e.amount,
+                      );
+                      return Showcase(
+                        key: _totalKey,
+                        title: strings['tutFixedTotalTitle'] ?? '고정지출 합계',
+                        description: strings['tutFixedTotalDesc'] ?? '이번달 등록된 고정지출의 합계입니다.\n고정지출은 홈 화면 지출가능금액 계산에서 자동으로 차감됩니다.',
+                        tooltipPosition: TooltipPosition.bottom,
+                        child: BootstrapSummaryTile(
+                          label: _totalLabel(strings),
+                          value: '${total.toCurrency()}$currency',
+                          color: const Color(0xFF0D6EFD),
                         ),
                       );
                     },
                   ),
-          ),
-        ],
-      ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
+            Expanded(
+              child: fixedExpensesAsync.when(
+                loading: () =>
+                    const Center(child: CircularProgressIndicator()),
+                error: (Object e, _) => Center(child: Text(e.toString())),
+                data: (List<FixedExpense> items) {
+                  if (items.isEmpty) {
+                    return Center(child: Text(_text(strings, 'emptyData')));
+                  }
+                  return ListView.separated(
+                    itemCount: items.length,
+                    separatorBuilder: (BuildContext context, int index) =>
+                        const SizedBox(height: 10),
+                    itemBuilder: (BuildContext context, int index) {
+                      final item = items[index];
+                      final categoryLabel = categoryTags.labelFor(
+                        item.categoryCode,
+                      );
+                      final amountText = '${item.amount.toCurrency()}$currency';
+                      return GestureDetector(
+                        onTap: () => _showDetail(
+                          item: item,
+                          categoryTags: categoryTags,
+                          paymentTags: paymentTags,
+                          strings: strings,
+                          currency: currency,
+                        ),
+                        child: BootstrapSectionCard(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 10,
+                          ),
+                          child: Row(
+                            children: <Widget>[
+                              Expanded(
+                                flex: 3,
+                                child: Text(
+                                  categoryLabel,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.bodySmall
+                                      ?.copyWith(fontWeight: FontWeight.w700),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                flex: 4,
+                                child: Text(
+                                  item.description,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(fontWeight: FontWeight.w600),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                flex: 3,
+                                child: Text(
+                                  amountText,
+                                  textAlign: TextAlign.right,
+                                  style: Theme.of(context).textTheme.bodyMedium
+                                      ?.copyWith(
+                                        fontWeight: FontWeight.w700,
+                                        color: const Color(0xFFDC3545),
+                                      ),
+                                ),
+                              ),
+                              IconButton(
+                                visualDensity: VisualDensity.compact,
+                                icon: const Icon(
+                                  Icons.edit_outlined,
+                                  size: 18,
+                                ),
+                                onPressed: () => showFixedExpenseEditorSheet(
+                                  context: context,
+                                  ref: ref,
+                                  focusedMonth: _focusedMonth,
+                                  item: item,
+                                ),
+                              ),
+                              IconButton(
+                                visualDensity: VisualDensity.compact,
+                                icon: const Icon(
+                                  Icons.delete_outline,
+                                  size: 18,
+                                  color: Color(0xFFDC3545),
+                                ),
+                                onPressed: () => _delete(item.id, strings),
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      );
+
+      if (isTutorial) {
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) _handleBackDuringTutorial();
+          },
+          child: page,
+        );
+      }
+      return page;
+    }
+
+    return ShowCaseWidget(
+      onComplete: _onShowcaseComplete,
+      enableAutoScroll: true,
+      builder: buildInner,
     );
   }
 }

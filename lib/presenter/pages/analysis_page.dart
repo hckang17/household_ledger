@@ -2,16 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
+import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/presenter/common/widgets/analysis_expense_tab.dart';
+import 'package:household_ledger/presenter/common/widgets/analysis_income_tab.dart';
+import 'package:household_ledger/presenter/common/widgets/analysis_period_control_card.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
-import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
-import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/provider/nav_tab_provider.dart';
+import 'package:household_ledger/provider/tutorial_provider.dart';
+import 'package:household_ledger/router/app_router.dart';
+import 'package:household_ledger/services/mock_data_service.dart';
 import 'package:intl/intl.dart';
+import 'package:showcaseview/showcaseview.dart';
+
+/// 기간 선택 모드를 정의한다.
+enum _PeriodMode { monthly, range }
 
 /// 지출 분석 화면이다.
+///
+/// 도넛 차트 캐러샐(소비구분/소비소구분/소비수단), 고정지출 막대, 일별 추이를 제공한다.
 class AnalysisPage extends ConsumerStatefulWidget {
-  /// 지출 분석 화면을 생성한다.
   const AnalysisPage({super.key});
 
   @override
@@ -19,910 +31,437 @@ class AnalysisPage extends ConsumerStatefulWidget {
 }
 
 class _AnalysisPageState extends ConsumerState<AnalysisPage> {
-  bool _isMonthlySummaryExpanded = true; // 월간 요약 카드의 확장 상태(디폴트)
-  bool _isMonthlySubcategorySummaryExpanded = true; // 월별 소구분 요약 카드의 확장 상태(디폴트)
-  bool _isMonthlyPaymentSummaryExpanded = true; // 월별 소비수단 요약 카드의 확장 상태(디폴트)
   late DateTime _selectedMonth;
   DateTimeRange? _selectedRange;
+  _PeriodMode _periodMode = _PeriodMode.monthly;
+  bool _showExpense = true;
 
-  @override
-  void initState() {
-    super.initState();
-    final now = DateTime.now();
-    _selectedMonth = DateTime(now.year, now.month);
-  }
+  final GlobalKey _periodControlKey = GlobalKey();
+  final GlobalKey _pdfBtnKey = GlobalKey();
+  bool _showcaseStarted = false;
+  BuildContext? _showcaseContext;
 
-  String _text(Map<String, String> strings, String key, String fallback) {
-    return strings[key] ?? fallback;
-  }
-
-  String _currencyUnit(Map<String, String> strings) {
-    return strings['currencyUnit'] ?? '원';
-  }
-
-  String _intlLocaleCode(String localeCode) {
-    switch (localeCode) {
-      case 'jp':
-        return 'ja';
-      case 'ko':
-        return 'ko';
-      case 'en':
-        return 'en'; // 영어는 미대응
-      default:
-        return 'ko'; // 디폴트는 한국어.
-    }
-  }
-
-  String _formatCurrency(Map<String, String> strings, int amount) {
-    return '${amount.toCurrency()} ${_currencyUnit(strings)}';
-  }
-
-  String _formatMonth(String localeCode, DateTime month) {
-    return DateFormat.yMMMM(_intlLocaleCode(localeCode)).format(month);
-  }
-
-  String _formatRange(String localeCode, DateTimeRange range) {
-    final formatter = DateFormat('yyyy.MM.dd', _intlLocaleCode(localeCode));
-    return '${formatter.format(range.start)} - ${formatter.format(range.end)}';
-  }
-
-  bool _isSameYearMonth(DateTime left, DateTime right) {
-    return left.year == right.year && left.month == right.month;
-  }
-
-  /// 카테고리별 지출 합계를 계산한다.
-  Map<String, int> _sumByCategory(Iterable<ExpenseEntry> expenses) {
-    final result = <String, int>{};
-    for (final entry in expenses) {
-      result.update(
-        entry.categoryCode,
-        (int value) => value + entry.amount,
-        ifAbsent: () => entry.amount,
-      );
-    }
-
-    return result;
-  }
-
-  /// 고정지출 소비수단별 합계를 계산한다.
-  Map<String, int> _sumFixedByPaymentMethod(
-    Iterable<FixedExpense> fixedExpenses,
-  ) {
-    final result = <String, int>{};
-    for (final item in fixedExpenses) {
-      result.update(
-        item.paymentMethodCode,
-        (int value) => value + item.amount,
-        ifAbsent: () => item.amount,
-      );
-    }
-
-    return result;
-  }
-
-  /// 고정지출 소비수단별 건수를 계산한다.
-  Map<String, int> _countFixedByPaymentMethod(
-    Iterable<FixedExpense> fixedExpenses,
-  ) {
-    final result = <String, int>{};
-    for (final item in fixedExpenses) {
-      result.update(
-        item.paymentMethodCode,
-        (int value) => value + 1,
-        ifAbsent: () => 1,
-      );
-    }
-
-    return result;
-  }
-
-  /// 소비수단별 지출 합계를 계산한다.
-  Map<String, int> _sumByPaymentMethod(Iterable<ExpenseEntry> expenses) {
-    final result = <String, int>{};
-    for (final entry in expenses) {
-      result.update(
-        entry.paymentMethodCode,
-        (int value) => value + entry.amount,
-        ifAbsent: () => entry.amount,
-      );
-    }
-
-    return result;
-  }
-
-  /// 소비 소구분별 지출 합계를 계산한다.
-  Map<String, int> _sumBySubcategory(Iterable<ExpenseEntry> expenses) {
-    final result = <String, int>{};
-    for (final entry in expenses) {
-      result.update(
-        entry.subcategoryCode,
-        (int value) => value + entry.amount,
-        ifAbsent: () => entry.amount,
-      );
-    }
-
-    return result;
-  }
-
-  /// 그룹별 건수를 계산한다.
-  Map<String, int> _countByGroup(
-    Iterable<ExpenseEntry> expenses,
-    String Function(ExpenseEntry entry) selector,
-  ) {
-    final result = <String, int>{};
-    for (final entry in expenses) {
-      final key = selector(entry);
-      result.update(key, (int value) => value + 1, ifAbsent: () => 1);
-    }
-
-    return result;
-  }
-
-  int _sumAmount(Iterable<ExpenseEntry> expenses) {
-    return expenses.fold<int>(
-      0,
-      (int total, ExpenseEntry entry) => total + entry.amount,
-    );
-  }
-
-  /// 코드에 해당하는 태그 라벨을 반환한다.
-  String _resolveTagLabel(List<MetadataTag> tags, String code) {
-    for (final tag in tags) {
-      if (tag.code == code) {
-        return tag.label;
-      }
-    }
-
-    return code;
-  }
-
-  MapEntry<String, int>? _topCategory(Map<String, int> summary) {
-    if (summary.isEmpty) {
-      return null;
-    }
-
-    final sortedEntries = summary.entries.toList()
-      ..sort(
-        (MapEntry<String, int> left, MapEntry<String, int> right) =>
-            right.value.compareTo(left.value),
-      );
-    return sortedEntries.first;
-  }
-
-  /// 월 선택 모달을 보여주고, 선택된 월로 상태를 업데이트 하는 메서드
-  Future<void> _pickMonth(
-    BuildContext context,
-    Map<String, String> strings,
-  ) async {
-    final now = DateTime.now();
-    var selectedYear = _selectedMonth.year;
-    var selectedMonth = _selectedMonth.month;
-    final pickedMonth = await showModalBottomSheet<DateTime>(
-      context: context,
-      builder: (BuildContext context) {
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setModalState) {
-            return SafeArea(
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      _text(strings, 'selectMonth', '달 선택'),
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      children: <Widget>[
-                        Expanded(
-                          child: DropdownButtonFormField<int>(
-                            initialValue: selectedYear,
-                            decoration: InputDecoration(
-                              labelText: _text(strings, 'yearLabel', '연도'),
-                            ),
-                            items: List<DropdownMenuItem<int>>.generate(11, (
-                              int index,
-                            ) {
-                              final year = now.year - 5 + index;
-                              return DropdownMenuItem<int>(
-                                value: year,
-                                child: Text('$year'),
-                              );
-                            }),
-                            onChanged: (int? value) {
-                              if (value == null) {
-                                return;
-                              }
-
-                              setModalState(() {
-                                selectedYear = value;
-                              });
-                            },
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: DropdownButtonFormField<int>(
-                            initialValue: selectedMonth,
-                            decoration: InputDecoration(
-                              labelText: _text(strings, 'monthLabel', '월'),
-                            ),
-                            items: List<DropdownMenuItem<int>>.generate(12, (
-                              int index,
-                            ) {
-                              final month = index + 1;
-                              return DropdownMenuItem<int>(
-                                value: month,
-                                child: Text('$month'),
-                              );
-                            }),
-                            onChanged: (int? value) {
-                              if (value == null) {
-                                return;
-                              }
-
-                              setModalState(() {
-                                selectedMonth = value;
-                              });
-                            },
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.end,
-                      children: <Widget>[
-                        TextButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          child: Text(_text(strings, 'cancel', '취소')),
-                        ),
-                        const SizedBox(width: 8),
-                        FilledButton(
-                          onPressed: () {
-                            Navigator.of(
-                              context,
-                            ).pop(DateTime(selectedYear, selectedMonth));
-                          },
-                          child: Text(_text(strings, 'apply', '적용')),
-                        ),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
-        );
-      },
-    );
-
-    if (pickedMonth == null) {
-      return;
-    }
-
-    setState(() {
-      _selectedMonth = DateTime(pickedMonth.year, pickedMonth.month);
+  void _maybeStartShowcase() {
+    if (_showcaseStarted) return;
+    if (_showcaseContext == null) return;
+    final state = ref.read(tutorialProvider);
+    if (!state.isActive || state.phase != TutorialPhase.analysis) return;
+    _showcaseStarted = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted || _showcaseContext == null) return;
+      ShowCaseWidget.of(_showcaseContext!).startShowCase([
+        _periodControlKey,
+        _pdfBtnKey,
+      ]);
     });
   }
 
-  /// 날짜 범위 선택 모달을 보여주고, 선택된 범위로 상태를 업데이트 하는 메서드
-  Future<void> _pickDateRange(
-    BuildContext context,
-    Map<String, String> strings,
-    String localeCode,
-  ) async {
-    final now = DateTime.now();
-    final pickedRange = await showDateRangePicker(
-      context: context,
-      locale: Locale(_intlLocaleCode(localeCode)),
-      firstDate: DateTime(now.year - 5),
-      lastDate: DateTime(now.year + 5, 12, 31),
-      currentDate: now,
-      initialDateRange: _selectedRange,
-      helpText: _text(strings, 'selectDateRange', '캘린더 기간 선택'),
-      cancelText: _text(strings, 'cancel', '취소'),
-      saveText: _text(strings, 'apply', '적용'),
-    );
-    if (pickedRange == null) {
-      return;
+  void _onShowcaseComplete(int? index, GlobalKey key) {
+    if (key == _pdfBtnKey) {
+      // 분석 튜토리얼 완료 → PDF 리포트 페이지로 이동
+      ref.read(tutorialProvider.notifier).setPhase(TutorialPhase.pdfReport);
+      Navigator.of(context).pushNamed(AppRouter.generatingReportRoute);
     }
-
-    setState(() {
-      _selectedRange = DateTimeRange(
-        start: DateTime(
-          pickedRange.start.year,
-          pickedRange.start.month,
-          pickedRange.start.day,
-        ),
-        end: DateTime(
-          pickedRange.end.year,
-          pickedRange.end.month,
-          pickedRange.end.day,
-        ),
-      );
-    });
   }
 
-  Widget _buildSummarySection({
-    required BuildContext context,
-    required Map<String, String> strings,
-    required String title,
-    required String subtitle,
-    required bool expanded,
-    required VoidCallback onToggle,
-    required List<MetadataTag> tags,
-    required Map<String, int> summary,
-    required Map<String, int> countSummary,
-    required int totalAmount,
-    required String topLabel,
-    required String emptyMessage,
-    required bool showFixedExpenseSummary,
-    required Map<String, int> fixedExpenseSummary,
-    required Map<String, int> fixedExpenseCountSummary,
-    required List<FixedExpense> fixedExpenseItems,
-    required int fixedExpenseTotal,
-    required bool showFixedExpenseAsItems,
-  }) {
-    final sortedEntries = summary.entries.toList()
-      ..sort(
-        (MapEntry<String, int> left, MapEntry<String, int> right) =>
-            right.value.compareTo(left.value),
-      );
-    final topCategory = _topCategory(summary);
-
-    return BootstrapSectionCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          /// 요약 카드의 헤더 영역이다.
-          /// 섹션 제목, 부제목, 펼치기/접기 버튼으로 구성된다.
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: GestureDetector(
-                  onTap: onToggle,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        title,
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              IconButton(
-                onPressed: onToggle,
-                icon: Icon(expanded ? Icons.expand_less : Icons.expand_more),
-              ),
-            ],
+  Future<void> _handleBackDuringTutorial() async {
+    if (_showcaseContext != null) {
+      try { ShowCaseWidget.of(_showcaseContext!).dismiss(); } catch (_) {}
+    }
+    final strings = ref.read(localizedStringsProvider);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        title: Text(strings['tutorialExitTitle'] ?? '튜토리얼 종료'),
+        content: Text(strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: Text(strings['tutorialContinue'] ?? '계속하기'),
           ),
-
-          /// 확장된 경우에만 상세 내용을 보여준다. [월간요약]
-          if (expanded) const SizedBox(height: 12),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 200),
-            curve: Curves.easeInOut,
-            child: !expanded
-                ? const SizedBox.shrink()
-                : Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      /// 현재 선택된 조건의 총 지출 금액을 강조해서 보여주는 영역이다.
-                      Container(
-                        width: double.infinity,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 12,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFFF6F9FF),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: Text(
-                                _text(strings, 'totalSpent', '총 지출금액'),
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                            Text(
-                              _formatCurrency(strings, totalAmount),
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(fontWeight: FontWeight.w700),
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      /// 카테고리별 합계를 세로 목록으로 보여준다.
-                      if (sortedEntries.isEmpty)
-                        Text(emptyMessage)
-                      else
-                        ...sortedEntries.map((MapEntry<String, int> item) {
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: Row(
-                              children: <Widget>[
-                                Expanded(
-                                  child: Text(_resolveTagLabel(tags, item.key)),
-                                ),
-                                Text(
-                                  '${_formatCurrency(strings, item.value)} (${countSummary[item.key] ?? 0}${_text(strings, 'entryCountUnit', '건')})',
-                                ),
-                              ],
-                            ),
-                          );
-                        }),
-
-                      if (showFixedExpenseSummary) ...<Widget>[
-                        const SizedBox(height: 8),
-                        const Divider(height: 16),
-                        const SizedBox(height: 6),
-                        Text(
-                          _text(strings, 'fixedExpenseTitle', '고정지출'),
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                        const SizedBox(height: 8),
-                        if (showFixedExpenseAsItems &&
-                            fixedExpenseItems.isEmpty)
-                          Text(_text(strings, 'emptyData', '아직 입력된 데이터가 없습니다.'))
-                        else if (showFixedExpenseAsItems)
-                          ...fixedExpenseItems.map((FixedExpense item) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: Row(
-                                children: <Widget>[
-                                  Expanded(child: Text(item.description)),
-                                  Text(_formatCurrency(strings, item.amount)),
-                                ],
-                              ),
-                            );
-                          })
-                        else if (fixedExpenseSummary.isEmpty)
-                          Text(_text(strings, 'emptyData', '아직 입력된 데이터가 없습니다.'))
-                        else
-                          ...(() {
-                            final sortedFixedEntries =
-                                fixedExpenseSummary.entries.toList()..sort(
-                                  (
-                                    MapEntry<String, int> left,
-                                    MapEntry<String, int> right,
-                                  ) => right.value.compareTo(left.value),
-                                );
-                            return sortedFixedEntries.map((
-                              MapEntry<String, int> item,
-                            ) {
-                              return Padding(
-                                padding: const EdgeInsets.only(bottom: 10),
-                                child: Row(
-                                  children: <Widget>[
-                                    Expanded(
-                                      child: Text(
-                                        _resolveTagLabel(tags, item.key),
-                                      ),
-                                    ),
-                                    Text(
-                                      '${_formatCurrency(strings, item.value)} (${fixedExpenseCountSummary[item.key] ?? 0}${_text(strings, 'entryCountUnit', '건')})',
-                                    ),
-                                  ],
-                                ),
-                              );
-                            });
-                          })(),
-                        const SizedBox(height: 2),
-                        Row(
-                          children: <Widget>[
-                            Expanded(
-                              child: Text(
-                                _text(strings, 'fixedExpenseTotal', '고정지출 합계'),
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(fontWeight: FontWeight.w600),
-                              ),
-                            ),
-                            Text(
-                              _formatCurrency(strings, fixedExpenseTotal),
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(fontWeight: FontWeight.w700),
-                            ),
-                          ],
-                        ),
-                      ],
-
-                      /// 가장 많이 지출한 카테고리를 별도로 다시 요약해서 보여준다.
-                      if (topCategory != null) ...<Widget>[
-                        const Divider(height: 24),
-                        Text(
-                          _text(strings, 'detailedSummary', '상세 요약'),
-                          style: Theme.of(context).textTheme.titleMedium
-                              ?.copyWith(fontWeight: FontWeight.w700),
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: <Widget>[
-                            Expanded(child: Text(topLabel)),
-                            Text(
-                              '${_resolveTagLabel(tags, topCategory.key)} (${_formatCurrency(strings, topCategory.value)} / ${countSummary[topCategory.key] ?? 0}${_text(strings, 'entryCountUnit', '건')})',
-                              style: Theme.of(context).textTheme.bodyMedium
-                                  ?.copyWith(fontWeight: FontWeight.w600),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ],
-                  ),
+          FilledButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: Text(strings['tutorialExitConfirm'] ?? '종료'),
           ),
         ],
       ),
     );
+    if (confirmed == true && mounted) {
+      await ref.read(mockDataServiceProvider).cleanupMockData(ref);
+      await ref.read(tutorialProvider.notifier).exitTutorial();
+    } else if (mounted) {
+      _showcaseStarted = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _maybeStartShowcase();
+      });
+    }
   }
 
   @override
-  Widget build(BuildContext context) {
-    final strings = ref.watch(localizedStringsProvider);
-    final ledger = ref.watch(ledgerProvider).asData?.value;
-    if (ledger == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+  void initState() {
+    super.initState();
+    final DateTime now = DateTime.now();
+    _selectedMonth = DateTime(now.year, now.month, 1);
+  }
+
+  // ─── 로케일 헬퍼 ────────────────────────────────────────────────
+
+  String _text(
+    Map<String, String> strings,
+    String key, [
+    String fallback = '',
+  ]) => strings[key] ?? fallback;
+
+  String _intlLocale(String localeCode) => localeCode == 'jp' ? 'ja' : 'ko';
+
+  String _formatMonth(String localeCode, DateTime month) =>
+      DateFormat.yMMMM(_intlLocale(localeCode)).format(month);
+
+  String _formatRange(String localeCode, DateTimeRange range) {
+    final DateFormat fmt = DateFormat('MM.dd', _intlLocale(localeCode));
+    return '${fmt.format(range.start)} - ${fmt.format(range.end)}';
+  }
+
+  // ─── 전월동기 쿼리 ───────────────────────────────────────────────
+
+  DateTime _shiftOneMonthBack(DateTime d) {
+    final int year = d.month == 1 ? d.year - 1 : d.year;
+    final int month = d.month == 1 ? 12 : d.month - 1;
+    final int lastDay = DateTime(year, month + 1, 0).day;
+    return DateTime(year, month, d.day < lastDay ? d.day : lastDay);
+  }
+
+  ExpenseRangeQuery _computeAnalysisPrevQuery() {
+    final DateTime now = DateTime.now();
+    final bool usingRange =
+        _periodMode == _PeriodMode.range && _selectedRange != null;
+    if (!usingRange) {
+      final bool isCurrentMonth =
+          _selectedMonth.year == now.year && _selectedMonth.month == now.month;
+      final DateTime refDate = isCurrentMonth
+          ? now
+          : DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0);
+      return computePrevSamePeriodQuery(refDate);
+    }
+    return ExpenseRangeQuery(
+      start: _shiftOneMonthBack(_selectedRange!.start),
+      endInclusive: _shiftOneMonthBack(_selectedRange!.end),
+    );
+  }
+
+  // ─── 비교 안내 배너 ──────────────────────────────────────────────
+
+  Widget _buildComparisonBanner({
+    required Map<String, String> strings,
+    required AsyncValue<List<ExpenseEntry>> expensesAsync,
+    required List<ExpenseEntry> prevCategoryExpenses,
+    required ExpenseRangeQuery analysisPrevQuery,
+  }) {
+    final List<ExpenseEntry>? currentExpenses = expensesAsync.asData?.value;
+    // 로딩 중이거나 에러면 배너 표시 안 함
+    if (currentExpenses == null) return const SizedBox.shrink();
+
+    final String monthSuffix = strings['chartDateMonthSuffix'] ?? '월';
+    final String daySuffix = strings['chartDateDaySuffix'] ?? '일';
+
+    final String message;
+    final Color bgColor;
+    final Color borderColor;
+    final IconData icon;
+    final Color iconColor;
+
+    if (currentExpenses.isEmpty) {
+      message = strings['analysisNoCurrMonthData'] ?? '이번 달 소비 데이터가 없습니다.';
+      bgColor = const Color(0xFFFFF8E1);
+      borderColor = const Color(0xFFFFE082);
+      icon = Icons.info_outline;
+      iconColor = const Color(0xFFF9A825);
+    } else if (prevCategoryExpenses.isEmpty) {
+      message = strings['analysisNoPrevPeriodData'] ?? '전월동기 비교 데이터가 없습니다.';
+      bgColor = const Color(0xFFF5F5F5);
+      borderColor = const Color(0xFFE0E0E0);
+      icon = Icons.compare_arrows;
+      iconColor = Colors.grey.shade500;
+    } else {
+      final DateTime s = analysisPrevQuery.start;
+      final DateTime e = analysisPrevQuery.endInclusive;
+      final String startStr = '${s.month}$monthSuffix ${s.day}$daySuffix';
+      final String endStr = '${e.month}$monthSuffix ${e.day}$daySuffix';
+      message = (strings['analysisCompPeriodHint'] ??
+              '{start} ~ {end} 기간과 비교한 결과도 표시됩니다.')
+          .replaceAll('{start}', startStr)
+          .replaceAll('{end}', endStr);
+      bgColor = const Color(0xFFE8F4FD);
+      borderColor = const Color(0xFFBBDEFB);
+      icon = Icons.compare_arrows;
+      iconColor = const Color(0xFF1565C0);
     }
 
-    final localeCode = ledger.settings.localeCode;
-    final categoryTags = ledger.tagsByType(MetadataTagType.category);
-    final subcategoryTags = ledger.tagsByType(MetadataTagType.subcategory);
-    final paymentTags = ledger.tagsByType(MetadataTagType.paymentMethod);
-    final monthlyExpensesAsync = ref.watch(
-      monthlyExpensesProvider(_selectedMonth),
-    );
-    if (monthlyExpensesAsync.isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-    if (monthlyExpensesAsync.hasError) {
-      return Scaffold(
-        body: Center(child: Text(monthlyExpensesAsync.error.toString())),
-      );
-    }
-    final monthlyExpenses =
-        monthlyExpensesAsync.asData?.value ?? const <ExpenseEntry>[];
-
-    final rangeQuery = _selectedRange == null
-        ? null
-        : ExpenseRangeQuery(
-            start: DateTime(
-              _selectedRange!.start.year,
-              _selectedRange!.start.month,
-              _selectedRange!.start.day,
-            ),
-            endInclusive: DateTime(
-              _selectedRange!.end.year,
-              _selectedRange!.end.month,
-              _selectedRange!.end.day,
-            ),
-          );
-    final rangeExpensesAsync = rangeQuery == null
-        ? const AsyncData<List<ExpenseEntry>>(<ExpenseEntry>[])
-        : ref.watch(rangeExpensesProvider(rangeQuery));
-    if (rangeExpensesAsync.isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-    if (rangeExpensesAsync.hasError) {
-      return Scaffold(
-        body: Center(child: Text(rangeExpensesAsync.error.toString())),
-      );
-    }
-    final rangeExpenses =
-        rangeExpensesAsync.asData?.value ?? const <ExpenseEntry>[];
-    final monthlyFixedExpenses = ledger.fixedExpenses.where((
-      FixedExpense item,
-    ) {
-      return item.appliedAt.year == _selectedMonth.year &&
-          item.appliedAt.month == _selectedMonth.month;
-    }).toList();
-
-    final monthlySummary = _sumByCategory(monthlyExpenses);
-    final monthlySubcategorySummary = _sumBySubcategory(monthlyExpenses);
-    final monthlyPaymentSummary = _sumByPaymentMethod(monthlyExpenses);
-    final monthlyFixedPaymentSummary = _sumFixedByPaymentMethod(
-      monthlyFixedExpenses,
-    );
-    final monthlyFixedPaymentCountSummary = _countFixedByPaymentMethod(
-      monthlyFixedExpenses,
-    );
-    final monthlyCategoryCountSummary = _countByGroup(
-      monthlyExpenses,
-      (ExpenseEntry entry) => entry.categoryCode,
-    );
-    final monthlySubcategoryCountSummary = _countByGroup(
-      monthlyExpenses,
-      (ExpenseEntry entry) => entry.subcategoryCode,
-    );
-    final monthlyPaymentCountSummary = _countByGroup(
-      monthlyExpenses,
-      (ExpenseEntry entry) => entry.paymentMethodCode,
-    );
-    final rangeSummary = _sumByCategory(rangeExpenses);
-    final rangeSubcategorySummary = _sumBySubcategory(rangeExpenses);
-    final rangePaymentSummary = _sumByPaymentMethod(rangeExpenses);
-    final rangeCategoryCountSummary = _countByGroup(
-      rangeExpenses,
-      (ExpenseEntry entry) => entry.categoryCode,
-    );
-    final rangeSubcategoryCountSummary = _countByGroup(
-      rangeExpenses,
-      (ExpenseEntry entry) => entry.subcategoryCode,
-    );
-    final rangePaymentCountSummary = _countByGroup(
-      rangeExpenses,
-      (ExpenseEntry entry) => entry.paymentMethodCode,
-    );
-    final nowMonth = DateTime.now();
-    final isDefaultThisMonth =
-        _selectedRange == null && _isSameYearMonth(_selectedMonth, nowMonth);
-    final isPeriodView = !isDefaultThisMonth;
-    final usingRange = _selectedRange != null;
-    final activeCategorySummary = usingRange ? rangeSummary : monthlySummary;
-    final activePaymentSummary = usingRange
-        ? rangePaymentSummary
-        : monthlyPaymentSummary;
-    final activeSubcategorySummary = usingRange
-        ? rangeSubcategorySummary
-        : monthlySubcategorySummary;
-    final activeCategoryCountSummary = usingRange
-        ? rangeCategoryCountSummary
-        : monthlyCategoryCountSummary;
-    final activeSubcategoryCountSummary = usingRange
-        ? rangeSubcategoryCountSummary
-        : monthlySubcategoryCountSummary;
-    final activePaymentCountSummary = usingRange
-        ? rangePaymentCountSummary
-        : monthlyPaymentCountSummary;
-    final activeExpenses = usingRange ? rangeExpenses : monthlyExpenses;
-    final activeSubtitle = usingRange
-        ? _formatRange(localeCode, _selectedRange!)
-        : _formatMonth(localeCode, _selectedMonth);
-    final activeEmptyMessage = usingRange
-        ? _text(strings, 'emptySelectedPeriodData', '선택된 기간내 소비 내역이 없습니다')
-        : _text(strings, 'emptyData', '아직 입력된 데이터가 없습니다.');
-
-    /// 공통 부트스트랩 페이지를 작성한다.
-    return BootstrapPage(
-      title: strings['analysis'] ?? '',
-      child: SingleChildScrollView(
-        child: Column(
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: borderColor),
+        ),
+        child: Row(
           children: <Widget>[
-            /// 상단 요약 카드 영역이다.
-            /// 이번 달 총 지출과 고정 지출 합계를 나란히 보여준다.
-
-            // BootstrapSectionCard(
-            //   child: Row(
-            //     children: <Widget>[
-            //       Expanded(
-            //         child: BootstrapSummaryTile(
-            //           label: strings['totalSpent'] ?? '',
-            //           value: _formatCurrency(
-            //             strings,
-            //             ledger.monthlyExpenseTotal(_selectedMonth),
-            //           ),
-            //           color: const Color(0xFFDC3545),
-            //         ),
-            //       ),
-            //       const SizedBox(width: 12),
-            //       Expanded(
-            //         child: BootstrapSummaryTile(
-            //           label: strings['fixedExpenseTotal'] ?? '',
-            //           value: _formatCurrency(strings, ledger.fixedExpenseTotal),
-            //           color: const Color(0xFF0D6EFD),
-            //         ),
-            //       ),
-            //     ],
-            //   ),
-            // ),
-            // const SizedBox(height: 16),
-
-            /// 분석 기준을 바꾸는 필터 영역이다.
-
-            /// 월 선택, 기간 선택, 선택 초기화 버튼을 배치한다.
-            BootstrapSectionCard(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: <Widget>[
-                  Text(
-                    _text(strings, 'analysisPeriodSelectionTitle', '달 선택'),
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  Wrap(
-                    spacing: 12,
-                    runSpacing: 12,
-                    children: <Widget>[
-                      OutlinedButton.icon(
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 0),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                        ),
-                        onPressed: () => _pickMonth(context, strings),
-                        icon: const Icon(Icons.calendar_month_outlined),
-                        label: Text(
-                          '${_text(strings, 'selectMonth', '달 선택')} : ${_formatMonth(localeCode, _selectedMonth)}',
-                        ),
-                      ),
-
-                      /// 날짜 범위 선택 버튼과 선택 초기화 버튼을 배치한다.
-                      OutlinedButton.icon(
-                        // 버튼 스타일 통일 (넓이 max) 및 패딩 조정
-                        style: OutlinedButton.styleFrom(
-                          minimumSize: const Size(double.infinity, 0),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 12,
-                          ),
-                        ),
-                        onPressed:
-                            () => // 날짜 범위 선택 모달을 보여주고, 선택된 범위로 상태를 업데이트 하는 메서드
-                                _pickDateRange(context, strings, localeCode),
-                        icon: const Icon(Icons.date_range_outlined),
-                        label: Text(
-                          _selectedRange == null
-                              ? _text(strings, 'selectDateRange', '캘린더 기간 선택')
-                              : _formatRange(localeCode, _selectedRange!),
-                        ),
-                      ),
-                      if (_selectedRange != null)
-                        TextButton(
-                          onPressed: () {
-                            setState(() {
-                              _selectedRange = null;
-                            });
-                          },
-                          child: Text(
-                            _text(strings, 'clearSelection', '선택 초기화'),
-                          ),
-                        ),
-                    ],
-                  ),
-                ],
+            Icon(icon, size: 16, color: iconColor),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(fontSize: 12, color: Colors.grey.shade800),
               ),
-            ),
-            const SizedBox(height: 16),
-
-            /// 선택한 월의 지출을 카테고리별로 요약하는 섹션이다.
-            _buildSummarySection(
-              context: context,
-              strings: strings,
-              title: isPeriodView
-                  ? _text(strings, 'rangeSummary', '기간 선택 요약')
-                  : _text(strings, 'monthlySummary', '월별 요약'),
-              subtitle: activeSubtitle,
-              expanded: _isMonthlySummaryExpanded,
-              onToggle: () {
-                setState(() {
-                  _isMonthlySummaryExpanded = !_isMonthlySummaryExpanded;
-                });
-              },
-              tags: categoryTags,
-              summary: activeCategorySummary,
-              countSummary: activeCategoryCountSummary,
-              totalAmount: _sumAmount(activeExpenses),
-              topLabel: _text(strings, 'mostUsedCategory', '제일 많이 쓰는 카테고리'),
-              emptyMessage: activeEmptyMessage,
-              showFixedExpenseSummary: !usingRange,
-              fixedExpenseSummary: const <String, int>{},
-              fixedExpenseCountSummary: const <String, int>{},
-              fixedExpenseItems: usingRange
-                  ? const <FixedExpense>[]
-                  : monthlyFixedExpenses,
-              fixedExpenseTotal: usingRange
-                  ? 0
-                  : monthlyFixedExpenses.fold<int>(
-                      0,
-                      (int total, FixedExpense item) => total + item.amount,
-                    ),
-              showFixedExpenseAsItems: true,
-            ),
-            const SizedBox(height: 16),
-
-            /// 기본은 월별, 월 변경/기간 선택 시 기간 기준으로 소비 소구분을 요약한다.
-            _buildSummarySection(
-              context: context,
-              strings: strings,
-              title: isPeriodView
-                  ? _text(strings, 'rangeSubcategorySummary', '기간별 소비 소구분 요약')
-                  : _text(strings, 'monthlySubcategorySummary', '월별 소비 소구분 요약'),
-              subtitle: activeSubtitle,
-              expanded: _isMonthlySubcategorySummaryExpanded,
-              onToggle: () {
-                setState(() {
-                  _isMonthlySubcategorySummaryExpanded =
-                      !_isMonthlySubcategorySummaryExpanded;
-                });
-              },
-              tags: subcategoryTags,
-              summary: activeSubcategorySummary,
-              countSummary: activeSubcategoryCountSummary,
-              totalAmount: _sumAmount(activeExpenses),
-              topLabel: _text(
-                strings,
-                'mostUsedSubcategory',
-                '제일 많이 쓰는 소비 소구분',
-              ),
-              emptyMessage: activeEmptyMessage,
-              showFixedExpenseSummary: false,
-              fixedExpenseSummary: const <String, int>{},
-              fixedExpenseCountSummary: const <String, int>{},
-              fixedExpenseItems: const <FixedExpense>[],
-              fixedExpenseTotal: 0,
-              showFixedExpenseAsItems: false,
-            ),
-            const SizedBox(height: 16),
-
-            /// 기본은 월별, 월 변경/기간 선택 시 기간 기준으로 소비수단을 요약한다.
-            _buildSummarySection(
-              context: context,
-              strings: strings,
-              title: isPeriodView
-                  ? _text(strings, 'rangePaymentSummary', '기간별 소비수단 요약')
-                  : _text(strings, 'monthlyPaymentSummary', '월별 소비수단 요약'),
-              subtitle: activeSubtitle,
-              expanded: _isMonthlyPaymentSummaryExpanded,
-              onToggle: () {
-                setState(() {
-                  _isMonthlyPaymentSummaryExpanded =
-                      !_isMonthlyPaymentSummaryExpanded;
-                });
-              },
-              tags: paymentTags,
-              summary: activePaymentSummary,
-              countSummary: activePaymentCountSummary,
-              totalAmount: _sumAmount(activeExpenses),
-              topLabel: _text(
-                strings,
-                'mostUsedPaymentMethod',
-                '제일 많이 사용한 소비수단',
-              ),
-              emptyMessage: activeEmptyMessage,
-              showFixedExpenseSummary: !usingRange,
-              fixedExpenseSummary: usingRange
-                  ? const <String, int>{}
-                  : monthlyFixedPaymentSummary,
-              fixedExpenseCountSummary: usingRange
-                  ? const <String, int>{}
-                  : monthlyFixedPaymentCountSummary,
-              fixedExpenseItems: const <FixedExpense>[],
-              fixedExpenseTotal: usingRange
-                  ? 0
-                  : monthlyFixedExpenses.fold<int>(
-                      0,
-                      (int total, FixedExpense item) => total + item.amount,
-                    ),
-              showFixedExpenseAsItems: false,
             ),
           ],
         ),
       ),
     );
   }
+
+  // ─── 빌드 ────────────────────────────────────────────────────────
+
+  @override
+  Widget build(BuildContext context) {
+    final Map<String, String> strings = ref.watch(localizedStringsProvider);
+    final ledger = ref.watch(ledgerProvider).asData?.value;
+    if (ledger == null) {
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    final String localeCode = ledger.settings.localeCode;
+    final String currency = strings['currencyUnit'] ?? '₩';
+    final List<MetadataTag> categoryTags = ledger.tagsByType(
+      MetadataTagType.category,
+    );
+    final List<MetadataTag> subcategoryTags = ledger.tagsByType(
+      MetadataTagType.subcategory,
+    );
+    final List<MetadataTag> paymentTags = ledger.tagsByType(
+      MetadataTagType.paymentMethod,
+    );
+
+    final bool usingRange =
+        _periodMode == _PeriodMode.range && _selectedRange != null;
+
+    final ExpenseRangeQuery? rangeQuery = usingRange
+        ? ExpenseRangeQuery(
+            start: _selectedRange!.start,
+            endInclusive: _selectedRange!.end,
+          )
+        : null;
+
+    final AsyncValue<List<ExpenseEntry>> expensesAsync = usingRange
+        ? ref.watch(rangeExpensesProvider(rangeQuery!))
+        : ref.watch(monthlyExpensesProvider(_selectedMonth));
+
+    final ExpenseRangeQuery analysisPrevQuery = _computeAnalysisPrevQuery();
+    final List<ExpenseEntry> prevCategoryExpenses =
+        ref.watch(rangeExpensesProvider(analysisPrevQuery)).value ??
+        const <ExpenseEntry>[];
+
+    final AsyncValue<List<IncomeEntry>> incomesAsync = ref.watch(
+      monthlyIncomesProvider(_selectedMonth),
+    );
+
+    final List<FixedExpense> monthlyFixed = ledger.fixedExpenses
+        .where(
+          (FixedExpense f) =>
+              f.appliedAt.year == _selectedMonth.year &&
+              f.appliedAt.month == _selectedMonth.month,
+        )
+        .toList();
+
+    final String periodSubtitle = usingRange
+        ? _formatRange(localeCode, _selectedRange!)
+        : _formatMonth(localeCode, _selectedMonth);
+
+    final DateTime chartRangeStart = usingRange
+        ? _selectedRange!.start
+        : _selectedMonth;
+
+    // 기간이 바뀌면 탭 섹션 위젯의 상태(차트 모드, 터치 인덱스)를 초기화한다.
+    final String periodKey = usingRange
+        ? '${_selectedRange!.start}-${_selectedRange!.end}'
+        : _selectedMonth.toString();
+
+    final isTutorial = ref.watch(
+      tutorialProvider.select(
+        (s) => s.isActive && s.phase == TutorialPhase.analysis,
+      ),
+    );
+
+    ref.listen(currentNavTabProvider, (_, tab) {
+      if (tab == 1 &&
+          ref.read(tutorialProvider).phase == TutorialPhase.analysis) {
+        _showcaseStarted = false;
+        _maybeStartShowcase();
+      }
+    });
+
+    Widget buildInner(BuildContext showcaseCtx) {
+      _showcaseContext = showcaseCtx;
+      _maybeStartShowcase();
+
+      final page = BootstrapPage(
+        title: _text(strings, 'analysis', '지출 분석'),
+        actions: <Widget>[
+          IconButton(
+            onPressed: () =>
+                Navigator.of(context).pushNamed(AppRouter.dataManageRoute),
+            icon: const Icon(Icons.manage_search_rounded),
+            tooltip: strings['dataManageTitle'] ?? '데이터 관리',
+          ),
+          IconButton(
+            onPressed: () =>
+                Navigator.of(context).pushNamed(AppRouter.settingsRoute),
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: strings['settingsTitle'] ?? '설정',
+          ),
+        ],
+        child: SingleChildScrollView(
+          child: Column(
+            children: <Widget>[
+              // ── 상단 컨트롤 카드 ──
+              Showcase(
+                key: _periodControlKey,
+                title: strings['tutAnalysisPeriodTitle'] ?? '분석 기간 선택',
+                description: strings['tutAnalysisPeriodDesc'] ?? '월별 또는 기간별로 지출 데이터를 분석할 수 있어요.\n이전/다음 화살표로 월을 이동하거나 달력 기간을 직접 설정해보세요.',
+                tooltipPosition: TooltipPosition.bottom,
+                child: AnalysisPeriodControlCard(
+              showExpense: _showExpense,
+              isRangeMode: _periodMode == _PeriodMode.range,
+              selectedMonth: _selectedMonth,
+              selectedRange: _selectedRange,
+              periodSubtitle: periodSubtitle,
+              localeCode: localeCode,
+              strings: strings,
+              onTabChanged: (bool v) => setState(() => _showExpense = v),
+              onMonthPrev: () => setState(
+                () => _selectedMonth = DateTime(
+                  _selectedMonth.year,
+                  _selectedMonth.month - 1,
+                ),
+              ),
+              onMonthNext: () => setState(
+                () => _selectedMonth = DateTime(
+                  _selectedMonth.year,
+                  _selectedMonth.month + 1,
+                ),
+              ),
+              onMonthChanged: (DateTime d) =>
+                  setState(() => _selectedMonth = d),
+              onRangeChanged: (DateTimeRange? r) =>
+                  setState(() => _selectedRange = r),
+              onModeChanged: (bool isRange) => setState(() {
+                _periodMode = isRange ? _PeriodMode.range : _PeriodMode.monthly;
+                _selectedRange = null;
+              }),
+            ),
+            ),
+              const SizedBox(height: 16),
+
+            // ── 전월동기 비교 안내 배너 (지출 탭에서만 표시) ──
+            if (_showExpense)
+              _buildComparisonBanner(
+                strings: strings,
+                expensesAsync: expensesAsync,
+                prevCategoryExpenses: prevCategoryExpenses,
+                analysisPrevQuery: analysisPrevQuery,
+              ),
+
+            // ── 지출 탭 ──
+            if (_showExpense)
+              expensesAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (Object e, _) => Center(child: Text(e.toString())),
+                data: (List<ExpenseEntry> expenses) =>
+                    AnalysisExpenseTabSection(
+                      key: ValueKey('expense-$periodKey'),
+                      expenses: expenses,
+                      prevCategoryExpenses: prevCategoryExpenses,
+                      monthlyFixed: monthlyFixed,
+                      categoryTags: categoryTags,
+                      subcategoryTags: subcategoryTags,
+                      paymentTags: paymentTags,
+                      strings: strings,
+                      currency: currency,
+                      usingRange: usingRange,
+                      chartRangeStart: chartRangeStart,
+                      prevRangeStart: analysisPrevQuery.start,
+                    ),
+              ),
+
+            // ── PDF 출력 버튼 (지출 탭에서만 표시) ──
+            if (_showExpense)
+              Showcase(
+                key: _pdfBtnKey,
+                title: strings['tutAnalysisPdfBtnTitle'] ?? 'PDF 리포트 출력',
+                description: strings['tutAnalysisPdfBtnDesc'] ?? '지출 분석 결과를 PDF로 출력하고 공유할 수 있어요!\n다음 단계에서 PDF 설정 화면을 살펴볼게요.',
+                tooltipPosition: TooltipPosition.top,
+                child: Padding(
+                  padding: const EdgeInsets.only(bottom: 8),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: OutlinedButton.icon(
+                      onPressed: () => Navigator.of(
+                        context,
+                      ).pushNamed(AppRouter.generatingReportRoute),
+                      icon: const Icon(
+                        Icons.picture_as_pdf_rounded,
+                        color: Color(0xFFDC3545),
+                      ),
+                      label: Text(
+                        _text(strings, 'analysisExportPdf', 'PDF로 출력하기'),
+                        style: const TextStyle(color: Color(0xFFDC3545)),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        side: const BorderSide(color: Color(0xFFDC3545)),
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+            // ── 수입 탭 ──
+            if (!_showExpense)
+              incomesAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (Object e, _) => Center(child: Text(e.toString())),
+                data: (List<IncomeEntry> incomes) => AnalysisIncomeTabSection(
+                  key: ValueKey('income-$periodKey'),
+                  incomes: incomes,
+                  strings: strings,
+                  currency: currency,
+                  chartRangeStart: chartRangeStart,
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+
+    if (isTutorial) {
+      return PopScope(
+        canPop: false,
+        onPopInvokedWithResult: (didPop, _) {
+          if (!didPop) _handleBackDuringTutorial();
+        },
+        child: page,
+      );
+    }
+    return page;
+  }
+
+  return ShowCaseWidget(
+    onComplete: _onShowcaseComplete,
+    enableAutoScroll: true,
+    builder: buildInner,
+  );
+}
 }
