@@ -1045,7 +1045,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
               key: _settingsNavKey,
               title: strings['tutDataManageSettingsNavTitle'] ?? '설정 화면으로 이동',
               description: strings['tutDataManageSettingsNavDesc'] ?? '다음은 앱 설정 화면을 살펴볼게요!\n설정에서 태그 관리, 데이터 백업 등을 할 수 있어요.',
-              tooltipPosition: TooltipPosition.top,
+              tooltipPosition: TooltipPosition.bottom,
               child: IconButton(
                 onPressed: () =>
                     Navigator.of(context).pushNamed(AppRouter.settingsRoute),
@@ -1061,7 +1061,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                   key: _filterCardKey,
                   title: strings['tutDataManageFilterTitle'] ?? '데이터 검색',
                   description: strings['tutDataManageFilterDesc'] ?? '소비수단, 기간, 카테고리 등 조건으로 기록을 조회하고\n일괄 삭제 또는 태그 변경을 할 수 있어요.',
-                  tooltipPosition: TooltipPosition.top,
+                  tooltipPosition: TooltipPosition.bottom,
                   child: _buildFilterCard(
                     strings,
                     filter,

@@ -39,10 +39,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     _showcaseStarted = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || _showcaseContext == null) return;
-      ShowCaseWidget.of(_showcaseContext!).startShowCase([
-        _tagSectionKey,
-        _dataManageSectionKey,
-      ]);
+      ShowCaseWidget.of(
+        _showcaseContext!,
+      ).startShowCase([_tagSectionKey, _dataManageSectionKey]);
     });
   }
 
@@ -55,7 +54,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   Future<void> _handleBackDuringTutorial() async {
     if (_showcaseContext != null) {
-      try { ShowCaseWidget.of(_showcaseContext!).dismiss(); } catch (_) {}
+      try {
+        ShowCaseWidget.of(_showcaseContext!).dismiss();
+      } catch (_) {}
     }
     final strings = ref.read(localizedStringsProvider);
     final confirmed = await showDialog<bool>(
@@ -63,7 +64,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         title: Text(strings['tutorialExitTitle'] ?? '튜토리얼 종료'),
-        content: Text(strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.'),
+        content: Text(
+          strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -414,8 +417,10 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               Showcase(
                 key: _tagSectionKey,
                 title: strings['tutSettingsTagTitle'] ?? '태그 관리',
-                description: strings['tutSettingsTagDesc'] ?? '소비구분, 소비세부, 소비수단 태그를 추가·수정·삭제할 수 있어요.\n나만의 태그로 지출 분류를 맞춤 설정해보세요!',
-                tooltipPosition: TooltipPosition.top,
+                description:
+                    strings['tutSettingsTagDesc'] ??
+                    '소비구분, 소비세부, 소비수단 태그를 추가·수정·삭제할 수 있어요.\n나만의 태그로 지출 분류를 맞춤 설정해보세요!',
+                tooltipPosition: TooltipPosition.bottom,
                 child: Column(
                   children: <Widget>[
                     TagManagementSection(
@@ -458,7 +463,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               Showcase(
                 key: _dataManageSectionKey,
                 title: strings['tutSettingsDataManageTitle'] ?? '데이터 관리',
-                description: strings['tutSettingsDataManageDesc'] ?? '데이터를 CSV 파일로 내보내거나 가져올 수 있어요.\n다음 단계에서 데이터 내보내기 화면을 살펴볼게요!',
+                description:
+                    strings['tutSettingsDataManageDesc'] ??
+                    '데이터를 CSV 파일로 내보내거나 가져올 수 있어요.\n다음 단계에서 데이터 내보내기 화면을 살펴볼게요!',
                 tooltipPosition: TooltipPosition.top,
                 child: _buildDataManagementSection(context, strings),
               ),
@@ -519,7 +526,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
           ),
           const SizedBox(height: 12),
           BootstrapActionButton(
-            label: '튜토리얼 다시 시작',
+            label: _text(strings, 'tutorialAgainButtonTitle'),
             icon: Icons.replay_outlined,
             backgroundColor: const Color(0xFF6C757D),
             onPressed: () async {

@@ -231,7 +231,7 @@ class _IncomePageState extends ConsumerState<IncomePage> {
                     key: _budgetTileKey,
                     title: strings['tutIncomeSummaryTitle'] ?? '수입 요약',
                     description: strings['tutIncomeSummaryDesc'] ?? '이번달 소득 합계와 예산이 표시됩니다.\n소득을 입력하면 홈 화면의 지출가능금액도 자동으로 업데이트돼요.',
-                    tooltipPosition: TooltipPosition.top,
+                    tooltipPosition: TooltipPosition.bottom,
                     child: Row(
                       children: <Widget>[
                         Expanded(

@@ -390,7 +390,7 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
                     key: _signatureSectionKey,
                     title: strings['tutExportSignatureTitle'] ?? '이메일 및 패스키 서명',
                     description: strings['tutExportSignatureDesc'] ?? '내보내기 파일에 서명을 추가해요.\n이메일과 패스키는 나중에 가져오기 시 본인 확인에 사용됩니다.',
-                    tooltipPosition: TooltipPosition.top,
+                    tooltipPosition: TooltipPosition.bottom,
                     child: BootstrapSectionCard(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,

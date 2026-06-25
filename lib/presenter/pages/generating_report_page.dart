@@ -426,7 +426,7 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                   key: _periodSelectorKey,
                   title: strings['tutReportPeriodTitle'] ?? '리포트 기간 설정',
                   description: strings['tutReportPeriodDesc'] ?? '분석 기간을 선택해요.\n월별 또는 직접 날짜 범위를 지정할 수 있습니다.',
-                  tooltipPosition: TooltipPosition.top,
+                  tooltipPosition: TooltipPosition.bottom,
                   child: ReportPeriodSelector(
                     isRangeMode: _periodMode == _PeriodMode.range,
                     selectedMonth: _selectedMonth,
@@ -450,7 +450,7 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                   key: _titleFieldKey,
                   title: strings['tutReportTitleFieldTitle'] ?? 'PDF 타이틀',
                   description: strings['tutReportTitleFieldDesc'] ?? 'PDF 파일에 표시될 제목을 입력해요.\n기본값은 Household Ledger입니다.',
-                  tooltipPosition: TooltipPosition.top,
+                  tooltipPosition: TooltipPosition.bottom,
                   child: BootstrapSectionCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -488,7 +488,7 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                   key: _emailFieldKey,
                   title: strings['tutReportEmailFieldTitle'] ?? '이메일 입력',
                   description: strings['tutReportEmailFieldDesc'] ?? 'PDF에 표시될 이메일 주소를 입력해요.\n리포트 헤더에 담당자 이메일로 표시됩니다.',
-                  tooltipPosition: TooltipPosition.top,
+                  tooltipPosition: TooltipPosition.bottom,
                   child: BootstrapSectionCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -587,7 +587,7 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                   key: _optionSelectorKey,
                   title: strings['tutReportOptionTitle'] ?? '리포트 포함 항목',
                   description: strings['tutReportOptionDesc'] ?? 'PDF에 포함할 데이터 항목을 선택해요.\n필요한 항목만 체크하면 더 간결한 리포트가 생성됩니다.',
-                  tooltipPosition: TooltipPosition.top,
+                  tooltipPosition: TooltipPosition.bottom,
                   child: ReportOptionSelector(
                     includeTop10: _includeTop10,
                     includeFixedExpenses: _includeFixedExpenses,

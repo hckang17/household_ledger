@@ -21,7 +21,7 @@ class _SetupPageState extends ConsumerState<SetupPage> {
   late final TextEditingController _nameController;
   late final TextEditingController _ageController;
   late final TextEditingController _budgetController;
-  final String _localeCode = 'ko';
+  late final String _localeCode;
 
   final GlobalKey _nameKey = GlobalKey();
   final GlobalKey _ageKey = GlobalKey();
@@ -40,6 +40,9 @@ class _SetupPageState extends ConsumerState<SetupPage> {
     _nameController = TextEditingController();
     _ageController = TextEditingController();
     _budgetController = TextEditingController();
+    final deviceLang =
+        WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+    _localeCode = deviceLang == 'ja' ? 'jp' : 'ko';
   }
 
   void _maybeStartShowcase() {
@@ -154,7 +157,7 @@ class _SetupPageState extends ConsumerState<SetupPage> {
                     key: _nameKey,
                     title: strings['tutSetupNameTitle'] ?? '이름 입력',
                     description: strings['tutSetupNameDesc'] ?? '앱에서 사용할 이름을 입력해주세요. 홈 화면 인사말에 표시됩니다.',
-                    tooltipPosition: TooltipPosition.top,
+                    tooltipPosition: TooltipPosition.bottom,
                     child: TextField(
                       controller: _nameController,
                       decoration:
@@ -166,7 +169,7 @@ class _SetupPageState extends ConsumerState<SetupPage> {
                     key: _ageKey,
                     title: strings['tutSetupAgeTitle'] ?? '나이 입력',
                     description: strings['tutSetupAgeDesc'] ?? '현재 나이를 숫자로 입력해주세요.',
-                    tooltipPosition: TooltipPosition.top,
+                    tooltipPosition: TooltipPosition.bottom,
                     child: TextField(
                       controller: _ageController,
                       keyboardType: TextInputType.number,
@@ -179,7 +182,7 @@ class _SetupPageState extends ConsumerState<SetupPage> {
                     key: _budgetKey,
                     title: strings['tutSetupBudgetTitle'] ?? '월 예산 설정',
                     description: strings['tutSetupBudgetDesc'] ?? '이번달 지출 목표 금액을 입력하세요.\n홈 화면의 지출가능금액 계산에 사용됩니다.',
-                    tooltipPosition: TooltipPosition.top,
+                    tooltipPosition: TooltipPosition.bottom,
                     child: TextField(
                       controller: _budgetController,
                       keyboardType: TextInputType.number,

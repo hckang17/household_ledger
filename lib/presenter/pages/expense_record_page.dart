@@ -310,7 +310,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
               key: _calendarKey,
               title: strings['tutExpenseCalendarTitle'] ?? '캘린더',
               description: strings['tutExpenseCalendarDesc'] ?? '날짜별로 소비 내역을 확인할 수 있어요.\n날짜를 탭하면 해당 날짜의 지출만 필터링됩니다.',
-              tooltipPosition: TooltipPosition.top,
+              tooltipPosition: TooltipPosition.bottom,
               child: ExpenseCalendarSection(
                 focusedMonth: _focusedMonth,
                 selectedDay: _selectedDay,

@@ -331,7 +331,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                 key: _periodControlKey,
                 title: strings['tutAnalysisPeriodTitle'] ?? '분석 기간 선택',
                 description: strings['tutAnalysisPeriodDesc'] ?? '월별 또는 기간별로 지출 데이터를 분석할 수 있어요.\n이전/다음 화살표로 월을 이동하거나 달력 기간을 직접 설정해보세요.',
-                tooltipPosition: TooltipPosition.top,
+                tooltipPosition: TooltipPosition.bottom,
                 child: AnalysisPeriodControlCard(
               showExpense: _showExpense,
               isRangeMode: _periodMode == _PeriodMode.range,
