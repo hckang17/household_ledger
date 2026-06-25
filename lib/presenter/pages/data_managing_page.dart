@@ -1,3 +1,6 @@
+import 'dart:async';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/model/data_search_filter.dart';
@@ -33,8 +36,94 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
   bool _showcaseStarted = false;
   BuildContext? _showcaseContext;
 
+  // ── 검색 로딩 인디케이터용 상태 ──────────────────────────────────────────────
+  double _searchProgress = 0.0;
+  int _searchMsgIndex = 0;
+  bool _isPostSearchRendering = false;
+  int _postSearchToken = 0; // 완료 대기 콜백이 중복 실행되는 것을 방지한다.
+  int _renderTotal = 0;    // 검색 완료 후 처리중 N/N에 사용
+  int _renderCompleted = 0;
+  Timer? _searchRotateTimer;
+  Timer? _searchProgressTimer;
+
+  void _startSearchLoading() {
+    _postSearchToken++; // 진행 중인 완료 대기를 무효화한다.
+    _searchProgressTimer?.cancel();
+    _searchRotateTimer?.cancel();
+    setState(() {
+      _searchProgress = 0.0;
+      _searchMsgIndex = Random().nextInt(3);
+      _isPostSearchRendering = false;
+    });
+    _searchProgressTimer = Timer.periodic(
+      const Duration(milliseconds: 80),
+      (_) {
+        if (!mounted) return;
+        setState(() {
+          _searchProgress = (_searchProgress + 0.01).clamp(0.0, 0.9);
+        });
+      },
+    );
+    _searchRotateTimer = Timer.periodic(
+      const Duration(milliseconds: 1200),
+      (_) {
+        if (!mounted) return;
+        setState(() {
+          int next;
+          do {
+            next = Random().nextInt(3);
+          } while (next == _searchMsgIndex);
+          _searchMsgIndex = next;
+        });
+      },
+    );
+  }
+
+  // 검색 완료: 처리중 N/N 카운트 애니메이션 후 1.5초 뒤 결과 표시
+  void _completeSearchLoading(int resultCount) {
+    _searchProgressTimer?.cancel();
+    _searchProgressTimer = null;
+    if (!mounted) return;
+    final int myToken = ++_postSearchToken;
+    setState(() {
+      _searchProgress = 1.0;
+      _isPostSearchRendering = true;
+      _renderTotal = resultCount;
+      _renderCompleted = 0;
+    });
+    // 처리중 카운트를 0 → resultCount 로 20단계에 걸쳐 약 1.1초 동안 애니메이션
+    if (resultCount > 0) {
+      final int stepSize = (resultCount / 20).ceil().clamp(1, resultCount);
+      const stepDuration = Duration(milliseconds: 55);
+      void tick(int step) {
+        if (!mounted || _postSearchToken != myToken) return;
+        final int next = (step * stepSize).clamp(0, resultCount);
+        setState(() => _renderCompleted = next);
+        if (next < resultCount) {
+          Future.delayed(stepDuration, () => tick(step + 1));
+        } else {
+          setState(() => _renderCompleted = resultCount);
+        }
+      }
+      Future.delayed(stepDuration, () => tick(1));
+    }
+    // 1500ms 후 로딩 카드 숨김 → 결과 표시
+    Future.delayed(const Duration(milliseconds: 1500), () {
+      if (!mounted || _postSearchToken != myToken) return;
+      setState(() {
+        _isPostSearchRendering = false;
+        _renderTotal = 0;
+        _renderCompleted = 0;
+      });
+      _searchRotateTimer?.cancel();
+      _searchRotateTimer = null;
+    });
+  }
+
   @override
   void dispose() {
+    _searchProgressTimer?.cancel();
+    _searchRotateTimer?.cancel();
     _descController.dispose();
     _noteController.dispose();
     super.dispose();
@@ -684,6 +773,107 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
 
   // ── Result section ─────────────────────────────────────────────────────────
 
+  Widget _buildSearchLoadingCard(
+    Map<String, String> strings,
+    List<String> searchMessages,
+  ) {
+    if (_isPostSearchRendering) {
+      // 검색 완료 후: 처리중 N/N건 (operation progress 스타일)
+      final double progress =
+          _renderTotal == 0 ? 1.0 : _renderCompleted / _renderTotal;
+      return BootstrapSectionCard(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: <Widget>[
+            Text(
+              '${_s(strings, 'dataManageOperating', '처리중')} '
+              '$_renderCompleted / $_renderTotal${_s(strings, 'dataManageResultCount', '건')}',
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(4),
+              child: LinearProgressIndicator(
+                value: progress,
+                minHeight: 6,
+                backgroundColor: const Color(0xFFDDE5ED),
+                color: const Color(0xFF2563EB),
+              ),
+            ),
+            const SizedBox(height: 6),
+            Align(
+              alignment: Alignment.centerRight,
+              child: Text(
+                '${(progress * 100).round()}%',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF829AB1),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    // 검색 중: 회전 메시지 + 시뮬레이션 진행바
+    return BootstrapSectionCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: <Widget>[
+          Row(
+            children: <Widget>[
+              const SizedBox(
+                width: 18,
+                height: 18,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 400),
+                  transitionBuilder: (child, animation) =>
+                      FadeTransition(opacity: animation, child: child),
+                  child: Text(
+                    searchMessages[_searchMsgIndex],
+                    key: ValueKey<int>(_searchMsgIndex),
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFF486581),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(4),
+            child: LinearProgressIndicator(
+              value: _searchProgress,
+              minHeight: 6,
+              backgroundColor: const Color(0xFFDDE5ED),
+              color: const Color(0xFF2563EB),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Align(
+            alignment: Alignment.centerRight,
+            child: Text(
+              '${(_searchProgress * 100).round()}%',
+              style: const TextStyle(
+                fontSize: 12,
+                color: Color(0xFF829AB1),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildOperationProgress(
     Map<String, String> strings,
     DataManageState s,
@@ -776,7 +966,9 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
     );
   }
 
-  Widget _buildResultList(
+  // ── Result section ─────────────────────────────────────────────────────────
+
+  List<Widget> _buildResultSlivers(
     Map<String, String> strings,
     DataManageState s,
     List<MetadataTag> categoryTags,
@@ -785,22 +977,27 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
     String currency,
   ) {
     if (s.resultCount == 0) {
-      return Center(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 32),
-          child: Text(_s(strings, 'dataManageEmptyResult', '검색 결과가 없습니다.')),
+      return <Widget>[
+        SliverToBoxAdapter(
+          child: Center(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(vertical: 32),
+              child: Text(
+                _s(strings, 'dataManageEmptyResult', '검색 결과가 없습니다.'),
+              ),
+            ),
+          ),
         ),
-      );
+      ];
     }
 
-    switch (s.searchedTableType!) {
-      case DataTableType.expense:
-        return ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: s.expenses.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 6),
-          itemBuilder: (BuildContext ctx, int i) {
+    // 항목 위젯 빌더 — 짝수 인덱스는 실제 항목, 홀수 인덱스는 구분선
+    Widget Function(BuildContext, int) makeBuilder(int itemCount) {
+      return (BuildContext ctx, int index) {
+        if (index.isOdd) return const SizedBox(height: 6);
+        final int i = index ~/ 2;
+        switch (s.searchedTableType!) {
+          case DataTableType.expense:
             final ExpenseEntry e = s.expenses[i];
             final bool selected = s.isSelected(e.id);
             return GestureDetector(
@@ -814,7 +1011,8 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 currency: currency,
               ),
               child: BootstrapSectionCard(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 child: Row(
                   children: <Widget>[
                     Checkbox(
@@ -873,16 +1071,8 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 ),
               ),
             );
-          },
-        );
 
-      case DataTableType.fixedExpense:
-        return ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: s.fixedExpenses.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 6),
-          itemBuilder: (BuildContext ctx, int i) {
+          case DataTableType.fixedExpense:
             final e = s.fixedExpenses[i];
             final bool selected = s.isSelected(e.id);
             return BootstrapSectionCard(
@@ -915,7 +1105,10 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                   ),
                   Expanded(
                     flex: 3,
-                    child: Text(e.description, overflow: TextOverflow.ellipsis),
+                    child: Text(
+                      e.description,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   Expanded(
                     flex: 2,
@@ -931,16 +1124,8 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 ],
               ),
             );
-          },
-        );
 
-      case DataTableType.income:
-        return ListView.separated(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: s.incomes.length,
-          separatorBuilder: (_, _) => const SizedBox(height: 6),
-          itemBuilder: (BuildContext ctx, int i) {
+          case DataTableType.income:
             final e = s.incomes[i];
             final String sid = e.id?.toString() ?? '';
             final bool selected = sid.isNotEmpty && s.isSelected(sid);
@@ -966,7 +1151,10 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                   ),
                   Expanded(
                     flex: 5,
-                    child: Text(e.description, overflow: TextOverflow.ellipsis),
+                    child: Text(
+                      e.description,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   ),
                   Expanded(
                     flex: 2,
@@ -982,9 +1170,23 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 ],
               ),
             );
-          },
-        );
+        }
+      };
     }
+
+    final int itemCount = s.resultCount;
+    // 구분선 포함 총 child 수: itemCount * 2 - 1
+    final int childCount = itemCount * 2 - 1;
+
+    return <Widget>[
+      SliverList(
+        delegate: SliverChildBuilderDelegate(
+          makeBuilder(itemCount),
+          childCount: childCount,
+        ),
+      ),
+      const SliverToBoxAdapter(child: SizedBox(height: 24)),
+    ];
   }
 
   // ── Build ──────────────────────────────────────────────────────────────────
@@ -1004,6 +1206,17 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
     if (ledger == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
+
+    // 검색 시작/완료 감지 → 로딩 애니메이션 타이머 제어
+    // addPostFrameCallback 없이 직접 호출해야 start→complete 실행 순서가 보장된다.
+    ref.listen<DataManageState>(dataManageProvider, (prev, next) {
+      final wasSearching = prev?.isSearching ?? false;
+      if (!wasSearching && next.isSearching) {
+        _startSearchLoading();
+      } else if (wasSearching && !next.isSearching) {
+        _completeSearchLoading(next.resultCount);
+      }
+    });
 
     final List<MetadataTag> categoryTags = ledger.tagsByType(
       MetadataTagType.category,
@@ -1053,14 +1266,14 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
               ),
             ),
           ],
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: <Widget>[
-                Showcase(
+          child: CustomScrollView(
+            slivers: <Widget>[
+              SliverToBoxAdapter(
+                child: Showcase(
                   key: _filterCardKey,
                   title: strings['tutDataManageFilterTitle'] ?? '데이터 검색',
-                  description: strings['tutDataManageFilterDesc'] ?? '소비수단, 기간, 카테고리 등 조건으로 기록을 조회하고\n일괄 삭제 또는 태그 변경을 할 수 있어요.',
+                  description: strings['tutDataManageFilterDesc'] ??
+                      '소비수단, 기간, 카테고리 등 조건으로 기록을 조회하고\n일괄 삭제 또는 태그 변경을 할 수 있어요.',
                   tooltipPosition: TooltipPosition.bottom,
                   child: _buildFilterCard(
                     strings,
@@ -1070,31 +1283,42 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                     isIncome,
                   ),
                 ),
-                const SizedBox(height: 12),
-                if (manageState.isSearching)
-                  const Center(child: CircularProgressIndicator()),
-                if (manageState.isOperating)
-                  _buildOperationProgress(strings, manageState),
-                if (manageState.hasResults &&
-                    !manageState.isOperating) ...<Widget>[
-                  _buildActionBar(
+              ),
+              const SliverToBoxAdapter(child: SizedBox(height: 12)),
+              if (manageState.isSearching || _isPostSearchRendering)
+                SliverToBoxAdapter(
+                  child: _buildSearchLoadingCard(strings, <String>[
+                    strings['dataManageSearching1'] ?? 'DB에서 검색중입니다...',
+                    strings['dataManageSearching2'] ?? '데이터를 불러오고 있어요...',
+                    strings['dataManageSearching3'] ?? '화면을 그리고 있어요...',
+                  ]),
+                ),
+              if (manageState.isOperating)
+                SliverToBoxAdapter(
+                  child: _buildOperationProgress(strings, manageState),
+                ),
+              if (manageState.hasResults &&
+                  !manageState.isOperating &&
+                  !manageState.isSearching &&
+                  !_isPostSearchRendering) ...<Widget>[
+                SliverToBoxAdapter(
+                  child: _buildActionBar(
                     strings,
                     manageState,
                     categoryTags,
                     paymentTags,
                   ),
-                  _buildResultList(
-                    strings,
-                    manageState,
-                    categoryTags,
-                    subcategoryTags,
-                    paymentTags,
-                    currency,
-                  ),
-                  const SizedBox(height: 24),
-                ],
+                ),
+                ..._buildResultSlivers(
+                  strings,
+                  manageState,
+                  categoryTags,
+                  subcategoryTags,
+                  paymentTags,
+                  currency,
+                ),
               ],
-            ),
+            ],
           ),
         ),
       );
