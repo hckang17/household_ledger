@@ -55,9 +55,7 @@ class _TagManagementSectionState extends State<TagManagementSection> {
               ),
               IconButton(
                 onPressed: () => setState(() => _expanded = !_expanded),
-                icon: Icon(
-                  _expanded ? Icons.expand_less : Icons.expand_more,
-                ),
+                icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
               ),
             ],
           ),
@@ -69,6 +67,7 @@ class _TagManagementSectionState extends State<TagManagementSection> {
                 ? const SizedBox.shrink()
                 : Column(
                     children: widget.tags.map((MetadataTag tag) {
+                      final bool isSystemDefault = tag.isSystemDefault;
                       return Container(
                         margin: const EdgeInsets.only(bottom: 8),
                         padding: const EdgeInsets.symmetric(
@@ -84,22 +83,23 @@ class _TagManagementSectionState extends State<TagManagementSection> {
                             Expanded(
                               child: Text(
                                 '${tag.code} : ${tag.label}',
-                                style: Theme.of(context)
-                                    .textTheme
-                                    .bodyMedium
+                                style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(fontWeight: FontWeight.w600),
                               ),
                             ),
                             IconButton(
                               visualDensity: VisualDensity.compact,
                               tooltip: widget.strings['edit'],
-                              onPressed: () => widget.onEdit(tag),
+                              onPressed: isSystemDefault
+                                  ? null
+                                  : () => widget.onEdit(tag),
                               icon: const Icon(Icons.edit_outlined),
                             ),
                             IconButton(
                               visualDensity: VisualDensity.compact,
                               tooltip: widget.strings['delete'],
-                              onPressed: widget.tags.length > 1
+                              onPressed:
+                                  !isSystemDefault && widget.tags.length > 1
                                   ? () => widget.onDelete(tag)
                                   : null,
                               icon: const Icon(Icons.delete_outline),

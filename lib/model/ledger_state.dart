@@ -239,6 +239,30 @@ class LedgerState {
     return copyWith(settings: settings.copyWith(currencyUnit: currencyUnit));
   }
 
+  /// 시스템 기본 태그를 복원하고 현재 언어팩의 레이블을 적용한다.
+  LedgerState localizeSystemMetadataTags(Map<String, String> strings) {
+    final defaults = localizedSystemMetadataTags(strings);
+    final defaultByIdentity = <String, MetadataTag>{
+      for (final tag in defaults) '${tag.type.code}:${tag.code}': tag,
+    };
+    final seen = <String>{};
+    final nextTags = <MetadataTag>[];
+    for (final tag in metadataTags) {
+      final identity = '${tag.type.code}:${tag.code}';
+      final defaultTag = defaultByIdentity[identity];
+      if (defaultTag == null) {
+        nextTags.add(tag);
+      } else if (seen.add(identity)) {
+        nextTags.add(defaultTag);
+      }
+    }
+
+    for (final entry in defaultByIdentity.entries) {
+      if (!seen.contains(entry.key)) nextTags.add(entry.value);
+    }
+    return copyWith(metadataTags: nextTags);
+  }
+
   /// 월 예산을 변경한 새 상태를 생성한다.
   LedgerState changeMonthlyBudget(int budget) {
     return copyWith(settings: settings.copyWith(monthlyBudget: budget));
@@ -326,6 +350,13 @@ class LedgerState {
 
   /// 새 메타데이터 태그를 추가한 새 상태를 생성한다.
   LedgerState addMetadataTag(MetadataTag tag) {
+    if (tag.isSystemDefault &&
+        metadataTags.any(
+          (MetadataTag current) =>
+              current.type == tag.type && current.code == tag.code,
+        )) {
+      return this;
+    }
     final filtered = metadataTags.where(
       (MetadataTag current) =>
           !(current.type == tag.type && current.code == tag.code),
@@ -340,6 +371,10 @@ class LedgerState {
     required String replacementCode,
   }) {
     if (targetCode == replacementCode) {
+      return this;
+    }
+    if (systemMetadataTagLocalizationKeys[type]?.containsKey(targetCode) ??
+        false) {
       return this;
     }
 

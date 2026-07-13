@@ -10,6 +10,7 @@ import 'package:household_ledger/services/database/expense_database_service.dart
 import 'package:household_ledger/services/database/fixed_expense_database_service.dart';
 import 'package:household_ledger/services/database/income_database_service.dart';
 import 'package:household_ledger/services/local_storage_service.dart';
+import 'package:household_ledger/services/localization_service.dart';
 
 void _logLedgerProvider(String methodName, String action) {
   logger.d('[ledger_provider.dart] $methodName ( $action )');
@@ -196,7 +197,14 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
   @override
   Future<LedgerState> build() async {
     _logLedgerProvider('build', '앱 상태 초기 로드 시작');
-    final settingsState = await _localStorageService.loadState();
+    final loadedState = await _localStorageService.loadState();
+    final systemTagStrings = await LocalizationService().loadStrings(
+      loadedState.settings.localeCode,
+    );
+    final settingsState = loadedState.localizeSystemMetadataTags(
+      systemTagStrings,
+    );
+    await _localStorageService.saveState(settingsState);
     final nowMonth = DateTime.now();
     final prevQuery = computePrevSamePeriodQuery(nowMonth);
 
@@ -282,12 +290,14 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
   }) async {
     _logLedgerProvider('completeSetup', '초기 설정 완료 처리 시작');
     final current = state.asData?.value ?? LedgerState.initial();
-    final next = current.completeSetup(
+    final setupState = current.completeSetup(
       profile: UserProfile(name: name.trim(), age: age),
       monthlyBudget: monthlyBudget,
       localeCode: localeCode,
       currencyUnit: _defaultCurrencyUnitByLocale(localeCode),
     );
+    final strings = await LocalizationService().loadStrings(localeCode);
+    final next = setupState.localizeSystemMetadataTags(strings);
     await _commit(next);
     _logLedgerProvider('completeSetup', '초기 설정 완료 처리 종료');
   }
@@ -301,7 +311,11 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
       return;
     }
 
-    await _commit(current.changeLocale(localeCode));
+    final strings = await LocalizationService().loadStrings(localeCode);
+    final next = current
+        .changeLocale(localeCode)
+        .localizeSystemMetadataTags(strings);
+    await _commit(next);
     _logLedgerProvider('changeLocale', '앱 언어 변경 완료');
   }
 
@@ -508,6 +522,11 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
       _logLedgerProvider('replaceAndDeleteTag', '교체/삭제 스킵(current == null)');
       return;
     }
+    if (systemMetadataTagLocalizationKeys[type]?.containsKey(targetCode) ??
+        false) {
+      _logLedgerProvider('replaceAndDeleteTag', '시스템 기본 태그 삭제 스킵');
+      return;
+    }
 
     final next = current.replaceAndDeleteTag(
       type: type,
@@ -563,11 +582,16 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
           start: prevQuery.start,
           endExclusive: prevQuery.endExclusive,
         );
-    final next = importedState.copyWith(
-      expenses: currentMonthExpenses,
-      fixedExpenses: fixedExpenses,
-      prevPeriodExpenses: prevPeriodExpenses,
+    final strings = await LocalizationService().loadStrings(
+      importedState.settings.localeCode,
     );
+    final next = importedState
+        .copyWith(
+          expenses: currentMonthExpenses,
+          fixedExpenses: fixedExpenses,
+          prevPeriodExpenses: prevPeriodExpenses,
+        )
+        .localizeSystemMetadataTags(strings);
     await _commit(next);
     _logLedgerProvider('importAllData', '데이터 전체 가져오기 완료');
   }

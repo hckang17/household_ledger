@@ -290,6 +290,17 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     final DateTime chartRangeStart = usingRange
         ? _selectedRange!.start
         : _selectedMonth;
+    final DateTime chartRangeEnd;
+    if (usingRange) {
+      chartRangeEnd = _selectedRange!.end;
+    } else {
+      final now = DateTime.now();
+      final isCurrentMonth =
+          _selectedMonth.year == now.year && _selectedMonth.month == now.month;
+      chartRangeEnd = isCurrentMonth
+          ? now
+          : DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0);
+    }
 
     // 기간이 바뀌면 탭 섹션 위젯의 상태(차트 모드, 터치 인덱스)를 초기화한다.
     final String periodKey = usingRange
@@ -405,6 +416,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                         currency: currency,
                         usingRange: usingRange,
                         chartRangeStart: chartRangeStart,
+                        chartRangeEnd: chartRangeEnd,
                         prevRangeStart: analysisPrevQuery.start,
                       ),
                 ),

@@ -235,6 +235,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   /// 태그를 수정한다.
   Future<void> _editTag(MetadataTag target) async {
+    if (target.isSystemDefault) return;
     final strings = ref.read(localizedStringsProvider);
     final ledger = ref.read(ledgerProvider).asData?.value;
     if (ledger == null) {
@@ -289,6 +290,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   /// 태그를 다른 코드로 대체한 뒤 삭제한다.
   Future<void> _deleteTag(MetadataTag tag) async {
+    if (tag.isSystemDefault) return;
     final strings = ref.read(localizedStringsProvider);
     final ledger = ref.read(ledgerProvider).asData?.value;
     if (ledger == null) {
