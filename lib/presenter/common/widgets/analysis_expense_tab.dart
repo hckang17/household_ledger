@@ -11,7 +11,7 @@ import 'package:household_ledger/presenter/common/widgets/analysis_donut_chart.d
 import 'package:intl/intl.dart';
 
 /// 도넛 캐러샐의 슬라이드 종류를 정의한다.
-enum AnalysisChartMode { category, subcategory, paymentMethod }
+enum AnalysisChartMode { category, subcategory, diningOccasion, paymentMethod }
 
 /// 분석 화면의 지출 탭 콘텐츠다.
 ///
@@ -24,6 +24,7 @@ class AnalysisExpenseTabSection extends StatefulWidget {
     required this.monthlyFixed,
     required this.categoryTags,
     required this.subcategoryTags,
+    required this.diningOccasionTags,
     required this.paymentTags,
     required this.strings,
     required this.currency,
@@ -38,6 +39,7 @@ class AnalysisExpenseTabSection extends StatefulWidget {
   final List<FixedExpense> monthlyFixed;
   final List<MetadataTag> categoryTags;
   final List<MetadataTag> subcategoryTags;
+  final List<MetadataTag> diningOccasionTags;
   final List<MetadataTag> paymentTags;
   final Map<String, String> strings;
   final String currency;
@@ -67,7 +69,8 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
     _chartMode = switch (_chartMode) {
       AnalysisChartMode.category => AnalysisChartMode.paymentMethod,
       AnalysisChartMode.subcategory => AnalysisChartMode.category,
-      AnalysisChartMode.paymentMethod => AnalysisChartMode.subcategory,
+      AnalysisChartMode.diningOccasion => AnalysisChartMode.subcategory,
+      AnalysisChartMode.paymentMethod => AnalysisChartMode.diningOccasion,
     };
   });
 
@@ -75,7 +78,8 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
     _touchedIndex = -1;
     _chartMode = switch (_chartMode) {
       AnalysisChartMode.category => AnalysisChartMode.subcategory,
-      AnalysisChartMode.subcategory => AnalysisChartMode.paymentMethod,
+      AnalysisChartMode.subcategory => AnalysisChartMode.diningOccasion,
+      AnalysisChartMode.diningOccasion => AnalysisChartMode.paymentMethod,
       AnalysisChartMode.paymentMethod => AnalysisChartMode.category,
     };
   });
@@ -83,6 +87,7 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
   String _chartModeTitle() => switch (_chartMode) {
     AnalysisChartMode.category => _text('categoryLabel', '소비구분'),
     AnalysisChartMode.subcategory => _text('subcategoryLabel', '소비 소구분'),
+    AnalysisChartMode.diningOccasion => _text('diningOccasionLabel', '식사 유형'),
     AnalysisChartMode.paymentMethod => _text('paymentMethodLabel', '소비수단'),
   };
 
@@ -536,6 +541,10 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
         expenses,
         widget.subcategoryTags,
       ),
+      AnalysisChartMode.diningOccasion => buildDiningOccasionDonutSections(
+        expenses,
+        widget.diningOccasionTags,
+      ),
       AnalysisChartMode.paymentMethod => buildPaymentDonutSections(
         expenses,
         widget.paymentTags,
@@ -564,6 +573,13 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
           expenses
               .where(
                 (ExpenseEntry e) => e.subcategoryCode == section.categoryCode,
+              )
+              .toList(),
+        AnalysisChartMode.diningOccasion =>
+          expenses
+              .where(
+                (ExpenseEntry e) =>
+                    e.diningOccasionCode == section.categoryCode,
               )
               .toList(),
         AnalysisChartMode.paymentMethod =>
@@ -701,7 +717,9 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
               currency: widget.currency,
               title: _text('analysisDailyTrendTitle', '일별 지출 추이'),
               rangeStart: widget.chartRangeStart,
-              prevRangeStart: prevDailySpots.isNotEmpty ? widget.prevRangeStart : null,
+              prevRangeStart: prevDailySpots.isNotEmpty
+                  ? widget.prevRangeStart
+                  : null,
               showDayStats: true,
             ),
           ),

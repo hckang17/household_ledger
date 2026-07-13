@@ -79,7 +79,9 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   Future<void> _handleBackDuringTutorial() async {
     if (_showcaseContext != null) {
-      try { ShowCaseWidget.of(_showcaseContext!).dismiss(); } catch (_) {}
+      try {
+        ShowCaseWidget.of(_showcaseContext!).dismiss();
+      } catch (_) {}
     }
     final strings = ref.read(localizedStringsProvider);
     final confirmed = await showDialog<bool>(
@@ -87,7 +89,9 @@ class _HomePageState extends ConsumerState<HomePage> {
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         title: Text(strings['tutorialExitTitle'] ?? '튜토리얼 종료'),
-        content: Text(strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.'),
+        content: Text(
+          strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -156,6 +160,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     final subcategoryTags =
         ledger?.tagsByType(MetadataTagType.subcategory) ??
         const <MetadataTag>[];
+    final diningOccasionTags =
+        ledger?.tagsByType(MetadataTagType.diningOccasion) ??
+        const <MetadataTag>[];
     final paymentTags =
         ledger?.tagsByType(MetadataTagType.paymentMethod) ??
         const <MetadataTag>[];
@@ -199,7 +206,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                         child: Showcase(
                           key: _totalSpentKey,
                           title: strings['tutHomeTotalSpentTitle'] ?? '총 지출금액',
-                          description: strings['tutHomeTotalSpentDesc'] ?? '고정지출을 제외한, 이번달 소비금액의 총 합입니다.\n? 아이콘을 탭하면 더 자세한 설명이 보여요.',
+                          description:
+                              strings['tutHomeTotalSpentDesc'] ??
+                              '고정지출을 제외한, 이번달 소비금액의 총 합입니다.\n? 아이콘을 탭하면 더 자세한 설명이 보여요.',
                           tooltipPosition: TooltipPosition.bottom,
                           child: BootstrapSummaryTile(
                             label: strings['totalSpent'] ?? 'error_label',
@@ -214,7 +223,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                               ),
                               children: <InlineSpan>[
                                 TextSpan(
-                                  text: strings['tooltipTotalSpentFixed'] ??
+                                  text:
+                                      strings['tooltipTotalSpentFixed'] ??
                                       '고정지출',
                                   style: const TextStyle(
                                     color: Color(0xFF198754),
@@ -222,7 +232,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                                   ),
                                 ),
                                 TextSpan(
-                                  text: strings['tooltipTotalSpentSuffix'] ??
+                                  text:
+                                      strings['tooltipTotalSpentSuffix'] ??
                                       '을 제외한, 이번달 소비금액의 총 합입니다.',
                                 ),
                               ],
@@ -235,11 +246,12 @@ class _HomePageState extends ConsumerState<HomePage> {
                         child: Showcase(
                           key: _remainingKey,
                           title: strings['tutHomeRemainingTitle'] ?? '지출가능금액',
-                          description: strings['tutHomeRemainingDesc'] ?? '이번달 총 소득에서 고정금액과 총 지출금액을 제외한 남은 예산입니다.',
+                          description:
+                              strings['tutHomeRemainingDesc'] ??
+                              '이번달 총 소득에서 고정금액과 총 지출금액을 제외한 남은 예산입니다.',
                           tooltipPosition: TooltipPosition.bottom,
                           child: BootstrapSummaryTile(
-                            label:
-                                strings['remainingBudget'] ?? 'error_label',
+                            label: strings['remainingBudget'] ?? 'error_label',
                             value:
                                 '${remainingBudget.toCurrency()} ${strings['currencyUnit'] ?? ''}',
                             color: const Color(0xFF198754),
@@ -251,11 +263,13 @@ class _HomePageState extends ConsumerState<HomePage> {
                               ),
                               children: <InlineSpan>[
                                 TextSpan(
-                                  text: strings['tooltipRemainingPrefix'] ??
+                                  text:
+                                      strings['tooltipRemainingPrefix'] ??
                                       '이번달 총 소득에서 ',
                                 ),
                                 TextSpan(
-                                  text: strings['tooltipRemainingFixed'] ??
+                                  text:
+                                      strings['tooltipRemainingFixed'] ??
                                       '고정금액',
                                   style: const TextStyle(
                                     color: Color(0xFF198754),
@@ -266,7 +280,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                                   text: strings['tooltipRemainingMid'] ?? '과 ',
                                 ),
                                 TextSpan(
-                                  text: strings['tooltipRemainingTotal'] ??
+                                  text:
+                                      strings['tooltipRemainingTotal'] ??
                                       '총 지출금액',
                                   style: const TextStyle(
                                     color: Color(0xFFDC3545),
@@ -274,7 +289,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                                   ),
                                 ),
                                 TextSpan(
-                                  text: strings['tooltipRemainingSuffix'] ??
+                                  text:
+                                      strings['tooltipRemainingSuffix'] ??
                                       '을 제외한 금액입니다.',
                                 ),
                               ],
@@ -294,7 +310,9 @@ class _HomePageState extends ConsumerState<HomePage> {
               Showcase(
                 key: _compCardKey,
                 title: strings['tutHomeCompCardTitle'] ?? '전월 비교 카드',
-                description: strings['tutHomeCompCardDesc'] ?? '지난달과 이번달 소비를 비교해드려요.\n어느 카테고리에서 지출이 늘었는지 한눈에 확인하세요.',
+                description:
+                    strings['tutHomeCompCardDesc'] ??
+                    '지난달과 이번달 소비를 비교해드려요.\n어느 카테고리에서 지출이 늘었는지 한눈에 확인하세요.',
                 tooltipPosition: TooltipPosition.bottom,
                 child: ComparisonCard(
                   result: compResult,
@@ -308,7 +326,9 @@ class _HomePageState extends ConsumerState<HomePage> {
               Showcase(
                 key: _compCardKey,
                 title: strings['tutHomeCompCardTitle'] ?? '전월 비교 카드',
-                description: strings['tutHomeCompCardNoDataDesc'] ?? '전월 데이터가 쌓이면 여기에 전월 대비 소비 비교 카드가 표시됩니다.',
+                description:
+                    strings['tutHomeCompCardNoDataDesc'] ??
+                    '전월 데이터가 쌓이면 여기에 전월 대비 소비 비교 카드가 표시됩니다.',
                 tooltipPosition: TooltipPosition.bottom,
                 child: const SizedBox.shrink(),
               ),
@@ -317,7 +337,9 @@ class _HomePageState extends ConsumerState<HomePage> {
             Showcase(
               key: _quickExpenseKey,
               title: strings['tutHomeQuickExpenseTitle'] ?? '빠른 지출 기록',
-              description: strings['tutHomeQuickExpenseDesc'] ?? '홈 화면에서 바로 소비내역을 입력할 수 있어요.\n버튼을 탭하면 입력 시트가 열립니다.',
+              description:
+                  strings['tutHomeQuickExpenseDesc'] ??
+                  '홈 화면에서 바로 소비내역을 입력할 수 있어요.\n버튼을 탭하면 입력 시트가 열립니다.',
               tooltipPosition: TooltipPosition.bottom,
               child: BootstrapActionButton(
                 label: strings['quickExpense'] ?? '',
@@ -349,15 +371,15 @@ class _HomePageState extends ConsumerState<HomePage> {
                 Expanded(
                   child: Text(
                     strings['homeRecentExpensesTitle'] ?? '최근 소비 기록',
-                    style:
-                        Theme.of(context).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
                 TextButton.icon(
-                  onPressed: () => Navigator.of(context)
-                      .pushNamed(AppRouter.expenseRecordRoute),
+                  onPressed: () => Navigator.of(
+                    context,
+                  ).pushNamed(AppRouter.expenseRecordRoute),
                   icon: const Icon(Icons.arrow_forward, size: 16),
                   label: Text(strings['homeViewAll'] ?? '더보기'),
                 ),
@@ -368,7 +390,9 @@ class _HomePageState extends ConsumerState<HomePage> {
             Showcase(
               key: _recentListKey,
               title: strings['tutHomeRecentListTitle'] ?? '최근 소비 기록',
-              description: strings['tutHomeRecentListDesc'] ?? '이번달에 기록된 소비 내역이 최신순으로 보입니다.\n항목을 탭하면 상세 정보를, 길게 탭하면 수정·삭제 옵션이 나와요.',
+              description:
+                  strings['tutHomeRecentListDesc'] ??
+                  '이번달에 기록된 소비 내역이 최신순으로 보입니다.\n항목을 탭하면 상세 정보를, 길게 탭하면 수정·삭제 옵션이 나와요.',
               tooltipPosition: TooltipPosition.bottom,
               child: recentExpensesAsync.when(
                 loading: () => const Padding(
@@ -388,6 +412,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     entry: entry,
                     categoryTags: categoryTags,
                     subcategoryTags: subcategoryTags,
+                    diningOccasionTags: diningOccasionTags,
                     paymentTags: paymentTags,
                     strings: strings,
                     currency: currency,
@@ -426,7 +451,9 @@ class _HomePageState extends ConsumerState<HomePage> {
         bottomNavigationBar: Showcase(
           key: _bottomNavKey,
           title: strings['tutHomeBottomNavTitle'] ?? '하단 내비게이션',
-          description: strings['tutHomeBottomNavDesc'] ?? '아이콘을 탭해 수입·분석·홈·소비기록·고정지출 탭으로 이동할 수 있어요.\n다음은 수입 탭을 살펴볼게요!',
+          description:
+              strings['tutHomeBottomNavDesc'] ??
+              '아이콘을 탭해 수입·분석·홈·소비기록·고정지출 탭으로 이동할 수 있어요.\n다음은 수입 탭을 살펴볼게요!',
           tooltipPosition: TooltipPosition.top,
           child: const SizedBox.shrink(),
         ),

@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:household_ledger/model/expense_entry.dart';
@@ -38,7 +38,7 @@ class ExpenseDatabaseService {
 
     _database = await openDatabase(
       fullPath,
-      version: 1,
+      version: 2,
       onCreate: (Database db, int version) async {
         logger.d(
           '$_logPrefix _getDatabase() onCreate() called. creating table=$_tableName',
@@ -49,6 +49,7 @@ class ExpenseDatabaseService {
             spentAt TEXT NOT NULL,
             categoryCode TEXT NOT NULL,
             subcategoryCode TEXT NOT NULL,
+            diningOccasionCode TEXT,
             paymentMethodCode TEXT NOT NULL,
             description TEXT NOT NULL,
             amount INTEGER NOT NULL,
@@ -56,6 +57,13 @@ class ExpenseDatabaseService {
           )
         ''');
         logger.d('$_logPrefix _getDatabase() table created: $_tableName');
+      },
+      onUpgrade: (Database db, int oldVersion, int newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute(
+            'ALTER TABLE $_tableName ADD COLUMN diningOccasionCode TEXT',
+          );
+        }
       },
     );
 
@@ -264,6 +272,62 @@ class ExpenseDatabaseService {
     _log('deleteAllExpenses', '지출내역 전체 삭제 완료(SQLite)');
   }
 
+  /// `점심/식당명` 형태의 구버전 외식 설명을 식사 유형과 설명으로 분리할 수 있는 건수를 반환한다.
+  Future<int> countLegacyDiningDescriptions() async {
+    final entries = await loadAllExpenses();
+    return entries
+        .where((entry) => _legacyDiningMigration(entry) != null)
+        .length;
+  }
+
+  /// 인식 가능한 구버전 외식 설명만 식사 유형과 설명으로 안전하게 분리한다.
+  Future<int> migrateLegacyDiningDescriptions() async {
+    final entries = await loadAllExpenses();
+    final migrated = entries
+        .map(_legacyDiningMigration)
+        .whereType<ExpenseEntry>()
+        .toList();
+    await upsertExpenses(migrated);
+    return migrated.length;
+  }
+
+  ExpenseEntry? _legacyDiningMigration(ExpenseEntry entry) {
+    if (entry.categoryCode != 'F' || entry.diningOccasionCode != null) {
+      return null;
+    }
+    final separator = entry.description.indexOf('/');
+    if (separator <= 0 || separator >= entry.description.length - 1) {
+      return null;
+    }
+    final prefix = entry.description
+        .substring(0, separator)
+        .trim()
+        .toLowerCase();
+    final description = entry.description.substring(separator + 1).trim();
+    final code = const <String, String>{
+      '아침': 'breakfast',
+      '朝食': 'breakfast',
+      'breakfast': 'breakfast',
+      '브런치': 'brunch',
+      'ブランチ': 'brunch',
+      'brunch': 'brunch',
+      '점심': 'lunch',
+      '昼食': 'lunch',
+      'lunch': 'lunch',
+      '간식': 'snack',
+      '間食': 'snack',
+      'snack': 'snack',
+      '저녁': 'dinner',
+      '夕食': 'dinner',
+      'dinner': 'dinner',
+      '회식': 'company',
+      '会食': 'company',
+      'company': 'company',
+    }[prefix];
+    if (code == null || description.isEmpty) return null;
+    return entry.copyWith(diningOccasionCode: code, description: description);
+  }
+
   /// 메타데이터 태그 코드 변경 시 소비기록의 참조 코드를 SQL UPDATE로 일괄 치환한다.
   Future<void> replaceExpenseTagCode({
     required MetadataTagType type,
@@ -282,6 +346,8 @@ class ExpenseDatabaseService {
         columnName = 'categoryCode';
       case MetadataTagType.subcategory:
         columnName = 'subcategoryCode';
+      case MetadataTagType.diningOccasion:
+        columnName = 'diningOccasionCode';
       case MetadataTagType.paymentMethod:
         columnName = 'paymentMethodCode';
     }
@@ -297,6 +363,10 @@ class ExpenseDatabaseService {
           case MetadataTagType.subcategory:
             return entry.subcategoryCode == fromCode
                 ? entry.copyWith(subcategoryCode: toCode)
+                : entry;
+          case MetadataTagType.diningOccasion:
+            return entry.diningOccasionCode == fromCode
+                ? entry.copyWith(diningOccasionCode: toCode)
                 : entry;
           case MetadataTagType.paymentMethod:
             return entry.paymentMethodCode == fromCode
@@ -385,6 +455,7 @@ class ExpenseDatabaseService {
       'spentAt': entry.spentAt.toIso8601String(),
       'categoryCode': entry.categoryCode,
       'subcategoryCode': entry.subcategoryCode,
+      'diningOccasionCode': entry.diningOccasionCode,
       'paymentMethodCode': entry.paymentMethodCode,
       'description': entry.description,
       'amount': entry.amount,
@@ -401,6 +472,7 @@ class ExpenseDatabaseService {
       spentAt: DateTime.parse(row['spentAt']! as String),
       categoryCode: row['categoryCode']! as String,
       subcategoryCode: row['subcategoryCode']! as String,
+      diningOccasionCode: row['diningOccasionCode'] as String?,
       paymentMethodCode: row['paymentMethodCode']! as String,
       description: row['description']! as String,
       amount: row['amount']! as int,

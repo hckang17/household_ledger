@@ -55,7 +55,7 @@ class DataImExportService {
   static const String _sectionIncomes = '[INCOMES]';
   static const String _sectionSettings = '[SETTINGS]';
   static const String _sectionTags = '[TAGS]';
-  static const String _csvVersion = '1.0';
+  static const String _csvVersion = '2.0';
   static const String _salt = 'household_ledger_v1_salt';
 
   String _generateSignature(String email, String passkey) {
@@ -107,7 +107,7 @@ class DataImExportService {
 
     buffer.writeln(_sectionExpenses);
     buffer.writeln(
-      'id,spentAt,categoryCode,subcategoryCode,paymentMethodCode,description,amount,note',
+      'id,spentAt,categoryCode,subcategoryCode,diningOccasionCode,paymentMethodCode,description,amount,note',
     );
     for (final e in expenses) {
       buffer.writeln(
@@ -116,6 +116,7 @@ class DataImExportService {
           e.spentAt.toIso8601String(),
           e.categoryCode,
           e.subcategoryCode,
+          e.diningOccasionCode ?? '',
           e.paymentMethodCode,
           e.description,
           e.amount.toString(),
@@ -174,9 +175,7 @@ class DataImExportService {
     buffer.writeln(
       _csvRow(['tutorial_completed', tutorialCompleted.toString()]),
     );
-    buffer.writeln(
-      _csvRow(['tutorial_version', tutorialVersion.toString()]),
-    );
+    buffer.writeln(_csvRow(['tutorial_version', tutorialVersion.toString()]));
     buffer.writeln();
 
     buffer.writeln(_sectionTags);
@@ -206,8 +205,7 @@ class DataImExportService {
     }
 
     final tutorialValues = await TutorialService().exportValues();
-    final tutorialCompleted =
-        tutorialValues['tutorial_completed'] == 'true';
+    final tutorialCompleted = tutorialValues['tutorial_completed'] == 'true';
     final tutorialVersion =
         int.tryParse(tutorialValues['tutorial_version'] ?? '1') ?? 1;
 
@@ -308,6 +306,44 @@ class DataImExportService {
         age: int.tryParse(settingsMap['userAge'] ?? '') ?? 0,
       );
 
+      if (!tags.any(
+        (MetadataTag tag) => tag.type == MetadataTagType.diningOccasion,
+      )) {
+        final isJa = settings.localeCode == 'jp' || settings.localeCode == 'ja';
+        tags.addAll(<MetadataTag>[
+          MetadataTag(
+            type: MetadataTagType.diningOccasion,
+            code: 'breakfast',
+            label: isJa ? '朝食' : '아침',
+          ),
+          MetadataTag(
+            type: MetadataTagType.diningOccasion,
+            code: 'brunch',
+            label: isJa ? 'ブランチ' : '브런치',
+          ),
+          MetadataTag(
+            type: MetadataTagType.diningOccasion,
+            code: 'lunch',
+            label: isJa ? '昼食' : '점심',
+          ),
+          MetadataTag(
+            type: MetadataTagType.diningOccasion,
+            code: 'snack',
+            label: isJa ? '間食' : '간식',
+          ),
+          MetadataTag(
+            type: MetadataTagType.diningOccasion,
+            code: 'dinner',
+            label: isJa ? '夕食' : '저녁',
+          ),
+          MetadataTag(
+            type: MetadataTagType.diningOccasion,
+            code: 'company',
+            label: isJa ? '会食' : '회식',
+          ),
+        ]);
+      }
+
       if (settingsMap.containsKey('tutorial_completed')) {
         await TutorialService().restoreFromCsv(
           completed: settingsMap['tutorial_completed'] == 'true',
@@ -368,6 +404,16 @@ class DataImExportService {
       return <ExpenseEntry>[];
     }
     final result = <ExpenseEntry>[];
+    final header = _parseCsvRow(rows.first);
+    final indexes = <String, int>{
+      for (var i = 0; i < header.length; i++) header[i]: i,
+    };
+    String field(List<String> fields, String name) {
+      final index = indexes[name];
+      if (index == null || index >= fields.length) return '';
+      return fields[index];
+    }
+
     for (final row in rows.skip(1)) {
       final f = _parseCsvRow(row);
       if (f.length < 8) {
@@ -376,14 +422,15 @@ class DataImExportService {
       try {
         result.add(
           ExpenseEntry.create(
-            id: f[0],
-            spentAt: DateTime.parse(f[1]),
-            categoryCode: f[2],
-            subcategoryCode: f[3],
-            paymentMethodCode: f[4],
-            description: f[5],
-            amount: int.parse(f[6]),
-            note: f[7],
+            id: field(f, 'id'),
+            spentAt: DateTime.parse(field(f, 'spentAt')),
+            categoryCode: field(f, 'categoryCode'),
+            subcategoryCode: field(f, 'subcategoryCode'),
+            diningOccasionCode: field(f, 'diningOccasionCode'),
+            paymentMethodCode: field(f, 'paymentMethodCode'),
+            description: field(f, 'description'),
+            amount: int.parse(field(f, 'amount')),
+            note: field(f, 'note'),
           ),
         );
       } catch (_) {

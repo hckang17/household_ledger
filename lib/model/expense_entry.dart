@@ -8,6 +8,7 @@ class ExpenseEntry {
     required this.spentAt,
     required this.categoryCode,
     required this.subcategoryCode,
+    this.diningOccasionCode,
     required this.paymentMethodCode,
     required this.description,
     required this.amount,
@@ -25,6 +26,9 @@ class ExpenseEntry {
 
   /// 소분류 코드를 보관한다.
   final String subcategoryCode;
+
+  /// 외식비에서 사용하는 식사 유형 코드. 외식비가 아니거나 미선택이면 null이다.
+  final String? diningOccasionCode;
 
   /// 결제수단 코드를 보관한다.
   final String paymentMethodCode;
@@ -44,6 +48,7 @@ class ExpenseEntry {
     required DateTime spentAt,
     required String categoryCode,
     String subcategoryCode = '_',
+    String? diningOccasionCode,
     String paymentMethodCode = '_s',
     required String description,
     required int amount,
@@ -56,6 +61,10 @@ class ExpenseEntry {
       subcategoryCode: subcategoryCode.trim().isEmpty
           ? '_'
           : subcategoryCode.trim(),
+      diningOccasionCode:
+          diningOccasionCode == null || diningOccasionCode.trim().isEmpty
+          ? null
+          : diningOccasionCode.trim(),
       paymentMethodCode: paymentMethodCode.trim().isEmpty
           ? '_s'
           : paymentMethodCode.trim(),
@@ -95,6 +104,8 @@ class ExpenseEntry {
     DateTime? spentAt,
     String? categoryCode,
     String? subcategoryCode,
+    String? diningOccasionCode,
+    bool clearDiningOccasion = false,
     String? paymentMethodCode,
     String? description,
     int? amount,
@@ -105,6 +116,9 @@ class ExpenseEntry {
       spentAt: spentAt ?? this.spentAt,
       categoryCode: categoryCode ?? this.categoryCode,
       subcategoryCode: subcategoryCode ?? this.subcategoryCode,
+      diningOccasionCode: clearDiningOccasion
+          ? null
+          : (diningOccasionCode ?? this.diningOccasionCode),
       paymentMethodCode: paymentMethodCode ?? this.paymentMethodCode,
       description: description ?? this.description,
       amount: amount ?? this.amount,
@@ -119,6 +133,7 @@ class ExpenseEntry {
       'spentAt': spentAt.toIso8601String(),
       'categoryCode': categoryCode,
       'subcategoryCode': subcategoryCode,
+      'diningOccasionCode': diningOccasionCode,
       'paymentMethodCode': paymentMethodCode,
       'description': description,
       'amount': amount,
@@ -133,6 +148,7 @@ class ExpenseEntry {
       spentAt: DateTime.parse(json['spentAt'] as String),
       categoryCode: json['categoryCode'] as String? ?? 'F',
       subcategoryCode: json['subcategoryCode'] as String? ?? '_',
+      diningOccasionCode: json['diningOccasionCode'] as String?,
       paymentMethodCode: json['paymentMethodCode'] as String? ?? '_s',
       description: json['description'] as String? ?? '',
       amount: json['amount'] as int? ?? 0,

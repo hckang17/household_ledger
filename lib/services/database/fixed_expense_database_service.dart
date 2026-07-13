@@ -206,6 +206,8 @@ class FixedExpenseDatabaseService {
         columnName = 'categoryCode';
       case MetadataTagType.subcategory:
         columnName = null;
+      case MetadataTagType.diningOccasion:
+        columnName = null;
       case MetadataTagType.paymentMethod:
         columnName = 'paymentMethodCode';
     }

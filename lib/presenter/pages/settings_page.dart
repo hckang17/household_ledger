@@ -29,6 +29,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   final GlobalKey _tagSectionKey = GlobalKey();
   final GlobalKey _dataManageSectionKey = GlobalKey();
   bool _showcaseStarted = false;
+  bool _isMigratingDiningDescriptions = false;
   BuildContext? _showcaseContext;
 
   void _maybeStartShowcase() {
@@ -135,6 +136,50 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(_text(strings, 'settingsSavedMessage'))),
+    );
+  }
+
+  Future<void> _migrateLegacyDiningDescriptions(
+    Map<String, String> strings,
+  ) async {
+    if (_isMigratingDiningDescriptions) return;
+    final notifier = ref.read(ledgerProvider.notifier);
+    final count = await notifier.countLegacyDiningDescriptions();
+    if (!mounted) return;
+    if (count == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_text(strings, 'diningMigrationNoData'))),
+      );
+      return;
+    }
+
+    final confirmed = await showLedgerConfirmDialog(
+      context: context,
+      title: _text(strings, 'diningMigrationTitle'),
+      message: _text(
+        strings,
+        'diningMigrationConfirm',
+      ).replaceAll('{count}', '$count'),
+      confirmLabel: _text(strings, 'diningMigrationAction'),
+      cancelLabel: _text(strings, 'cancel'),
+    );
+    if (!confirmed || !mounted) return;
+
+    setState(() => _isMigratingDiningDescriptions = true);
+    final migratedCount = await notifier.migrateLegacyDiningDescriptions();
+    ref.invalidate(monthlyExpensesProvider);
+    ref.invalidate(rangeExpensesProvider);
+    if (!mounted) return;
+    setState(() => _isMigratingDiningDescriptions = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _text(
+            strings,
+            'diningMigrationComplete',
+          ).replaceAll('{count}', '$migratedCount'),
+        ),
+      ),
     );
   }
 
@@ -303,6 +348,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         return _text(strings, 'expenseCategorySectionTitle');
       case MetadataTagType.subcategory:
         return _text(strings, 'expenseSubcategorySectionTitle');
+      case MetadataTagType.diningOccasion:
+        return _text(strings, 'diningOccasionSectionTitle');
       case MetadataTagType.paymentMethod:
         return _text(strings, 'paymentMethodSectionTitle');
     }
@@ -455,6 +502,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       onEdit: _editTag,
                       onDelete: _deleteTag,
                     ),
+                    const SizedBox(height: 16),
+                    TagManagementSection(
+                      title: _sectionTitle(
+                        MetadataTagType.diningOccasion,
+                        strings,
+                      ),
+                      tags: ledger.tagsByType(MetadataTagType.diningOccasion),
+                      strings: strings,
+                      onAdd: () => _addTag(MetadataTagType.diningOccasion),
+                      onEdit: _editTag,
+                      onDelete: _deleteTag,
+                    ),
                   ],
                 ),
               ),
@@ -523,6 +582,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             onPressed: () {
               Navigator.of(context).pushNamed(AppRouter.importDataRoute);
             },
+          ),
+          const SizedBox(height: 12),
+          BootstrapActionButton(
+            label: _isMigratingDiningDescriptions
+                ? _text(strings, 'diningMigrationRunning')
+                : _text(strings, 'diningMigrationAction'),
+            icon: Icons.auto_fix_high_rounded,
+            backgroundColor: const Color(0xFF0D6EFD),
+            onPressed: () => _migrateLegacyDiningDescriptions(strings),
           ),
           const SizedBox(height: 12),
           BootstrapActionButton(

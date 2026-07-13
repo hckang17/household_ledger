@@ -173,6 +173,7 @@ Future<void> showExpenseDetailDialog({
   required ExpenseEntry entry,
   required List<MetadataTag> categoryTags,
   required List<MetadataTag> subcategoryTags,
+  required List<MetadataTag> diningOccasionTags,
   required List<MetadataTag> paymentTags,
   required Map<String, String> strings,
   required String currency,
@@ -187,6 +188,11 @@ Future<void> showExpenseDetailDialog({
       strings['subcategoryLabel'] ?? '소구분',
       subcategoryTags.labelFor(entry.subcategoryCode),
     ),
+    if (entry.diningOccasionCode != null)
+      MapEntry(
+        strings['diningOccasionLabel'] ?? '식사 유형',
+        diningOccasionTags.labelFor(entry.diningOccasionCode!),
+      ),
     MapEntry(
       strings['paymentMethodLabel'] ?? '지불수단',
       paymentTags.labelFor(entry.paymentMethodCode),

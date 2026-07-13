@@ -49,10 +49,9 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     _showcaseStarted = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || _showcaseContext == null) return;
-      ShowCaseWidget.of(_showcaseContext!).startShowCase([
-        _periodControlKey,
-        _pdfBtnKey,
-      ]);
+      ShowCaseWidget.of(
+        _showcaseContext!,
+      ).startShowCase([_periodControlKey, _pdfBtnKey]);
     });
   }
 
@@ -66,7 +65,9 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
 
   Future<void> _handleBackDuringTutorial() async {
     if (_showcaseContext != null) {
-      try { ShowCaseWidget.of(_showcaseContext!).dismiss(); } catch (_) {}
+      try {
+        ShowCaseWidget.of(_showcaseContext!).dismiss();
+      } catch (_) {}
     }
     final strings = ref.read(localizedStringsProvider);
     final confirmed = await showDialog<bool>(
@@ -74,7 +75,9 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         title: Text(strings['tutorialExitTitle'] ?? '튜토리얼 종료'),
-        content: Text(strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.'),
+        content: Text(
+          strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -188,10 +191,11 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
       final DateTime e = analysisPrevQuery.endInclusive;
       final String startStr = '${s.month}$monthSuffix ${s.day}$daySuffix';
       final String endStr = '${e.month}$monthSuffix ${e.day}$daySuffix';
-      message = (strings['analysisCompPeriodHint'] ??
-              '{start} ~ {end} 기간과 비교한 결과도 표시됩니다.')
-          .replaceAll('{start}', startStr)
-          .replaceAll('{end}', endStr);
+      message =
+          (strings['analysisCompPeriodHint'] ??
+                  '{start} ~ {end} 기간과 비교한 결과도 표시됩니다.')
+              .replaceAll('{start}', startStr)
+              .replaceAll('{end}', endStr);
       bgColor = const Color(0xFFE8F4FD);
       borderColor = const Color(0xFFBBDEFB);
       icon = Icons.compare_arrows;
@@ -240,6 +244,9 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     );
     final List<MetadataTag> subcategoryTags = ledger.tagsByType(
       MetadataTagType.subcategory,
+    );
+    final List<MetadataTag> diningOccasionTags = ledger.tagsByType(
+      MetadataTagType.diningOccasion,
     );
     final List<MetadataTag> paymentTags = ledger.tagsByType(
       MetadataTagType.paymentMethod,
@@ -330,138 +337,147 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
               Showcase(
                 key: _periodControlKey,
                 title: strings['tutAnalysisPeriodTitle'] ?? '분석 기간 선택',
-                description: strings['tutAnalysisPeriodDesc'] ?? '월별 또는 기간별로 지출 데이터를 분석할 수 있어요.\n이전/다음 화살표로 월을 이동하거나 달력 기간을 직접 설정해보세요.',
+                description:
+                    strings['tutAnalysisPeriodDesc'] ??
+                    '월별 또는 기간별로 지출 데이터를 분석할 수 있어요.\n이전/다음 화살표로 월을 이동하거나 달력 기간을 직접 설정해보세요.',
                 tooltipPosition: TooltipPosition.bottom,
                 child: AnalysisPeriodControlCard(
-              showExpense: _showExpense,
-              isRangeMode: _periodMode == _PeriodMode.range,
-              selectedMonth: _selectedMonth,
-              selectedRange: _selectedRange,
-              periodSubtitle: periodSubtitle,
-              localeCode: localeCode,
-              strings: strings,
-              onTabChanged: (bool v) => setState(() => _showExpense = v),
-              onMonthPrev: () => setState(
-                () => _selectedMonth = DateTime(
-                  _selectedMonth.year,
-                  _selectedMonth.month - 1,
+                  showExpense: _showExpense,
+                  isRangeMode: _periodMode == _PeriodMode.range,
+                  selectedMonth: _selectedMonth,
+                  selectedRange: _selectedRange,
+                  periodSubtitle: periodSubtitle,
+                  localeCode: localeCode,
+                  strings: strings,
+                  onTabChanged: (bool v) => setState(() => _showExpense = v),
+                  onMonthPrev: () => setState(
+                    () => _selectedMonth = DateTime(
+                      _selectedMonth.year,
+                      _selectedMonth.month - 1,
+                    ),
+                  ),
+                  onMonthNext: () => setState(
+                    () => _selectedMonth = DateTime(
+                      _selectedMonth.year,
+                      _selectedMonth.month + 1,
+                    ),
+                  ),
+                  onMonthChanged: (DateTime d) =>
+                      setState(() => _selectedMonth = d),
+                  onRangeChanged: (DateTimeRange? r) =>
+                      setState(() => _selectedRange = r),
+                  onModeChanged: (bool isRange) => setState(() {
+                    _periodMode = isRange
+                        ? _PeriodMode.range
+                        : _PeriodMode.monthly;
+                    _selectedRange = null;
+                  }),
                 ),
               ),
-              onMonthNext: () => setState(
-                () => _selectedMonth = DateTime(
-                  _selectedMonth.year,
-                  _selectedMonth.month + 1,
-                ),
-              ),
-              onMonthChanged: (DateTime d) =>
-                  setState(() => _selectedMonth = d),
-              onRangeChanged: (DateTimeRange? r) =>
-                  setState(() => _selectedRange = r),
-              onModeChanged: (bool isRange) => setState(() {
-                _periodMode = isRange ? _PeriodMode.range : _PeriodMode.monthly;
-                _selectedRange = null;
-              }),
-            ),
-            ),
               const SizedBox(height: 16),
 
-            // ── 전월동기 비교 안내 배너 (지출 탭에서만 표시) ──
-            if (_showExpense)
-              _buildComparisonBanner(
-                strings: strings,
-                expensesAsync: expensesAsync,
-                prevCategoryExpenses: prevCategoryExpenses,
-                analysisPrevQuery: analysisPrevQuery,
-              ),
+              // ── 전월동기 비교 안내 배너 (지출 탭에서만 표시) ──
+              if (_showExpense)
+                _buildComparisonBanner(
+                  strings: strings,
+                  expensesAsync: expensesAsync,
+                  prevCategoryExpenses: prevCategoryExpenses,
+                  analysisPrevQuery: analysisPrevQuery,
+                ),
 
-            // ── 지출 탭 ──
-            if (_showExpense)
-              expensesAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (Object e, _) => Center(child: Text(e.toString())),
-                data: (List<ExpenseEntry> expenses) =>
-                    AnalysisExpenseTabSection(
-                      key: ValueKey('expense-$periodKey'),
-                      expenses: expenses,
-                      prevCategoryExpenses: prevCategoryExpenses,
-                      monthlyFixed: monthlyFixed,
-                      categoryTags: categoryTags,
-                      subcategoryTags: subcategoryTags,
-                      paymentTags: paymentTags,
-                      strings: strings,
-                      currency: currency,
-                      usingRange: usingRange,
-                      chartRangeStart: chartRangeStart,
-                      prevRangeStart: analysisPrevQuery.start,
-                    ),
-              ),
+              // ── 지출 탭 ──
+              if (_showExpense)
+                expensesAsync.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (Object e, _) => Center(child: Text(e.toString())),
+                  data: (List<ExpenseEntry> expenses) =>
+                      AnalysisExpenseTabSection(
+                        key: ValueKey('expense-$periodKey'),
+                        expenses: expenses,
+                        prevCategoryExpenses: prevCategoryExpenses,
+                        monthlyFixed: monthlyFixed,
+                        categoryTags: categoryTags,
+                        subcategoryTags: subcategoryTags,
+                        diningOccasionTags: diningOccasionTags,
+                        paymentTags: paymentTags,
+                        strings: strings,
+                        currency: currency,
+                        usingRange: usingRange,
+                        chartRangeStart: chartRangeStart,
+                        prevRangeStart: analysisPrevQuery.start,
+                      ),
+                ),
 
-            // ── PDF 출력 버튼 (지출 탭에서만 표시) ──
-            if (_showExpense)
-              Showcase(
-                key: _pdfBtnKey,
-                title: strings['tutAnalysisPdfBtnTitle'] ?? 'PDF 리포트 출력',
-                description: strings['tutAnalysisPdfBtnDesc'] ?? '지출 분석 결과를 PDF로 출력하고 공유할 수 있어요!\n다음 단계에서 PDF 설정 화면을 살펴볼게요.',
-                tooltipPosition: TooltipPosition.top,
-                child: Padding(
-                  padding: const EdgeInsets.only(bottom: 8),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () => Navigator.of(
-                        context,
-                      ).pushNamed(AppRouter.generatingReportRoute),
-                      icon: const Icon(
-                        Icons.picture_as_pdf_rounded,
-                        color: Color(0xFFDC3545),
-                      ),
-                      label: Text(
-                        _text(strings, 'analysisExportPdf', 'PDF로 출력하기'),
-                        style: const TextStyle(color: Color(0xFFDC3545)),
-                      ),
-                      style: OutlinedButton.styleFrom(
-                        side: const BorderSide(color: Color(0xFFDC3545)),
-                        padding: const EdgeInsets.symmetric(vertical: 14),
+              // ── PDF 출력 버튼 (지출 탭에서만 표시) ──
+              if (_showExpense)
+                Showcase(
+                  key: _pdfBtnKey,
+                  title: strings['tutAnalysisPdfBtnTitle'] ?? 'PDF 리포트 출력',
+                  description:
+                      strings['tutAnalysisPdfBtnDesc'] ??
+                      '지출 분석 결과를 PDF로 출력하고 공유할 수 있어요!\n다음 단계에서 PDF 설정 화면을 살펴볼게요.',
+                  tooltipPosition: TooltipPosition.top,
+                  child: Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: OutlinedButton.icon(
+                        onPressed: () => Navigator.of(
+                          context,
+                        ).pushNamed(AppRouter.generatingReportRoute),
+                        icon: const Icon(
+                          Icons.picture_as_pdf_rounded,
+                          color: Color(0xFFDC3545),
+                        ),
+                        label: Text(
+                          _text(strings, 'analysisExportPdf', 'PDF로 출력하기'),
+                          style: const TextStyle(color: Color(0xFFDC3545)),
+                        ),
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Color(0xFFDC3545)),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                        ),
                       ),
                     ),
                   ),
                 ),
-              ),
 
-            // ── 수입 탭 ──
-            if (!_showExpense)
-              incomesAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (Object e, _) => Center(child: Text(e.toString())),
-                data: (List<IncomeEntry> incomes) => AnalysisIncomeTabSection(
-                  key: ValueKey('income-$periodKey'),
-                  incomes: incomes,
-                  strings: strings,
-                  currency: currency,
-                  chartRangeStart: chartRangeStart,
+              // ── 수입 탭 ──
+              if (!_showExpense)
+                incomesAsync.when(
+                  loading: () =>
+                      const Center(child: CircularProgressIndicator()),
+                  error: (Object e, _) => Center(child: Text(e.toString())),
+                  data: (List<IncomeEntry> incomes) => AnalysisIncomeTabSection(
+                    key: ValueKey('income-$periodKey'),
+                    incomes: incomes,
+                    strings: strings,
+                    currency: currency,
+                    chartRangeStart: chartRangeStart,
+                  ),
                 ),
-              ),
-          ],
+            ],
+          ),
         ),
-      ),
-    );
-
-    if (isTutorial) {
-      return PopScope(
-        canPop: false,
-        onPopInvokedWithResult: (didPop, _) {
-          if (!didPop) _handleBackDuringTutorial();
-        },
-        child: page,
       );
-    }
-    return page;
-  }
 
-  return ShowCaseWidget(
-    onComplete: _onShowcaseComplete,
-    enableAutoScroll: true,
-    builder: buildInner,
-  );
-}
+      if (isTutorial) {
+        return PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (didPop, _) {
+            if (!didPop) _handleBackDuringTutorial();
+          },
+          child: page,
+        );
+      }
+      return page;
+    }
+
+    return ShowCaseWidget(
+      onComplete: _onShowcaseComplete,
+      enableAutoScroll: true,
+      builder: buildInner,
+    );
+  }
 }

@@ -41,12 +41,24 @@ Future<void> showExpenseEditorSheet({
 
   final categoryTags = ledger.tagsByType(MetadataTagType.category);
   final subcategoryTags = ledger.tagsByType(MetadataTagType.subcategory);
+  final diningOccasionTags = ledger.tagsByType(MetadataTagType.diningOccasion);
   final paymentTags = ledger.tagsByType(MetadataTagType.paymentMethod);
   if (categoryTags.isEmpty || subcategoryTags.isEmpty || paymentTags.isEmpty) {
     return;
   }
 
-  final selectedInitialDate = entry?.spentAt ?? initialDate ?? DateTime.now();
+  final now = DateTime.now();
+  final selectedInitialDate =
+      entry?.spentAt ??
+      (initialDate == null
+          ? now
+          : DateTime(
+              initialDate.year,
+              initialDate.month,
+              initialDate.day,
+              now.hour,
+              now.minute,
+            ));
   final savedEntry = await showModalBottomSheet<ExpenseEntry>(
     context: context,
     isScrollControlled: true,
@@ -57,6 +69,7 @@ Future<void> showExpenseEditorSheet({
         selectedInitialDate: selectedInitialDate,
         categoryTags: categoryTags,
         subcategoryTags: subcategoryTags,
+        diningOccasionTags: diningOccasionTags,
         paymentTags: paymentTags,
         strings: strings,
         tutorialPreset: tutorialPreset,
@@ -81,6 +94,7 @@ class _ExpenseEditorSheetBody extends StatefulWidget {
     required this.selectedInitialDate,
     required this.categoryTags,
     required this.subcategoryTags,
+    required this.diningOccasionTags,
     required this.paymentTags,
     required this.strings,
     this.tutorialPreset,
@@ -90,6 +104,7 @@ class _ExpenseEditorSheetBody extends StatefulWidget {
   final DateTime selectedInitialDate;
   final List<MetadataTag> categoryTags;
   final List<MetadataTag> subcategoryTags;
+  final List<MetadataTag> diningOccasionTags;
   final List<MetadataTag> paymentTags;
   final Map<String, String> strings;
   final TutorialExpensePreset? tutorialPreset;
@@ -107,6 +122,7 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
 
   late String categoryCode;
   late String subcategoryCode;
+  String? diningOccasionCode;
   late String paymentCode;
   late DateTime selectedDate;
   bool isSaving = false;
@@ -122,13 +138,20 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
     super.initState();
     selectedDate = widget.selectedInitialDate;
     final preset = widget.tutorialPreset;
-    categoryCode = preset?.categoryCode ??
+    categoryCode =
+        preset?.categoryCode ??
         widget.entry?.categoryCode ??
         widget.categoryTags.first.code;
-    subcategoryCode = preset?.subcategoryCode ??
+    subcategoryCode =
+        preset?.subcategoryCode ??
         widget.entry?.subcategoryCode ??
         widget.subcategoryTags.first.code;
-    paymentCode = preset?.paymentMethodCode ??
+    diningOccasionCode = widget.entry?.diningOccasionCode;
+    if (widget.entry == null && categoryCode == 'F') {
+      diningOccasionCode = _recommendedDiningOccasion(selectedDate);
+    }
+    paymentCode =
+        preset?.paymentMethodCode ??
         widget.entry?.paymentMethodCode ??
         widget.paymentTags.first.code;
 
@@ -146,6 +169,40 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
         selectedDate,
       ).toString().substring(0, 16),
     );
+  }
+
+  String? _recommendedDiningOccasion(DateTime dateTime) {
+    final hour = dateTime.hour;
+    final String recommendedCode;
+    if (hour >= 6 && hour < 10) {
+      recommendedCode = 'breakfast';
+    } else if (hour >= 10 && hour < 11) {
+      recommendedCode = 'brunch';
+    } else if (hour >= 11 && hour < 14) {
+      recommendedCode = 'lunch';
+    } else if (hour >= 14 && hour < 18) {
+      recommendedCode = 'snack';
+    } else if (hour >= 18 && hour < 21) {
+      recommendedCode = 'dinner';
+    } else {
+      recommendedCode = 'company';
+    }
+    return widget.diningOccasionTags.any(
+          (MetadataTag tag) => tag.code == recommendedCode,
+        )
+        ? recommendedCode
+        : null;
+  }
+
+  List<MetadataTag> _orderedDiningOccasionTags() {
+    final tags = <MetadataTag>[...widget.diningOccasionTags];
+    final recommendedCode = _recommendedDiningOccasion(selectedDate);
+    tags.sort((MetadataTag left, MetadataTag right) {
+      if (left.code == recommendedCode) return -1;
+      if (right.code == recommendedCode) return 1;
+      return left.code.compareTo(right.code);
+    });
+    return tags;
   }
 
   @override
@@ -221,6 +278,14 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
 
                   setState(() {
                     categoryCode = value;
+                    if (categoryCode != 'F') {
+                      diningOccasionCode = null;
+                    } else if (widget.entry == null &&
+                        diningOccasionCode == null) {
+                      diningOccasionCode = _recommendedDiningOccasion(
+                        selectedDate,
+                      );
+                    }
                   });
                 },
               ),
@@ -269,6 +334,39 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
                 },
               ),
               const SizedBox(height: 12),
+              if (categoryCode == 'F') ...<Widget>[
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text(
+                    widget.strings['diningOccasionLabel'] ?? '식사 유형 (선택)',
+                    style: Theme.of(context).textTheme.labelLarge,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: _orderedDiningOccasionTags().map((tag) {
+                      final selected = diningOccasionCode == tag.code;
+                      return ChoiceChip(
+                        label: Text(tag.label),
+                        selected: selected,
+                        avatar: selected
+                            ? const Icon(Icons.check, size: 18)
+                            : null,
+                        onSelected: (bool value) {
+                          setState(() {
+                            diningOccasionCode = value ? tag.code : null;
+                          });
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
               TextField(
                 controller: descriptionController,
                 decoration: InputDecoration(
@@ -352,6 +450,9 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
                     spentAt: selectedDate,
                     categoryCode: categoryCode,
                     subcategoryCode: subcategoryCode,
+                    diningOccasionCode: categoryCode == 'F'
+                        ? diningOccasionCode
+                        : null,
                     paymentMethodCode: paymentCode,
                     description: descriptionController.text,
                     amount: amount,

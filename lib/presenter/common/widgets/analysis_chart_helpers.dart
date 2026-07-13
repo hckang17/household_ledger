@@ -86,20 +86,47 @@ List<DonutSection> buildPaymentDonutSections(
   );
 }
 
+/// 외식비 중 식사 유형이 지정된 지출을 식사 유형별로 집계한다.
+List<DonutSection> buildDiningOccasionDonutSections(
+  List<ExpenseEntry> expenses,
+  List<MetadataTag> diningOccasionTags,
+) {
+  final Map<String, int> sums = <String, int>{};
+  for (final ExpenseEntry entry in expenses) {
+    final code = entry.diningOccasionCode;
+    if (entry.categoryCode != 'F' || code == null || code.isEmpty) continue;
+    sums.update(
+      code,
+      (int value) => value + entry.amount,
+      ifAbsent: () => entry.amount,
+    );
+  }
+  return _toSortedDonutSections(
+    sums,
+    (String code) => diningOccasionTags.labelFor(code),
+    (String code, int colorIndex) => kDonutSectionColors[colorIndex],
+  );
+}
+
 /// 일별 지출 추이 [FlSpot] 목록을 계산한다.
 List<FlSpot> buildDailyExpenseSpots(
   List<ExpenseEntry> expenses,
   DateTime rangeStart,
 ) {
   if (expenses.isEmpty) return <FlSpot>[];
-  final DateTime base =
-      DateTime(rangeStart.year, rangeStart.month, rangeStart.day);
+  final DateTime base = DateTime(
+    rangeStart.year,
+    rangeStart.month,
+    rangeStart.day,
+  );
   final Map<int, int> daily = <int, int>{};
   for (final ExpenseEntry e in expenses) {
     final int offset =
-        DateTime(e.spentAt.year, e.spentAt.month, e.spentAt.day)
-            .difference(base)
-            .inDays +
+        DateTime(
+          e.spentAt.year,
+          e.spentAt.month,
+          e.spentAt.day,
+        ).difference(base).inDays +
         1;
     if (offset < 1) continue;
     daily.update(offset, (int v) => v + e.amount, ifAbsent: () => e.amount);
@@ -117,14 +144,19 @@ List<FlSpot> buildDailyIncomeSpots(
   DateTime rangeStart,
 ) {
   if (incomes.isEmpty) return <FlSpot>[];
-  final DateTime base =
-      DateTime(rangeStart.year, rangeStart.month, rangeStart.day);
+  final DateTime base = DateTime(
+    rangeStart.year,
+    rangeStart.month,
+    rangeStart.day,
+  );
   final Map<int, int> daily = <int, int>{};
   for (final IncomeEntry e in incomes) {
     final int offset =
-        DateTime(e.earnedAt.year, e.earnedAt.month, e.earnedAt.day)
-            .difference(base)
-            .inDays +
+        DateTime(
+          e.earnedAt.year,
+          e.earnedAt.month,
+          e.earnedAt.day,
+        ).difference(base).inDays +
         1;
     if (offset < 1) continue;
     daily.update(offset, (int v) => v + e.amount, ifAbsent: () => e.amount);

@@ -1,4 +1,4 @@
-﻿import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/income_entry.dart';
@@ -74,14 +74,19 @@ DateTime _monthStart(DateTime month) {
 /// - 기준일이 해당 월의 마지막 날이면 전월 전체를 집계한다.
 /// - 그 외에는 min(기준일, 전월의 마지막 날)까지 집계한다.
 ExpenseRangeQuery computePrevSamePeriodQuery(DateTime referenceDate) {
-  final int currentMonthLastDay =
-      DateTime(referenceDate.year, referenceDate.month + 1, 0).day;
+  final int currentMonthLastDay = DateTime(
+    referenceDate.year,
+    referenceDate.month + 1,
+    0,
+  ).day;
   final bool isLastDay = referenceDate.day >= currentMonthLastDay;
 
-  final int prevYear =
-      referenceDate.month == 1 ? referenceDate.year - 1 : referenceDate.year;
-  final int prevMonthNum =
-      referenceDate.month == 1 ? 12 : referenceDate.month - 1;
+  final int prevYear = referenceDate.month == 1
+      ? referenceDate.year - 1
+      : referenceDate.year;
+  final int prevMonthNum = referenceDate.month == 1
+      ? 12
+      : referenceDate.month - 1;
   final int prevLastDay = DateTime(prevYear, prevMonthNum + 1, 0).day;
 
   final int prevEndDay = isLastDay
@@ -209,14 +214,15 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
 
     var currentMonthExpenses = rawResults[0] as List<ExpenseEntry>;
     var allFixedExpenses = rawResults[1] as List<FixedExpense>;
-    final prevPeriodExpenses = rawResults[2] as List<ExpenseEntry>;
+    var prevPeriodExpenses = rawResults[2] as List<ExpenseEntry>;
 
     // 기존 shared_preferences에 남아 있는 구버전 지출내역이 있으면 SQLite로 1회 마이그레이션한다.
     if (currentMonthExpenses.isEmpty && settingsState.expenses.isNotEmpty) {
       _logLedgerProvider('build', '구버전 지출내역 SQLite 마이그레이션 수행');
       await _expenseDatabaseService.upsertExpenses(settingsState.expenses);
-      currentMonthExpenses = await _expenseDatabaseService
-          .loadExpensesByMonth(nowMonth);
+      currentMonthExpenses = await _expenseDatabaseService.loadExpensesByMonth(
+        nowMonth,
+      );
     }
 
     if (allFixedExpenses.isEmpty && settingsState.fixedExpenses.isNotEmpty) {
@@ -226,6 +232,24 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
       );
       allFixedExpenses = await _fixedExpenseDatabaseService
           .loadAllFixedExpenses();
+    }
+
+    // 기존 `점심/식당명` 형식은 식사 유형 코드와 설명으로 자동 분리한다.
+    // 이미 diningOccasionCode가 있는 데이터는 건드리지 않으므로 반복 실행해도 안전하다.
+    final migratedDiningCount = await _expenseDatabaseService
+        .migrateLegacyDiningDescriptions();
+    if (migratedDiningCount > 0) {
+      _logLedgerProvider(
+        'build',
+        '기존 외식 기록 자동 마이그레이션 완료($migratedDiningCount건)',
+      );
+      currentMonthExpenses = await _expenseDatabaseService.loadExpensesByMonth(
+        nowMonth,
+      );
+      prevPeriodExpenses = await _expenseDatabaseService.loadExpensesByRange(
+        start: prevQuery.start,
+        endExclusive: prevQuery.endExclusive,
+      );
     }
 
     _logLedgerProvider('build', '초기 상태 반환(이번 달 지출내역 + 전월 동기 데이터 적용)');
@@ -363,6 +387,19 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
     await _expenseDatabaseService.deleteExpense(id);
     await _commit(current.deleteExpense(id));
     _logLedgerProvider('deleteExpense', '소비내역 기록 삭제 완료');
+  }
+
+  Future<int> countLegacyDiningDescriptions() {
+    return _expenseDatabaseService.countLegacyDiningDescriptions();
+  }
+
+  Future<int> migrateLegacyDiningDescriptions() async {
+    final count = await _expenseDatabaseService
+        .migrateLegacyDiningDescriptions();
+    if (count > 0) {
+      ref.invalidateSelf();
+    }
+    return count;
   }
 
   /// 소득 기록을 추가한다.
@@ -507,23 +544,25 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
     await _incomeDatabaseService.deleteAllIncomes();
 
     await _expenseDatabaseService.upsertExpenses(expenses);
+    final migratedDiningCount = await _expenseDatabaseService
+        .migrateLegacyDiningDescriptions();
+    _logLedgerProvider(
+      'importAllData',
+      '가져온 외식 기록 자동 마이그레이션 완료($migratedDiningCount건)',
+    );
     await _fixedExpenseDatabaseService.upsertFixedExpenses(fixedExpenses);
     await _incomeDatabaseService.upsertIncomes(incomes);
 
     final nowMonth = DateTime.now();
-    final currentMonthExpenses = expenses
-        .where(
-          (ExpenseEntry e) =>
-              e.spentAt.year == nowMonth.year &&
-              e.spentAt.month == nowMonth.month,
-        )
-        .toList();
+    final currentMonthExpenses = await _expenseDatabaseService
+        .loadExpensesByMonth(nowMonth);
 
     final prevQuery = computePrevSamePeriodQuery(nowMonth);
-    final prevPeriodExpenses = await _expenseDatabaseService.loadExpensesByRange(
-      start: prevQuery.start,
-      endExclusive: prevQuery.endExclusive,
-    );
+    final prevPeriodExpenses = await _expenseDatabaseService
+        .loadExpensesByRange(
+          start: prevQuery.start,
+          endExclusive: prevQuery.endExclusive,
+        );
     final next = importedState.copyWith(
       expenses: currentMonthExpenses,
       fixedExpenses: fixedExpenses,

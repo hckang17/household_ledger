@@ -1,5 +1,5 @@
 /// 메타데이터 태그의 종류를 정의한다.
-enum MetadataTagType { category, subcategory, paymentMethod }
+enum MetadataTagType { category, subcategory, diningOccasion, paymentMethod }
 
 /// 메타데이터 태그 종류를 직렬화 가능한 문자열로 변환한다.
 extension MetadataTagTypeX on MetadataTagType {
@@ -10,6 +10,8 @@ extension MetadataTagTypeX on MetadataTagType {
         return 'category';
       case MetadataTagType.subcategory:
         return 'subcategory';
+      case MetadataTagType.diningOccasion:
+        return 'diningOccasion';
       case MetadataTagType.paymentMethod:
         return 'paymentMethod';
     }
@@ -22,6 +24,8 @@ extension MetadataTagTypeX on MetadataTagType {
         return 'Category';
       case MetadataTagType.subcategory:
         return 'Subcategory';
+      case MetadataTagType.diningOccasion:
+        return 'Dining Occasion';
       case MetadataTagType.paymentMethod:
         return 'Payment Method';
     }
@@ -34,6 +38,8 @@ extension MetadataTagTypeX on MetadataTagType {
         return MetadataTagType.category;
       case 'subcategory':
         return MetadataTagType.subcategory;
+      case 'diningOccasion':
+        return MetadataTagType.diningOccasion;
       case 'paymentMethod':
         return MetadataTagType.paymentMethod;
       default:

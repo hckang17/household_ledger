@@ -154,6 +154,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     ExpenseEntry entry,
     List<MetadataTag> categoryTags,
     List<MetadataTag> subcategoryTags,
+    List<MetadataTag> diningOccasionTags,
     List<MetadataTag> paymentTags,
     Map<String, String> strings,
   ) {
@@ -162,6 +163,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
       entry: entry,
       categoryTags: categoryTags,
       subcategoryTags: subcategoryTags,
+      diningOccasionTags: diningOccasionTags,
       paymentTags: paymentTags,
       strings: strings,
       currency: _currencyUnit(strings),
@@ -176,10 +178,9 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     _showcaseStarted = true;
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted || _showcaseContext == null) return;
-      ShowCaseWidget.of(_showcaseContext!).startShowCase([
-        _calendarKey,
-        _fabKey,
-      ]);
+      ShowCaseWidget.of(
+        _showcaseContext!,
+      ).startShowCase([_calendarKey, _fabKey]);
     });
   }
 
@@ -193,7 +194,9 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
 
   Future<void> _handleBackDuringTutorial() async {
     if (_showcaseContext != null) {
-      try { ShowCaseWidget.of(_showcaseContext!).dismiss(); } catch (_) {}
+      try {
+        ShowCaseWidget.of(_showcaseContext!).dismiss();
+      } catch (_) {}
     }
     final strings = ref.read(localizedStringsProvider);
     final confirmed = await showDialog<bool>(
@@ -201,7 +204,9 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
       barrierDismissible: false,
       builder: (ctx) => AlertDialog(
         title: Text(strings['tutorialExitTitle'] ?? '튜토리얼 종료'),
-        content: Text(strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.'),
+        content: Text(
+          strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
@@ -279,6 +284,9 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     final currency = _currencyUnit(strings);
     final categoryTags = ledger.tagsByType(MetadataTagType.category);
     final subcategoryTags = ledger.tagsByType(MetadataTagType.subcategory);
+    final diningOccasionTags = ledger.tagsByType(
+      MetadataTagType.diningOccasion,
+    );
     final paymentTags = ledger.tagsByType(MetadataTagType.paymentMethod);
     final totalSpentLabel = _monthLabel(
       strings['monthlyTotalSpentLabel'] ?? '{month} total spent(error)',
@@ -310,7 +318,9 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
       final fab = Showcase(
         key: _fabKey,
         title: strings['tutExpenseFabTitle'] ?? '지출 추가',
-        description: strings['tutExpenseFabDesc'] ?? '오늘의 소비를 기록해보세요!\n날짜를 선택한 후 + 버튼을 탭하면 해당 날짜로 입력창이 열려요.',
+        description:
+            strings['tutExpenseFabDesc'] ??
+            '오늘의 소비를 기록해보세요!\n날짜를 선택한 후 + 버튼을 탭하면 해당 날짜로 입력창이 열려요.',
         tooltipPosition: TooltipPosition.top,
         child: FloatingActionButton.extended(
           onPressed: () => showExpenseEditorSheet(
@@ -345,7 +355,9 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
             Showcase(
               key: _calendarKey,
               title: strings['tutExpenseCalendarTitle'] ?? '캘린더',
-              description: strings['tutExpenseCalendarDesc'] ?? '날짜별로 소비 내역을 확인할 수 있어요.\n날짜를 탭하면 해당 날짜의 지출만 필터링됩니다.',
+              description:
+                  strings['tutExpenseCalendarDesc'] ??
+                  '날짜별로 소비 내역을 확인할 수 있어요.\n날짜를 탭하면 해당 날짜의 지출만 필터링됩니다.',
               tooltipPosition: TooltipPosition.bottom,
               child: ExpenseCalendarSection(
                 focusedMonth: _focusedMonth,
@@ -421,6 +433,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
                                       entry,
                                       categoryTags,
                                       subcategoryTags,
+                                      diningOccasionTags,
                                       paymentTags,
                                       strings,
                                     ),
