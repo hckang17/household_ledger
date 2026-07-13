@@ -191,6 +191,8 @@
   "analysisEngelLow": "엥겔지수가 낮아요! 전체 지출에서 식생활 비중이 작아요.",
   "analysisEngelBalanced": "엥겔지수가 안정적인 수준이에요.",
   "analysisNoPreviousFrequency": "전월동기 비교 기록이 아직 없어요.",
+  "analysisNoCurrentComparisonData": "비교할 데이터가 존재하지 않습니다. 데이터를 입력하러 갈까요?",
+  "analysisAddExpenseAction": "소비내역 입력하기",
   "analysisFrequencySimilar": "전월동기 하루평균 {previous}회와 비슷한 수준이에요.",
   "analysisFrequencyMore": "전월동기 하루평균 {previous}회보다 {difference}회 많아요.",
   "analysisFrequencyLess": "전월동기 하루평균 {previous}회보다 {difference}회 적어요.",

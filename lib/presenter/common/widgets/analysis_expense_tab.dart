@@ -2,6 +2,7 @@ import 'dart:math' as math;
 
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
@@ -10,6 +11,7 @@ import 'package:household_ledger/presenter/common/extension/currency_extension.d
 import 'package:household_ledger/presenter/common/widgets/analysis_chart_helpers.dart';
 import 'package:household_ledger/presenter/common/widgets/analysis_daily_chart.dart';
 import 'package:household_ledger/presenter/common/widgets/analysis_donut_chart.dart';
+import 'package:household_ledger/presenter/common/widgets/expense_editor_sheet.dart';
 import 'package:intl/intl.dart';
 
 /// 도넛 캐러샐의 슬라이드 종류를 정의한다.
@@ -19,7 +21,7 @@ enum AnalysisChartMode { category, subcategory, diningOccasion, paymentMethod }
 ///
 /// 도넛 차트 캐러샐·섹션 목록·고정지출 바·일별 추이를 포함한다.
 /// 캐러샐 모드와 터치 인덱스는 위젯이 내부적으로 관리한다.
-class AnalysisExpenseTabSection extends StatefulWidget {
+class AnalysisExpenseTabSection extends ConsumerStatefulWidget {
   const AnalysisExpenseTabSection({
     required this.expenses,
     required this.prevCategoryExpenses,
@@ -52,11 +54,12 @@ class AnalysisExpenseTabSection extends StatefulWidget {
   final DateTime prevRangeStart;
 
   @override
-  State<AnalysisExpenseTabSection> createState() =>
+  ConsumerState<AnalysisExpenseTabSection> createState() =>
       _AnalysisExpenseTabSectionState();
 }
 
-class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
+class _AnalysisExpenseTabSectionState
+    extends ConsumerState<AnalysisExpenseTabSection> {
   AnalysisChartMode _chartMode = AnalysisChartMode.category;
   int _touchedIndex = -1;
   final GlobalKey _fixedSectionKey = GlobalKey();
@@ -65,6 +68,31 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
 
   String _text(String key, [String fallback = '']) =>
       widget.strings[key] ?? fallback;
+
+  Future<void> _openExpenseEditor() async {
+    final now = DateTime.now();
+    final initialDate =
+        !now.isBefore(widget.chartRangeStart) &&
+            !now.isAfter(widget.chartRangeEnd)
+        ? now
+        : widget.chartRangeEnd;
+    await showExpenseEditorSheet(
+      context: context,
+      ref: ref,
+      initialDate: initialDate,
+    );
+  }
+
+  Widget _noCurrentDataPrompt() {
+    return _NoCurrentDataPrompt(
+      text: _text(
+        'analysisNoCurrentComparisonData',
+        '비교할 데이터가 존재하지 않습니다. 데이터를 입력하러 갈까요?',
+      ),
+      buttonLabel: _text('analysisAddExpenseAction', '소비내역 입력하기'),
+      onPressed: _openExpenseEditor,
+    );
+  }
 
   // ─── 캐러샐 내비게이션 ────────────────────────────────────────────
 
@@ -256,14 +284,17 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
               color: color,
             ),
             const SizedBox(height: 12),
-            _ComparisonMessage(
-              text: frequencyComparison(currentDaily, previousDaily),
-              isIncrease:
-                  previousDaily > 0 && currentDaily > previousDaily + 0.05,
-              isSimilar:
-                  previousDaily == 0 ||
-                  (currentDaily - previousDaily).abs() < 0.05,
-            ),
+            current.isEmpty
+                ? _noCurrentDataPrompt()
+                : _ComparisonMessage(
+                    text: frequencyComparison(currentDaily, previousDaily),
+                    isIncrease:
+                        previousDaily > 0 &&
+                        currentDaily > previousDaily + 0.05,
+                    isSimilar:
+                        previousDaily == 0 ||
+                        (currentDaily - previousDaily).abs() < 0.05,
+                  ),
           ],
         ),
       );
@@ -393,11 +424,13 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
                 color: engelColor,
               ),
               const SizedBox(height: 12),
-              _ComparisonMessage(
-                text: _text(engelStatusKey, engelStatusFallback),
-                isIncrease: engelIndex > 35,
-                isSimilar: engelIndex >= 25 && engelIndex <= 35,
-              ),
+              foodTotal == 0
+                  ? _noCurrentDataPrompt()
+                  : _ComparisonMessage(
+                      text: _text(engelStatusKey, engelStatusFallback),
+                      isIncrease: engelIndex > 35,
+                      isSimilar: engelIndex >= 25 && engelIndex <= 35,
+                    ),
             ],
           ),
         ),
@@ -440,15 +473,20 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
                 color: const Color(0xFF0D6EFD),
               ),
               const SizedBox(height: 12),
-              _ComparisonMessage(
-                text: frequencyComparison(diningDaily, previousDiningDaily),
-                isIncrease:
-                    previousDiningDaily > 0 &&
-                    diningDaily > previousDiningDaily + 0.05,
-                isSimilar:
-                    previousDiningDaily == 0 ||
-                    (diningDaily - previousDiningDaily).abs() < 0.05,
-              ),
+              diningEntries.isEmpty
+                  ? _noCurrentDataPrompt()
+                  : _ComparisonMessage(
+                      text: frequencyComparison(
+                        diningDaily,
+                        previousDiningDaily,
+                      ),
+                      isIncrease:
+                          previousDiningDaily > 0 &&
+                          diningDaily > previousDiningDaily + 0.05,
+                      isSimilar:
+                          previousDiningDaily == 0 ||
+                          (diningDaily - previousDiningDaily).abs() < 0.05,
+                    ),
             ],
           ),
         ),
@@ -476,17 +514,22 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
                 color: const Color(0xFF6F42C1),
               ),
               const SizedBox(height: 14),
-              _ComparisonMessage(
-                text: peakMealCount == 0
-                    ? _text('analysisNoMealTimeData', '아직 시간대별 외식 기록이 없어요.')
-                    : '${_text('analysisPeakMealTime', '{label} 유형의 외식이 가장 많아요!').replaceAll('{label}', peakMealLabel)}\n${countComparison(peakMealCount, previousPeakMealCount)}',
-                isIncrease:
-                    previousPeakMealCount > 0 &&
-                    peakMealCount > previousPeakMealCount,
-                isSimilar:
-                    previousPeakMealCount == 0 ||
-                    peakMealCount == previousPeakMealCount,
-              ),
+              diningEntries.isEmpty
+                  ? _noCurrentDataPrompt()
+                  : _ComparisonMessage(
+                      text: peakMealCount == 0
+                          ? _text(
+                              'analysisNoMealTimeData',
+                              '아직 시간대별 외식 기록이 없어요.',
+                            )
+                          : '${_text('analysisPeakMealTime', '{label} 유형의 외식이 가장 많아요!').replaceAll('{label}', peakMealLabel)}\n${countComparison(peakMealCount, previousPeakMealCount)}',
+                      isIncrease:
+                          previousPeakMealCount > 0 &&
+                          peakMealCount > previousPeakMealCount,
+                      isSimilar:
+                          previousPeakMealCount == 0 ||
+                          peakMealCount == previousPeakMealCount,
+                    ),
               const Divider(height: 30),
               Text(
                 _text('analysisCompanyDiningTitle', '회식 분석'),
@@ -531,18 +574,23 @@ class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
                 color: const Color(0xFFDC3545),
               ),
               const SizedBox(height: 12),
-              _ComparisonMessage(
-                text: countComparison(
-                  companyEntries.length,
-                  previousCompanyEntries.length,
-                ),
-                isIncrease:
-                    previousCompanyEntries.isNotEmpty &&
-                    companyEntries.length > previousCompanyEntries.length,
-                isSimilar:
-                    previousCompanyEntries.isEmpty ||
-                    companyEntries.length == previousCompanyEntries.length,
-              ),
+              if (diningEntries.isNotEmpty)
+                companyEntries.isEmpty
+                    ? _noCurrentDataPrompt()
+                    : _ComparisonMessage(
+                        text: countComparison(
+                          companyEntries.length,
+                          previousCompanyEntries.length,
+                        ),
+                        isIncrease:
+                            previousCompanyEntries.isNotEmpty &&
+                            companyEntries.length >
+                                previousCompanyEntries.length,
+                        isSimilar:
+                            previousCompanyEntries.isEmpty ||
+                            companyEntries.length ==
+                                previousCompanyEntries.length,
+                      ),
             ],
           ),
         ),
@@ -1287,6 +1335,77 @@ class _AnimatedGauge extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+}
+
+class _NoCurrentDataPrompt extends StatelessWidget {
+  const _NoCurrentDataPrompt({
+    required this.text,
+    required this.buttonLabel,
+    required this.onPressed,
+  });
+
+  final String text;
+  final String buttonLabel;
+  final VoidCallback onPressed;
+
+  @override
+  Widget build(BuildContext context) {
+    const color = Color(0xFF486581);
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: <Widget>[
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const Padding(
+                padding: EdgeInsets.only(top: 1),
+                child: Icon(Icons.info_outline_rounded, color: color, size: 18),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  text,
+                  style: const TextStyle(
+                    color: color,
+                    fontWeight: FontWeight.w500,
+                    fontSize: 13,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Padding(
+            padding: const EdgeInsets.only(left: 26),
+            child: OutlinedButton.icon(
+              onPressed: onPressed,
+              style: OutlinedButton.styleFrom(
+                foregroundColor: color,
+                visualDensity: VisualDensity.compact,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 6,
+                ),
+                textStyle: Theme.of(
+                  context,
+                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w600),
+              ),
+              icon: const Icon(Icons.add_rounded, size: 16),
+              label: Text(buttonLabel),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

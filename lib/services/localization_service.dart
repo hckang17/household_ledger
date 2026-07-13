@@ -119,6 +119,8 @@ class LocalizationService {
     'analysisPrevMonthDiff': '전월동기 대비',
     'analysisPrevRangeDiff': '1개월전 동기 대비',
     'analysisNoCurrMonthData': '이번 달 소비 데이터가 없습니다.',
+    'analysisNoCurrentComparisonData': '비교할 데이터가 존재하지 않습니다. 데이터를 입력하러 갈까요?',
+    'analysisAddExpenseAction': '소비내역 입력하기',
     'analysisNoPrevPeriodData': '전월동기 비교 데이터가 없습니다.',
     'analysisCompPeriodHint': '{start} ~ {end} 기간과 비교한 결과도 표시됩니다.',
     'analysisDailyCurrMonth': '이번달',

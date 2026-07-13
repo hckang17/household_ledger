@@ -189,6 +189,8 @@
   "analysisEngelLow": "エンゲル係数が低めです。総支出に占める食生活費が少ない状態です。",
   "analysisEngelBalanced": "エンゲル係数は安定した水準です。",
   "analysisNoPreviousFrequency": "前月同期の比較記録がまだありません。",
+  "analysisNoCurrentComparisonData": "比較できるデータがありません。データを入力しますか？",
+  "analysisAddExpenseAction": "支出履歴を入力",
   "analysisFrequencySimilar": "前月同期の1日平均{previous}回と同程度です。",
   "analysisFrequencyMore": "前月同期の1日平均{previous}回より{difference}回多いです。",
   "analysisFrequencyLess": "前月同期の1日平均{previous}回より{difference}回少ないです。",
