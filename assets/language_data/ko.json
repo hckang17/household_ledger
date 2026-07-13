@@ -369,6 +369,7 @@
   "tutExportBtnTitle": "데이터 내보내기",
   "tutExportBtnDesc": "버튼을 탭하면 모든 데이터가 CSV 파일로 저장돼요!\n이것으로 튜토리얼이 완료됩니다. 수고하셨어요!",
 
+  "readingData" : "데이터를 읽어오고 있습니다",
   "loadingIndicatorText1" : "... 화면을 그리고 있어요",
   "loadingIndicatorText2" : "... 가계부 기록을 꺼내고 있어요",
   "loadingIndicatorText3" : "... 기록을 분석중이에요",

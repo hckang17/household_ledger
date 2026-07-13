@@ -45,7 +45,7 @@ class ExpenseCalendarSection extends StatefulWidget {
 }
 
 class _ExpenseCalendarSectionState extends State<ExpenseCalendarSection> {
-  bool _isCalendarExpanded = false;
+  bool _isCalendarExpanded = true;
 
   DateTime _dateOnly(DateTime value) =>
       DateTime(value.year, value.month, value.day);

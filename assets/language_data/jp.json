@@ -360,6 +360,7 @@
   "tutExportBtnTitle": "データを出力",
   "tutExportBtnDesc": "ボタンをタップするとすべてのデータがCSVファイルに保存されます！\nこれでチュートリアルが完了です。お疲れさまでした！",
 
+  "readingData" : "データを読み込んでいます",
   "loadingIndicatorText1" : "... 画面を描画しています",
   "loadingIndicatorText2" : "... 家計簿の記録を取得しています",
   "loadingIndicatorText3" : "... 記録を分析中です",

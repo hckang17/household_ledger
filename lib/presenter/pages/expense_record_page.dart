@@ -73,6 +73,45 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
         .replaceAll('{day}', date.day.toString().padLeft(2, '0'));
   }
 
+  Widget _buildDataLoadingPage(Map<String, String> strings) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF0F4F8),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 48),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: <Widget>[
+              const CircularProgressIndicator(
+                strokeWidth: 3,
+                color: Color(0xFF2563EB),
+              ),
+              const SizedBox(height: 32),
+              Text(
+                _text(strings, 'readingData'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16,
+                  color: Color(0xFF486581),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ClipRRect(
+                borderRadius: BorderRadius.circular(4),
+                child: const LinearProgressIndicator(
+                  minHeight: 6,
+                  backgroundColor: Color(0xFFDDE5ED),
+                  color: Color(0xFF2563EB),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   List<MapEntry<DateTime, List<ExpenseEntry>>> _groupEntriesByDay(
     List<ExpenseEntry> entries,
   ) {
@@ -205,12 +244,13 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     });
 
     if (ledger == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return _buildDataLoadingPage(strings);
     }
 
     final monthEntriesAsync = ref.watch(monthlyExpensesProvider(_focusedMonth));
-    if (monthEntriesAsync.isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    final incomeEntriesAsync = ref.watch(monthlyIncomesProvider(_focusedMonth));
+    if (monthEntriesAsync.isLoading || incomeEntriesAsync.isLoading) {
+      return _buildDataLoadingPage(strings);
     }
     if (monthEntriesAsync.hasError) {
       return Scaffold(
@@ -219,10 +259,6 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     }
     final monthEntries =
         monthEntriesAsync.asData?.value ?? const <ExpenseEntry>[];
-    final incomeEntriesAsync = ref.watch(monthlyIncomesProvider(_focusedMonth));
-    if (incomeEntriesAsync.isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
     if (incomeEntriesAsync.hasError) {
       return Scaffold(
         body: Center(child: Text(incomeEntriesAsync.error.toString())),
