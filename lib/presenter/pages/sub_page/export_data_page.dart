@@ -1,3 +1,6 @@
+// """ MVVM 계층: View / Sub Feature Page """
+// """ 역할: 가계부 데이터를 외부 파일로 내보내는 보조 기능 제공 """
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';

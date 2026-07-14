@@ -1,3 +1,6 @@
+// """ MVVM 계층: View / App Flow Page """
+// """ 역할: 사용자 프로필과 초기 예산을 설정하는 최초 구성 화면 """
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';

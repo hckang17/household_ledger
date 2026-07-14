@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:household_ledger/presenter/pages/analysis_page.dart';
-import 'package:household_ledger/presenter/pages/data_managing_page.dart';
-import 'package:household_ledger/presenter/pages/export_data_page.dart';
-import 'package:household_ledger/presenter/pages/generating_report_page.dart';
-import 'package:household_ledger/presenter/pages/expense_management_page.dart';
-import 'package:household_ledger/presenter/pages/expense_record_page.dart';
-import 'package:household_ledger/presenter/pages/fixed_expense_page.dart';
-import 'package:household_ledger/presenter/pages/main_shell_page.dart';
-import 'package:household_ledger/presenter/pages/import_data_page.dart';
-import 'package:household_ledger/presenter/pages/income_page.dart';
-import 'package:household_ledger/presenter/pages/loading_page.dart';
-import 'package:household_ledger/presenter/pages/onboarding_page.dart';
-import 'package:household_ledger/presenter/pages/settings_page.dart';
-import 'package:household_ledger/presenter/pages/setup_page.dart';
+import 'package:household_ledger/presenter/pages/expense_page/analysis_page.dart';
+import 'package:household_ledger/presenter/pages/sub_page/data_managing_page.dart';
+import 'package:household_ledger/presenter/pages/sub_page/export_data_page.dart';
+import 'package:household_ledger/presenter/pages/sub_page/generating_report_page.dart';
+import 'package:household_ledger/presenter/pages/expense_page/expense_management_page.dart';
+import 'package:household_ledger/presenter/pages/expense_page/expense_record_page.dart';
+import 'package:household_ledger/presenter/pages/expense_page/fixed_expense_page.dart';
+import 'package:household_ledger/presenter/pages/expense_page/main_shell_page.dart';
+import 'package:household_ledger/presenter/pages/sub_page/import_data_page.dart';
+import 'package:household_ledger/presenter/pages/expense_page/income_page.dart';
+import 'package:household_ledger/presenter/pages/sub_page/loading_page.dart';
+import 'package:household_ledger/presenter/pages/sub_page/onboarding_page.dart';
+import 'package:household_ledger/presenter/pages/sub_page/settings_page.dart';
+import 'package:household_ledger/presenter/pages/sub_page/setup_page.dart';
 
 /// 앱 라우터를 주입한다.
 final appRouterProvider = Provider<AppRouter>((Ref ref) {

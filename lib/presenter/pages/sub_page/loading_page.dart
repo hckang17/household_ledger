@@ -1,12 +1,15 @@
+// """ MVVM 계층: View / App Flow Page """
+// """ 역할: 앱 데이터 로딩과 주기능 화면 워밍업 진행 상태 표시 """
+
 import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:household_ledger/presenter/pages/analysis_page.dart';
-import 'package:household_ledger/presenter/pages/expense_record_page.dart';
-import 'package:household_ledger/presenter/pages/fixed_expense_page.dart';
-import 'package:household_ledger/presenter/pages/income_page.dart';
+import 'package:household_ledger/presenter/pages/expense_page/analysis_page.dart';
+import 'package:household_ledger/presenter/pages/expense_page/expense_record_page.dart';
+import 'package:household_ledger/presenter/pages/expense_page/fixed_expense_page.dart';
+import 'package:household_ledger/presenter/pages/expense_page/income_page.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/router/app_router.dart';

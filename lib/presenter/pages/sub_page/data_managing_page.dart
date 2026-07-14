@@ -1,3 +1,6 @@
+// """ MVVM 계층: View / Sub Feature Page """
+// """ 역할: 저장된 가계부 데이터의 검색·필터·일괄 관리를 제공 """
+
 import 'dart:async';
 import 'dart:math';
 

@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:household_ledger/features/expense/calculators/expense_editor_dining_policy.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
@@ -118,6 +119,8 @@ class _ExpenseEditorSheetBody extends StatefulWidget {
 }
 
 class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
+  static const _diningPolicy = ExpenseEditorDiningPolicy();
+
   late final TextEditingController descriptionController;
   late final TextEditingController amountController;
   late final TextEditingController noteController;
@@ -149,10 +152,15 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
         preset?.subcategoryCode ??
         widget.entry?.subcategoryCode ??
         widget.subcategoryTags.first.code;
-    diningOccasionCode = widget.entry?.diningOccasionCode;
-    if (widget.entry == null && categoryCode == 'F') {
-      diningOccasionCode = _recommendedDiningOccasion(selectedDate);
-    }
+    diningOccasionCode = _diningPolicy.initialCode(
+      isEditing: widget.entry != null,
+      savedCode: widget.entry?.diningOccasionCode,
+      categoryCode: categoryCode,
+      selectedDate: selectedDate,
+      availableCodes: widget.diningOccasionTags.map(
+        (MetadataTag tag) => tag.code,
+      ),
+    );
     paymentCode =
         preset?.paymentMethodCode ??
         widget.entry?.paymentMethodCode ??
@@ -175,37 +183,28 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
   }
 
   String? _recommendedDiningOccasion(DateTime dateTime) {
-    final hour = dateTime.hour;
-    final String recommendedCode;
-    if (hour >= 6 && hour < 10) {
-      recommendedCode = 'breakfast';
-    } else if (hour >= 10 && hour < 11) {
-      recommendedCode = 'brunch';
-    } else if (hour >= 11 && hour < 14) {
-      recommendedCode = 'lunch';
-    } else if (hour >= 14 && hour < 18) {
-      recommendedCode = 'snack';
-    } else if (hour >= 18 && hour < 21) {
-      recommendedCode = 'dinner';
-    } else {
-      recommendedCode = 'company';
-    }
-    return widget.diningOccasionTags.any(
-          (MetadataTag tag) => tag.code == recommendedCode,
-        )
-        ? recommendedCode
-        : null;
+    return _diningPolicy.recommendedCode(
+      selectedDate: dateTime,
+      availableCodes: widget.diningOccasionTags.map(
+        (MetadataTag tag) => tag.code,
+      ),
+    );
   }
 
   List<MetadataTag> _orderedDiningOccasionTags() {
-    final tags = <MetadataTag>[...widget.diningOccasionTags];
-    final recommendedCode = _recommendedDiningOccasion(selectedDate);
-    tags.sort((MetadataTag left, MetadataTag right) {
-      if (left.code == recommendedCode) return -1;
-      if (right.code == recommendedCode) return 1;
-      return left.code.compareTo(right.code);
-    });
-    return tags;
+    final tagsByCode = <String, MetadataTag>{
+      for (final tag in widget.diningOccasionTags) tag.code: tag,
+    };
+    final orderedCodes = _diningPolicy.orderedCodes(
+      availableCodes: tagsByCode.keys,
+      selectedCode: diningOccasionCode,
+      recommendedCode: widget.entry == null
+          ? _recommendedDiningOccasion(selectedDate)
+          : null,
+    );
+    return orderedCodes
+        .map((String code) => tagsByCode[code]!)
+        .toList(growable: false);
   }
 
   @override

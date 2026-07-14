@@ -1,3 +1,6 @@
+// """ MVVM 계층: View / App Flow Page """
+// """ 역할: 최초 실행 안내와 초기 설정 진입 흐름 제공 """
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';

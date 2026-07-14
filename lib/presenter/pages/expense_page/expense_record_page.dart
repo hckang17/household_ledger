@@ -1,3 +1,6 @@
+// """ MVVM 계층: View / Main Feature Page """
+// """ 역할: 날짜별 소비 기록 조회·등록·수정·삭제 화면 구성 """
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';

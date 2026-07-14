@@ -1,3 +1,6 @@
+// """ MVVM 계층: View / Sub Feature Page """
+// """ 역할: PDF 리포트 범위·옵션 설정과 생성 파일 관리를 제공 """
+
 import 'dart:io';
 
 import 'package:flutter/material.dart';
