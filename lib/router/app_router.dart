@@ -14,6 +14,7 @@ import 'package:household_ledger/presenter/pages/sub_page/loading_page.dart';
 import 'package:household_ledger/presenter/pages/sub_page/onboarding_page.dart';
 import 'package:household_ledger/presenter/pages/sub_page/settings_page.dart';
 import 'package:household_ledger/presenter/pages/sub_page/setup_page.dart';
+import 'package:household_ledger/presenter/pages/sub_page/copyrights_page.dart';
 
 /// 앱 라우터를 주입한다.
 final appRouterProvider = Provider<AppRouter>((Ref ref) {
@@ -100,6 +101,8 @@ class AppRouter {
         return _buildRoute(const GeneratingReportPage(), settings);
       case dataManageRoute:
         return _buildRoute(const DataManagingPage(), settings);
+      case copyrightsRoute:
+        return _buildRoute(const CopyrightsPage(), settings);
       default:
         return _buildRoute(const OnboardingPage(), settings);
     }
