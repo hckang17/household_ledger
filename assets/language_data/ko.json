@@ -187,6 +187,8 @@
   "analysisDiningBreakdownTitle": "식사 유형별 통계",
   "analysisDiningBreakdownValue": "{count}회 · {total} · 평균 {average}",
   "analysisEngelTooltip": "엥겔지수는 전체 지출 중 카페·외식·식료품 지출이 차지하는 비율입니다. 일반적으로 25% 미만은 낮음, 25~35%는 안정적, 35% 초과는 높은 수준으로 표시합니다.",
+  "analysisInsufficientPreviousDataTooltip": "비교할 대상 데이터 건수가 부족하여 정확한 비교수치를 제시하기 어렵습니다.",
+  "analysisInsufficientCurrentDataTooltip": "비교할 대상 데이터의 수가 부족하여, 명확한 가이드라인을 제시하기 어렵습니다",
   "analysisEngelHigh": "엥겔지수가 높아요! 식생활 지출 비중을 확인해보세요.",
   "analysisEngelLow": "엥겔지수가 낮아요! 전체 지출에서 식생활 비중이 작아요.",
   "analysisEngelBalanced": "엥겔지수가 안정적인 수준이에요.",

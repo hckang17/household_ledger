@@ -19,6 +19,7 @@ class DiningDetailCard extends StatelessWidget {
     required this.tags,
     required this.peakComparisonText,
     required this.companyComparisonText,
+    required this.diningWarningTooltip,
     required this.strings,
     required this.currency,
     required this.onAddExpense,
@@ -31,6 +32,7 @@ class DiningDetailCard extends StatelessWidget {
   final List<MetadataTag> tags;
   final String peakComparisonText;
   final String companyComparisonText;
+  final String? diningWarningTooltip;
   final Map<String, String> strings;
   final String currency;
   final VoidCallback onAddExpense;
@@ -64,6 +66,7 @@ class DiningDetailCard extends StatelessWidget {
             icon: Icons.query_stats_rounded,
             title: _text('analysisDiningDetailTitle', '외식 상세 분석'),
             color: chartColor,
+            warningTooltip: diningWarningTooltip,
           ),
           const SizedBox(height: 16),
           AnalysisChartLegend(

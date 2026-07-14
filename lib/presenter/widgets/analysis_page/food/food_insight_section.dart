@@ -29,6 +29,22 @@ class FoodInsightSection extends StatelessWidget {
 
   String _text(String key, String fallback) => strings[key] ?? fallback;
 
+  String? _dataSufficiencyTooltip(VisitAnalysisResult visit) {
+    final messages = <String>[
+      if (visit.previousCount < 5)
+        _text(
+          'analysisInsufficientPreviousDataTooltip',
+          '비교할 대상 데이터 건수가 부족하여 정확한 비교수치를 제시하기 어렵습니다.',
+        ),
+      if (visit.count < 5)
+        _text(
+          'analysisInsufficientCurrentDataTooltip',
+          '비교할 대상 데이터의 수가 부족하여, 명확한 가이드라인을 제시하기 어렵습니다',
+        ),
+    ];
+    return messages.isEmpty ? null : messages.join('\n');
+  }
+
   // """ 빈도 비교 결과의 현지화 """
   String _frequencyComparison(VisitAnalysisResult visit) {
     final current = visit.dailyAverage;
@@ -113,6 +129,7 @@ class FoodInsightSection extends StatelessWidget {
           companyComparisonText: _countComparison(
             result.companyDining.countComparison,
           ),
+          diningWarningTooltip: _dataSufficiencyTooltip(result.dining),
           strings: strings,
           currency: currency,
           onAddExpense: onAddExpense,
@@ -125,6 +142,7 @@ class FoodInsightSection extends StatelessWidget {
           dailyLabel: _text('analysisDailyVisitLabel', '하루평균 카페 방문'),
           averageLabel: _text('analysisAverageSpendLabel', '1회 평균 금액'),
           comparisonText: _frequencyComparison(result.cafe),
+          warningTooltip: _dataSufficiencyTooltip(result.cafe),
           currentLabel: _text('analysisCurrentPeriod', '현재'),
           previousLabel: _text('analysisPreviousPeriod', '전월동기'),
           valueSuffix: _text('analysisTimesPerDayUnit', '회/일'),
@@ -145,6 +163,7 @@ class FoodInsightSection extends StatelessWidget {
           dailyLabel: _text('analysisDailyGroceryLabel', '하루평균 장보기'),
           averageLabel: _text('analysisAverageSpendLabel', '1회 평균 금액'),
           comparisonText: _frequencyComparison(result.grocery),
+          warningTooltip: _dataSufficiencyTooltip(result.grocery),
           currentLabel: _text('analysisCurrentPeriod', '현재'),
           previousLabel: _text('analysisPreviousPeriod', '전월동기'),
           valueSuffix: _text('analysisTimesPerDayUnit', '회/일'),

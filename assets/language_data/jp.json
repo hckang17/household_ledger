@@ -185,6 +185,8 @@
   "analysisDiningBreakdownTitle": "食事タイプ別統計",
   "analysisDiningBreakdownValue": "{count}回・{total}・平均 {average}",
   "analysisEngelTooltip": "エンゲル係数は、総支出に占めるカフェ・外食・食料品支出の割合です。25%未満を低め、25～35%を安定、35%超を高めとして表示します。",
+  "analysisInsufficientPreviousDataTooltip": "比較対象のデータ件数が少ないため、正確な比較数値を提示することが困難です。",
+  "analysisInsufficientCurrentDataTooltip": "比較対象のデータ件数が少ないため、明確なガイドラインを提示することが困難です。",
   "analysisEngelHigh": "エンゲル係数が高めです。食生活費の割合を確認しましょう。",
   "analysisEngelLow": "エンゲル係数が低めです。総支出に占める食生活費が少ない状態です。",
   "analysisEngelBalanced": "エンゲル係数は安定した水準です。",

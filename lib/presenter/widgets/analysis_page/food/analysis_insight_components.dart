@@ -12,12 +12,14 @@ class AnalysisInsightHeader extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.color,
+    this.warningTooltip,
     super.key,
   });
 
   final IconData icon;
   final String title;
   final Color color;
+  final String? warningTooltip;
 
   @override
   Widget build(BuildContext context) {
@@ -34,14 +36,44 @@ class AnalysisInsightHeader extends StatelessWidget {
         ),
         const SizedBox(width: 10),
         Expanded(
-          child: Text(
-            title,
-            style: Theme.of(
-              context,
-            ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+          child: Row(
+            children: <Widget>[
+              Flexible(
+                child: Text(
+                  title,
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              if (warningTooltip != null) ...<Widget>[
+                const SizedBox(width: 6),
+                AnalysisDataSufficiencyTooltip(message: warningTooltip!),
+              ],
+            ],
           ),
         ),
       ],
+    );
+  }
+}
+
+class AnalysisDataSufficiencyTooltip extends StatelessWidget {
+  const AnalysisDataSufficiencyTooltip({required this.message, super.key});
+
+  final String message;
+
+  @override
+  Widget build(BuildContext context) {
+    return Tooltip(
+      message: message,
+      triggerMode: TooltipTriggerMode.tap,
+      showDuration: const Duration(seconds: 5),
+      child: const Icon(
+        Icons.error_outline_rounded,
+        color: Color(0xFFDC3545),
+        size: 19,
+      ),
     );
   }
 }

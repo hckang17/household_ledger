@@ -17,6 +17,7 @@ class VisitFrequencyCard extends StatelessWidget {
     required this.dailyLabel,
     required this.averageLabel,
     required this.comparisonText,
+    required this.warningTooltip,
     required this.currentLabel,
     required this.previousLabel,
     required this.valueSuffix,
@@ -34,6 +35,7 @@ class VisitFrequencyCard extends StatelessWidget {
   final String dailyLabel;
   final String averageLabel;
   final String comparisonText;
+  final String? warningTooltip;
   final String currentLabel;
   final String previousLabel;
   final String valueSuffix;
@@ -49,7 +51,12 @@ class VisitFrequencyCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: <Widget>[
-          AnalysisInsightHeader(icon: icon, title: title, color: color),
+          AnalysisInsightHeader(
+            icon: icon,
+            title: title,
+            color: color,
+            warningTooltip: warningTooltip,
+          ),
           const SizedBox(height: 16),
           Row(
             children: <Widget>[
