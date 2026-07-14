@@ -448,5 +448,16 @@
   "loadingWarmup1" : "... 수입 화면 준비중",
   "loadingWarmup2" : "... 분석 화면 준비중",
   "loadingWarmup3" : "... 지출 화면 준비중",
-  "loadingWarmup4" : "... 고정지출 화면 준비중"
+  "loadingWarmup4" : "... 고정지출 화면 준비중",
+  "creatorCreditsButton": "제작자 크레딧",
+  "creatorCreditsTitle": "만든 사람",
+  "whatsNewTitle": "What's New!",
+  "whatsNewPlaceholder": "업데이트 내역을 표시합니다.",
+  "feedbackTitle": "버그 제보 및 건의사항",
+  "feedbackDescription": "아래 이메일을 누르면 주소가 복사됩니다.",
+  "emailCopiedMessage": "이메일 주소를 복사했습니다.",
+  "copyrightTitle": "저작권 및 라이선스",
+  "copyrightNotice": "© 2026 hckang17. All rights reserved.",
+  "openSourceNotice": "이 앱은 Flutter 및 오픈소스 소프트웨어를 사용합니다. PDF 문서의 한글·일본어 표시에 SIL Open Font License 1.1로 배포되는 Noto Sans KR/JP를 사용합니다.",
+  "openSourceLicensesButton": "오픈소스 라이선스 보기"
 }

@@ -508,6 +508,13 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                 tooltipPosition: TooltipPosition.top,
                 child: _buildDataManagementSection(context, strings),
               ),
+              const SizedBox(height: 12),
+              TextButton(
+                onPressed: () =>
+                    Navigator.of(context).pushNamed(AppRouter.copyrightsRoute),
+                child: Text(_text(strings, 'creatorCreditsButton')),
+              ),
+              const SizedBox(height: 8),
             ],
           ),
         ),

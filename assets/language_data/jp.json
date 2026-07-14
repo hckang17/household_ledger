@@ -439,5 +439,16 @@
   "loadingWarmup1" : "... 収入画面を準備中",
   "loadingWarmup2" : "... 分析画面を準備中",
   "loadingWarmup3" : "... 支出画面を準備中",
-  "loadingWarmup4" : "... 固定支出画面を準備中"
+  "loadingWarmup4" : "... 固定支出画面を準備中",
+  "creatorCreditsButton": "制作者クレジット",
+  "creatorCreditsTitle": "制作者",
+  "whatsNewTitle": "What's New!",
+  "whatsNewPlaceholder": "アップデート内容を表示します。",
+  "feedbackTitle": "不具合報告・ご意見",
+  "feedbackDescription": "下のメールアドレスをタップするとコピーできます。",
+  "emailCopiedMessage": "メールアドレスをコピーしました。",
+  "copyrightTitle": "著作権・ライセンス",
+  "copyrightNotice": "© 2026 hckang17. All rights reserved.",
+  "openSourceNotice": "このアプリはFlutterおよびオープンソースソフトウェアを使用しています。PDFの韓国語・日本語表示にはSIL Open Font License 1.1で提供されるNoto Sans KR/JPを使用しています。",
+  "openSourceLicensesButton": "オープンソースライセンスを見る"
 }
