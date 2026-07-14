@@ -128,8 +128,9 @@ class _LoadingPageState extends ConsumerState<LoadingPage> {
       _ => loadingMessages[_msgIndex],
     };
     // 워밍업 단계마다 고유 key → AnimatedSwitcher 페이드 트리거
-    final Object msgKey =
-        _preloadStage > 0 ? 'stage_$_preloadStage' : _msgIndex;
+    final Object msgKey = _preloadStage > 0
+        ? 'stage_$_preloadStage'
+        : _msgIndex;
 
     return Scaffold(
       backgroundColor: const Color(0xFFF0F4F8),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';
+import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/provider/tutorial_provider.dart';
@@ -29,10 +30,7 @@ class _SetupPageState extends ConsumerState<SetupPage> {
   final GlobalKey _importKey = GlobalKey();
   final GlobalKey _saveKey = GlobalKey();
 
-  bool _showcaseStarted = false;
-
-  /// ShowCaseWidget 내부에서 얻은 컨텍스트. startShowCase 호출에 사용한다.
-  BuildContext? _showcaseContext;
+  final TutorialShowcaseController _showcase = TutorialShowcaseController();
 
   @override
   void initState() {
@@ -46,21 +44,12 @@ class _SetupPageState extends ConsumerState<SetupPage> {
   }
 
   void _maybeStartShowcase() {
-    if (_showcaseStarted) return;
-    if (_showcaseContext == null) return;
     final phase = ref.read(tutorialProvider).phase;
-    if (phase != TutorialPhase.setup) return;
-    _showcaseStarted = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _showcaseContext == null) return;
-      ShowCaseWidget.of(_showcaseContext!).startShowCase([
-        _nameKey,
-        _ageKey,
-        _budgetKey,
-        _importKey,
-        _saveKey,
-      ]);
-    });
+    _showcase.startIfReady(
+      enabled: phase == TutorialPhase.setup,
+      keys: <GlobalKey>[_nameKey, _ageKey, _budgetKey, _importKey, _saveKey],
+      isMounted: () => mounted,
+    );
   }
 
   Future<void> _submit() async {
@@ -91,32 +80,16 @@ class _SetupPageState extends ConsumerState<SetupPage> {
   }
 
   Future<void> _handleBackDuringTutorial() async {
-    if (_showcaseContext != null) {
-      try { ShowCaseWidget.of(_showcaseContext!).dismiss(); } catch (_) {}
-    }
+    _showcase.dismiss();
     final strings = ref.read(localizedStringsProvider);
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showTutorialExitConfirmation(
       context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: Text(strings['tutorialExitTitle'] ?? '튜토리얼 종료'),
-        content: Text(strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(strings['tutorialContinue'] ?? '계속하기'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(strings['tutorialExitConfirm'] ?? '종료'),
-          ),
-        ],
-      ),
+      strings: strings,
     );
-    if (confirmed == true && mounted) {
+    if (confirmed && mounted) {
       await ref.read(tutorialProvider.notifier).exitTutorial();
     } else if (mounted) {
-      _showcaseStarted = false;
+      _showcase.reset();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _maybeStartShowcase();
       });
@@ -141,7 +114,7 @@ class _SetupPageState extends ConsumerState<SetupPage> {
     );
 
     Widget buildInner(BuildContext showcaseCtx) {
-      _showcaseContext = showcaseCtx;
+      _showcase.bind(showcaseCtx);
       _maybeStartShowcase();
 
       final inner = BootstrapPage(
@@ -156,45 +129,55 @@ class _SetupPageState extends ConsumerState<SetupPage> {
                   Showcase(
                     key: _nameKey,
                     title: strings['tutSetupNameTitle'] ?? '이름 입력',
-                    description: strings['tutSetupNameDesc'] ?? '앱에서 사용할 이름을 입력해주세요. 홈 화면 인사말에 표시됩니다.',
+                    description:
+                        strings['tutSetupNameDesc'] ??
+                        '앱에서 사용할 이름을 입력해주세요. 홈 화면 인사말에 표시됩니다.',
                     tooltipPosition: TooltipPosition.bottom,
                     child: TextField(
                       controller: _nameController,
-                      decoration:
-                          InputDecoration(labelText: strings['nameLabel']),
+                      decoration: InputDecoration(
+                        labelText: strings['nameLabel'],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
                   Showcase(
                     key: _ageKey,
                     title: strings['tutSetupAgeTitle'] ?? '나이 입력',
-                    description: strings['tutSetupAgeDesc'] ?? '현재 나이를 숫자로 입력해주세요.',
+                    description:
+                        strings['tutSetupAgeDesc'] ?? '현재 나이를 숫자로 입력해주세요.',
                     tooltipPosition: TooltipPosition.bottom,
                     child: TextField(
                       controller: _ageController,
                       keyboardType: TextInputType.number,
-                      decoration:
-                          InputDecoration(labelText: strings['ageLabel']),
+                      decoration: InputDecoration(
+                        labelText: strings['ageLabel'],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
                   Showcase(
                     key: _budgetKey,
                     title: strings['tutSetupBudgetTitle'] ?? '월 예산 설정',
-                    description: strings['tutSetupBudgetDesc'] ?? '이번달 지출 목표 금액을 입력하세요.\n홈 화면의 지출가능금액 계산에 사용됩니다.',
+                    description:
+                        strings['tutSetupBudgetDesc'] ??
+                        '이번달 지출 목표 금액을 입력하세요.\n홈 화면의 지출가능금액 계산에 사용됩니다.',
                     tooltipPosition: TooltipPosition.bottom,
                     child: TextField(
                       controller: _budgetController,
                       keyboardType: TextInputType.number,
-                      decoration:
-                          InputDecoration(labelText: strings['budgetLabel']),
+                      decoration: InputDecoration(
+                        labelText: strings['budgetLabel'],
+                      ),
                     ),
                   ),
                   const SizedBox(height: 24),
                   Showcase(
                     key: _saveKey,
                     title: strings['tutSetupSaveTitle'] ?? '설정 저장',
-                    description: strings['tutSetupSaveDesc'] ?? '입력을 마쳤다면 저장 버튼을 눌러 앱을 시작하세요!',
+                    description:
+                        strings['tutSetupSaveDesc'] ??
+                        '입력을 마쳤다면 저장 버튼을 눌러 앱을 시작하세요!',
                     tooltipPosition: TooltipPosition.top,
                     child: BootstrapActionButton(
                       label: strings['save'] ?? '',
@@ -206,14 +189,15 @@ class _SetupPageState extends ConsumerState<SetupPage> {
                   Showcase(
                     key: _importKey,
                     title: strings['tutSetupImportTitle'] ?? '데이터 가져오기',
-                    description: strings['tutSetupImportDesc'] ?? '이전에 내보낸 CSV 파일이 있다면,\n이 버튼으로 기존 데이터를 복원할 수 있어요.',
+                    description:
+                        strings['tutSetupImportDesc'] ??
+                        '이전에 내보낸 CSV 파일이 있다면,\n이 버튼으로 기존 데이터를 복원할 수 있어요.',
                     tooltipPosition: TooltipPosition.top,
                     child: SizedBox(
                       width: double.infinity,
                       child: OutlinedButton.icon(
                         style: OutlinedButton.styleFrom(
-                          padding:
-                              const EdgeInsets.symmetric(vertical: 14),
+                          padding: const EdgeInsets.symmetric(vertical: 14),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(18),
                           ),

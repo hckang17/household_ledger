@@ -3,11 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/income_entry.dart';
-import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
-import 'package:household_ledger/presenter/common/widgets/loading_overlay.dart';
+import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/presenter/widgets/common/loading_overlay.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/provider/tutorial_provider.dart';
@@ -43,24 +44,17 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
 
   final GlobalKey _signatureSectionKey = GlobalKey();
   final GlobalKey _exportBtnKey = GlobalKey();
-  bool _showcaseStarted = false;
-  BuildContext? _showcaseContext;
+  final TutorialShowcaseController _showcase = TutorialShowcaseController();
 
   final DataImExportService _service = DataImExportService();
 
   void _maybeStartShowcase() {
-    if (_showcaseStarted) return;
-    if (_showcaseContext == null) return;
     final state = ref.read(tutorialProvider);
-    if (!state.isActive || state.phase != TutorialPhase.exportData) return;
-    _showcaseStarted = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _showcaseContext == null) return;
-      ShowCaseWidget.of(_showcaseContext!).startShowCase([
-        _signatureSectionKey,
-        _exportBtnKey,
-      ]);
-    });
+    _showcase.startIfReady(
+      enabled: state.isActive && state.phase == TutorialPhase.exportData,
+      keys: <GlobalKey>[_signatureSectionKey, _exportBtnKey],
+      isMounted: () => mounted,
+    );
   }
 
   void _onShowcaseComplete(int? index, GlobalKey key) {
@@ -349,7 +343,7 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
     ).reversed.toList();
 
     Widget buildInner(BuildContext showcaseCtx) {
-      _showcaseContext = showcaseCtx;
+      _showcase.bind(showcaseCtx);
       _maybeStartShowcase();
 
       final page = Stack(
@@ -366,10 +360,8 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
                       children: <Widget>[
                         Text(
                           _text(strings, 'exportRangeSectionTitle'),
-                          style:
-                              Theme.of(context).textTheme.titleSmall?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style: Theme.of(context).textTheme.titleSmall
+                              ?.copyWith(fontWeight: FontWeight.w700),
                         ),
                         const SizedBox(height: 12),
                         _buildRangeSegment(strings),
@@ -389,7 +381,9 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
                   Showcase(
                     key: _signatureSectionKey,
                     title: strings['tutExportSignatureTitle'] ?? '이메일 및 패스키 서명',
-                    description: strings['tutExportSignatureDesc'] ?? '내보내기 파일에 서명을 추가해요.\n이메일과 패스키는 나중에 가져오기 시 본인 확인에 사용됩니다.',
+                    description:
+                        strings['tutExportSignatureDesc'] ??
+                        '내보내기 파일에 서명을 추가해요.\n이메일과 패스키는 나중에 가져오기 시 본인 확인에 사용됩니다.',
                     tooltipPosition: TooltipPosition.bottom,
                     child: BootstrapSectionCard(
                       child: Column(
@@ -397,10 +391,8 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
                         children: <Widget>[
                           Text(
                             _text(strings, 'signatureInfoMessage'),
-                            style:
-                                Theme.of(context).textTheme.bodyMedium?.copyWith(
-                              color: Colors.grey[600],
-                            ),
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(color: Colors.grey[600]),
                           ),
                           const SizedBox(height: 20),
                           TextField(
@@ -458,7 +450,9 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
                   Showcase(
                     key: _exportBtnKey,
                     title: strings['tutExportBtnTitle'] ?? '데이터 내보내기',
-                    description: strings['tutExportBtnDesc'] ?? '버튼을 탭하면 모든 데이터가 CSV 파일로 저장돼요!\n이것으로 튜토리얼이 완료됩니다. 수고하셨어요!',
+                    description:
+                        strings['tutExportBtnDesc'] ??
+                        '버튼을 탭하면 모든 데이터가 CSV 파일로 저장돼요!\n이것으로 튜토리얼이 완료됩니다. 수고하셨어요!',
                     tooltipPosition: TooltipPosition.top,
                     child: BootstrapActionButton(
                       label: _text(strings, 'exportButton'),
@@ -676,5 +670,4 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
       ),
     );
   }
-
 }

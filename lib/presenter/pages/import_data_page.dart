@@ -3,9 +3,9 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
-import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
-import 'package:household_ledger/presenter/common/widgets/loading_overlay.dart';
+import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/presenter/widgets/common/ledger_dialogs.dart';
+import 'package:household_ledger/presenter/widgets/common/loading_overlay.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/main.dart';
@@ -299,5 +299,4 @@ class _ImportDataPageState extends ConsumerState<ImportDataPage> {
       ],
     );
   }
-
 }

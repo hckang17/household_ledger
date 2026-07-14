@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'dart:math' as math;
 
+import 'package:household_ledger/model/reporting/report_options.dart';
+import 'package:household_ledger/features/reporting/calculators/report_summary_calculator.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/income_entry.dart';
@@ -11,27 +13,6 @@ import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
-
-/// PDF 리포트에 포함할 데이터 옵션을 담는다.
-///
-/// 항목을 확장할 때는 필드를 추가하고 UI 체크박스와 PDF 섹션을 함께 늘리면 된다.
-class ReportOptions {
-  const ReportOptions({
-    this.includeDetailedData = true,
-    this.includeTop10 = true,
-    this.includeFixedExpenses = true,
-    this.includePaymentSummary = true,
-    this.includePrevComparison = false,
-    this.includePrevCategoryAnalysis = false,
-  });
-
-  final bool includeDetailedData;
-  final bool includeTop10;
-  final bool includeFixedExpenses;
-  final bool includePaymentSummary;
-  final bool includePrevComparison;
-  final bool includePrevCategoryAnalysis;
-}
 
 // ─── PDF 공통 색상 ─────────────────────────────────────────────────
 const PdfColor _kBlue = PdfColor.fromInt(0xFF0D6EFD);
@@ -185,54 +166,20 @@ class ExportPdfReportService {
       color: color,
     );
 
-    // ── 집계 ──
-    final int expenseTotal = expenses.fold(
-      0,
-      (int s, ExpenseEntry e) => s + e.amount,
+    // ── UI·PDF 레이아웃과 무관한 리포트 집계 ──
+    final summary = const ReportSummaryCalculator().calculate(
+      expenses: expenses,
+      fixedExpenses: fixedExpenses,
+      incomes: incomes,
     );
-    final int fixedTotal = fixedExpenses.fold(
-      0,
-      (int s, FixedExpense f) => s + f.amount,
-    );
-    final int incomeTotal = incomes.fold(
-      0,
-      (int s, IncomeEntry i) => s + i.amount,
-    );
-    final int combinedExpense = expenseTotal + fixedTotal;
-    final int balance = incomeTotal - combinedExpense;
-
-    // ── 카테고리 집계 ──
-    final Map<String, int> catSums = <String, int>{};
-    for (final ExpenseEntry e in expenses) {
-      catSums.update(
-        e.categoryCode,
-        (int v) => v + e.amount,
-        ifAbsent: () => e.amount,
-      );
-    }
-    final List<MapEntry<String, int>> catSorted = catSums.entries.toList()
-      ..sort(
-        (MapEntry<String, int> a, MapEntry<String, int> b) =>
-            b.value.compareTo(a.value),
-      );
-
-
-    // ── 소비수단 집계 ──
-    final Map<String, int> pmSums = <String, int>{};
-    for (final ExpenseEntry e in expenses) {
-      if (e.paymentMethodCode.isNotEmpty) {
-        pmSums.update(
-          e.paymentMethodCode,
-          (int v) => v + e.amount,
-          ifAbsent: () => e.amount,
-        );
-      }
-    }
-    final List<MapEntry<String, int>> pmSorted = pmSums.entries.toList()
-      ..sort(
-        (MapEntry<String, int> a, MapEntry<String, int> b) =>
-            b.value.compareTo(a.value),
-      );
+    final int expenseTotal = summary.expenseTotal;
+    final int fixedTotal = summary.fixedTotal;
+    final int incomeTotal = summary.incomeTotal;
+    final int combinedExpense = summary.combinedExpense;
+    final int balance = summary.balance;
+    final List<MapEntry<String, int>> catSorted = summary.categoryTotalsSorted;
+    final List<MapEntry<String, int>> pmSorted =
+        summary.paymentMethodTotalsSorted;
 
     // ── 태그 라벨 조회 ──
     String tagLabel(MetadataTagType type, String code) {
@@ -248,10 +195,7 @@ class ExportPdfReportService {
 
     // ── 차트용 데이터 계산 (tagLabel 선언 이후) ──
     // 카테고리별 건수 집계
-    final Map<String, int> catCounts = <String, int>{};
-    for (final ExpenseEntry e in expenses) {
-      catCounts.update(e.categoryCode, (int v) => v + 1, ifAbsent: () => 1);
-    }
+    final Map<String, int> catCounts = summary.categoryCounts;
 
     // 도넛 차트 슬라이스: (label, amount, color, count)
     final List<(String, int, PdfColor, int)> pieSlices = catSorted
@@ -273,8 +217,8 @@ class ExportPdfReportService {
         : <MapEntry<int, int>>[];
     final List<MapEntry<int, int>> prevDailyData =
         prevPeriodStart != null && prevExpenses.isNotEmpty
-            ? _groupExpensesByDay(prevExpenses, prevPeriodStart)
-            : <MapEntry<int, int>>[];
+        ? _groupExpensesByDay(prevExpenses, prevPeriodStart)
+        : <MapEntry<int, int>>[];
 
     // ── PDF 문서 생성 ──
     final pw.Document pdf = pw.Document(
@@ -504,10 +448,7 @@ class ExportPdfReportService {
             child: pw.Row(
               mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
               children: <pw.Widget>[
-                pw.Text(
-                  reportTitle,
-                  style: ts(size: 8, color: _kGrey),
-                ),
+                pw.Text(reportTitle, style: ts(size: 8, color: _kGrey)),
                 pw.Text(now, style: ts(size: 8, color: _kGrey)),
               ],
             ),
@@ -682,7 +623,16 @@ class ExportPdfReportService {
           ),
         )
         ..add(pw.SizedBox(height: 8))
-        ..add(_buildPieChartWidget(pieSlices, combinedExpense, currency, strings, ts, tsD))
+        ..add(
+          _buildPieChartWidget(
+            pieSlices,
+            combinedExpense,
+            currency,
+            strings,
+            ts,
+            tsD,
+          ),
+        )
         ..add(pw.SizedBox(height: 16));
     }
 
@@ -823,13 +773,18 @@ class ExportPdfReportService {
     if (currDailyData.isNotEmpty) {
       out
         ..add(
-          _sectionHeader(
-            strings['pdfSectionDailyChart'] ?? '일별 지출 추이 차트',
+          _sectionHeader(strings['pdfSectionDailyChart'] ?? '일별 지출 추이 차트', ts),
+        )
+        ..add(pw.SizedBox(height: 8))
+        ..add(
+          _buildLineChartWidget(
+            currDailyData,
+            prevDailyData,
+            currency,
+            strings,
             ts,
           ),
         )
-        ..add(pw.SizedBox(height: 8))
-        ..add(_buildLineChartWidget(currDailyData, prevDailyData, currency, strings, ts))
         ..add(pw.SizedBox(height: 16));
     }
 
@@ -846,8 +801,9 @@ class ExportPdfReportService {
     _TsFn ts,
     _TsFn tsD,
   ) {
-    final List<(int, PdfColor)> drawData =
-        slices.map((s) => (s.$2, s.$3)).toList();
+    final List<(int, PdfColor)> drawData = slices
+        .map((s) => (s.$2, s.$3))
+        .toList();
     final String countUnit = strings['pdfChartCountUnit'] ?? '건';
 
     return pw.Row(
@@ -856,8 +812,10 @@ class ExportPdfReportService {
         pw.CustomPaint(
           size: const PdfPoint(120, 120),
           painter: (PdfGraphics canvas, PdfPoint size) {
-            final int tot =
-                drawData.fold(0, (int s, (int, PdfColor) e) => s + e.$1);
+            final int tot = drawData.fold(
+              0,
+              (int s, (int, PdfColor) e) => s + e.$1,
+            );
             if (tot == 0) return;
             final double cx = size.x / 2;
             final double cy = size.y / 2;
@@ -868,8 +826,10 @@ class ExportPdfReportService {
             for (final (int amount, PdfColor color) in drawData) {
               if (amount == 0) continue;
               final double sweep = -(amount / tot * 2 * math.pi);
-              final int steps =
-                  math.max(8, (sweep.abs() / math.pi * 30).ceil());
+              final int steps = math.max(
+                8,
+                (sweep.abs() / math.pi * 30).ceil(),
+              );
               final double dt = sweep / steps;
               canvas.setFillColor(color);
               canvas.moveTo(cx, cy);
@@ -889,14 +849,38 @@ class ExportPdfReportService {
             const double k = 0.5523;
             canvas.setFillColor(PdfColors.white);
             canvas.moveTo(cx + innerR, cy);
-            canvas.curveTo(cx + innerR, cy + innerR * k, cx + innerR * k,
-                cy + innerR, cx, cy + innerR);
-            canvas.curveTo(cx - innerR * k, cy + innerR, cx - innerR,
-                cy + innerR * k, cx - innerR, cy);
-            canvas.curveTo(cx - innerR, cy - innerR * k, cx - innerR * k,
-                cy - innerR, cx, cy - innerR);
-            canvas.curveTo(cx + innerR * k, cy - innerR, cx + innerR,
-                cy - innerR * k, cx + innerR, cy);
+            canvas.curveTo(
+              cx + innerR,
+              cy + innerR * k,
+              cx + innerR * k,
+              cy + innerR,
+              cx,
+              cy + innerR,
+            );
+            canvas.curveTo(
+              cx - innerR * k,
+              cy + innerR,
+              cx - innerR,
+              cy + innerR * k,
+              cx - innerR,
+              cy,
+            );
+            canvas.curveTo(
+              cx - innerR,
+              cy - innerR * k,
+              cx - innerR * k,
+              cy - innerR,
+              cx,
+              cy - innerR,
+            );
+            canvas.curveTo(
+              cx + innerR * k,
+              cy - innerR,
+              cx + innerR,
+              cy - innerR * k,
+              cx + innerR,
+              cy,
+            );
             canvas.closePath();
             canvas.fillPath();
           },
@@ -977,49 +961,55 @@ class ExportPdfReportService {
     final MapEntry<int, int>? prevMin = minOf(prevData);
 
     final String daySuffix = strings['chartDateDaySuffix'] ?? '일';
-    final String maxLabel =
-        strings['analysisDailyMaxLabel'] ?? '가장 지출이 많은 날';
-    final String minLabel =
-        strings['analysisDailyMinLabel'] ?? '가장 지출이 적은 날';
+    final String maxLabel = strings['analysisDailyMaxLabel'] ?? '가장 지출이 많은 날';
+    final String minLabel = strings['analysisDailyMinLabel'] ?? '가장 지출이 적은 날';
     final String currLbl = strings['analysisDailyCurrMonth'] ?? '이번달';
     final String prevLbl = strings['analysisDailyPrevMonth'] ?? '전월';
 
     final List<pw.Widget> stats = <pw.Widget>[];
     if (currMax != null) {
-      stats.add(pw.Padding(
-        padding: const pw.EdgeInsets.only(bottom: 3),
-        child: pw.Text(
-          '$currLbl  $maxLabel : ${currMax.key}$daySuffix  $currency${_fmtAmount(currMax.value)}',
-          style: ts(size: 8, color: _kRed),
+      stats.add(
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(bottom: 3),
+          child: pw.Text(
+            '$currLbl  $maxLabel : ${currMax.key}$daySuffix  $currency${_fmtAmount(currMax.value)}',
+            style: ts(size: 8, color: _kRed),
+          ),
         ),
-      ));
+      );
     }
     if (currMin != null) {
-      stats.add(pw.Padding(
-        padding: const pw.EdgeInsets.only(bottom: 3),
-        child: pw.Text(
-          '$currLbl  $minLabel : ${currMin.key}$daySuffix  $currency${_fmtAmount(currMin.value)}',
-          style: ts(size: 8, color: _kGreen),
+      stats.add(
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(bottom: 3),
+          child: pw.Text(
+            '$currLbl  $minLabel : ${currMin.key}$daySuffix  $currency${_fmtAmount(currMin.value)}',
+            style: ts(size: 8, color: _kGreen),
+          ),
         ),
-      ));
+      );
     }
     if (prevMax != null) {
-      stats.add(pw.Padding(
-        padding: const pw.EdgeInsets.only(bottom: 3),
-        child: pw.Text(
-          '$prevLbl  $maxLabel : ${prevMax.key}$daySuffix  $currency${_fmtAmount(prevMax.value)}',
-          style: ts(size: 8, color: _kRed),
+      stats.add(
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(bottom: 3),
+          child: pw.Text(
+            '$prevLbl  $maxLabel : ${prevMax.key}$daySuffix  $currency${_fmtAmount(prevMax.value)}',
+            style: ts(size: 8, color: _kRed),
+          ),
         ),
-      ));
+      );
     }
     if (prevMin != null) {
-      stats.add(pw.Padding(
-        padding: const pw.EdgeInsets.only(bottom: 3),
-        child: pw.Text(
-          '$prevLbl  $minLabel : ${prevMin.key}$daySuffix  $currency${_fmtAmount(prevMin.value)}',
-          style: ts(size: 8, color: _kGreen),
+      stats.add(
+        pw.Padding(
+          padding: const pw.EdgeInsets.only(bottom: 3),
+          child: pw.Text(
+            '$prevLbl  $minLabel : ${prevMin.key}$daySuffix  $currency${_fmtAmount(prevMin.value)}',
+            style: ts(size: 8, color: _kGreen),
+          ),
         ),
-      ));
+      );
     }
 
     // Y축 레이블 (pw.Positioned 오버레이 — canvas.drawString 불필요)
@@ -1028,21 +1018,22 @@ class ExportPdfReportService {
       for (int i = 4; i >= 1; i--) {
         final double canvasY = chartBottom + chartH * i / 4;
         final double widgetTop = canvasH - canvasY - 4;
-        yLabels.add(pw.Positioned(
-          right: 2,
-          top: widgetTop,
-          child: pw.Text(
-            _pdfYLabelAscii((maxAmt * i / 4).round()),
-            style: ts(size: 6, color: _kGrey),
+        yLabels.add(
+          pw.Positioned(
+            right: 2,
+            top: widgetTop,
+            child: pw.Text(
+              _pdfYLabelAscii((maxAmt * i / 4).round()),
+              style: ts(size: 6, color: _kGrey),
+            ),
           ),
-        ));
+        );
       }
     }
 
     // X축 레이블
     final List<pw.Widget> xLabels = _computeXLabelDays(maxDay).map((int day) {
-      final double x =
-          maxDay <= 1 ? 0.0 : (day - 1) / (maxDay - 1) * canvasW;
+      final double x = maxDay <= 1 ? 0.0 : (day - 1) / (maxDay - 1) * canvasW;
       return pw.Positioned(
         left: math.max(0.0, x - 4),
         top: 0,
@@ -1070,9 +1061,8 @@ class ExportPdfReportService {
                 if (maxAmt == 0) return;
                 final double w = size.x;
 
-                double px(int day) => maxDay <= 1
-                    ? 0.0
-                    : (day - 1) / (maxDay - 1) * w;
+                double px(int day) =>
+                    maxDay <= 1 ? 0.0 : (day - 1) / (maxDay - 1) * w;
                 double py(int amount) =>
                     chartBottom + (amount / maxAmt) * chartH;
 
@@ -1095,8 +1085,10 @@ class ExportPdfReportService {
                   canvas.setLineWidth(1.0);
                   for (int i = 0; i < prevData.length - 1; i++) {
                     canvas.drawLine(
-                      px(prevData[i].key), py(prevData[i].value),
-                      px(prevData[i + 1].key), py(prevData[i + 1].value),
+                      px(prevData[i].key),
+                      py(prevData[i].value),
+                      px(prevData[i + 1].key),
+                      py(prevData[i + 1].value),
                     );
                   }
                   canvas.setFillColor(prevColor);
@@ -1111,8 +1103,10 @@ class ExportPdfReportService {
                   canvas.setLineWidth(1.8);
                   for (int i = 0; i < currData.length - 1; i++) {
                     canvas.drawLine(
-                      px(currData[i].key), py(currData[i].value),
-                      px(currData[i + 1].key), py(currData[i + 1].value),
+                      px(currData[i].key),
+                      py(currData[i].value),
+                      px(currData[i + 1].key),
+                      py(currData[i + 1].value),
                     );
                   }
                 }
@@ -1150,10 +1144,7 @@ class ExportPdfReportService {
             ],
           ],
         ),
-        if (stats.isNotEmpty) ...<pw.Widget>[
-          pw.SizedBox(height: 8),
-          ...stats,
-        ],
+        if (stats.isNotEmpty) ...<pw.Widget>[pw.SizedBox(height: 8), ...stats],
       ],
     );
   }
@@ -1167,19 +1158,21 @@ class ExportPdfReportService {
     required Map<String, String> strings,
     required _TsFn ts,
   }) {
-    final int currTotal = expenses.fold(0, (int s, ExpenseEntry e) => s + e.amount);
-    final int prevTotal =
-        prevExpenses.fold(0, (int s, ExpenseEntry e) => s + e.amount);
+    final int currTotal = expenses.fold(
+      0,
+      (int s, ExpenseEntry e) => s + e.amount,
+    );
+    final int prevTotal = prevExpenses.fold(
+      0,
+      (int s, ExpenseEntry e) => s + e.amount,
+    );
     final int diff = currTotal - prevTotal;
     final String diffStr =
         '${diff >= 0 ? '+' : ''}$currency${_fmtAmount(diff)}';
     final PdfColor diffColor = diff > 0 ? _kRed : _kGreen;
 
     return <pw.Widget>[
-      _sectionHeader(
-        strings['pdfSectionPrevComparison'] ?? '전월동기 소비 비교',
-        ts,
-      ),
+      _sectionHeader(strings['pdfSectionPrevComparison'] ?? '전월동기 소비 비교', ts),
       pw.SizedBox(height: 12),
       pw.TableHelper.fromTextArray(
         headers: <String>[
@@ -1255,26 +1248,36 @@ class ExportPdfReportService {
   }) {
     final Map<String, int> currCat = <String, int>{};
     for (final ExpenseEntry e in expenses) {
-      currCat.update(e.categoryCode, (int v) => v + e.amount,
-          ifAbsent: () => e.amount);
+      currCat.update(
+        e.categoryCode,
+        (int v) => v + e.amount,
+        ifAbsent: () => e.amount,
+      );
     }
     final Map<String, int> prevCat = <String, int>{};
     for (final ExpenseEntry e in prevExpenses) {
-      prevCat.update(e.categoryCode, (int v) => v + e.amount,
-          ifAbsent: () => e.amount);
+      prevCat.update(
+        e.categoryCode,
+        (int v) => v + e.amount,
+        ifAbsent: () => e.amount,
+      );
     }
 
     final Set<String> allCodes = <String>{...currCat.keys, ...prevCat.keys};
-    final List<(String, int, int)> rows = allCodes
-        .map((String code) => (
-              tagLabel(MetadataTagType.category, code),
-              currCat[code] ?? 0,
-              prevCat[code] ?? 0,
-            ))
-        .toList()
-      ..sort(
-        ((String, int, int) a, (String, int, int) b) => b.$2.compareTo(a.$2),
-      );
+    final List<(String, int, int)> rows =
+        allCodes
+            .map(
+              (String code) => (
+                tagLabel(MetadataTagType.category, code),
+                currCat[code] ?? 0,
+                prevCat[code] ?? 0,
+              ),
+            )
+            .toList()
+          ..sort(
+            ((String, int, int) a, (String, int, int) b) =>
+                b.$2.compareTo(a.$2),
+          );
 
     return <pw.Widget>[
       _sectionHeader(
@@ -1327,16 +1330,18 @@ class ExportPdfReportService {
     final Map<int, int> daily = <int, int>{};
     for (final ExpenseEntry e in expenses) {
       final int day =
-          DateTime(e.spentAt.year, e.spentAt.month, e.spentAt.day)
-                  .difference(base)
-                  .inDays +
-              1;
+          DateTime(
+            e.spentAt.year,
+            e.spentAt.month,
+            e.spentAt.day,
+          ).difference(base).inDays +
+          1;
       if (day < 1) continue;
       daily.update(day, (int v) => v + e.amount, ifAbsent: () => e.amount);
     }
-    return daily.entries.toList()
-      ..sort((MapEntry<int, int> a, MapEntry<int, int> b) =>
-          a.key.compareTo(b.key));
+    return daily.entries.toList()..sort(
+      (MapEntry<int, int> a, MapEntry<int, int> b) => a.key.compareTo(b.key),
+    );
   }
 
   // ─── Top 10 섹션 ─────────────────────────────────────────────────

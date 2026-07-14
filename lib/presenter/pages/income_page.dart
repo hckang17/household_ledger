@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';
 import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
-import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/provider/nav_tab_provider.dart';
 import 'package:household_ledger/provider/tutorial_provider.dart';
 import 'package:household_ledger/router/app_router.dart';
-import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
-import 'package:household_ledger/presenter/common/widgets/income_editor_sheet.dart';
-import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
+import 'package:household_ledger/presenter/extensions/currency_extension.dart';
+import 'package:household_ledger/presenter/widgets/income_page/income_editor_sheet.dart';
+import 'package:household_ledger/presenter/widgets/common/ledger_dialogs.dart';
 import 'package:household_ledger/services/mock_data_service.dart';
 import 'package:intl/intl.dart';
 import 'package:showcaseview/showcaseview.dart';
@@ -28,8 +29,7 @@ class _IncomePageState extends ConsumerState<IncomePage> {
 
   final GlobalKey _budgetTileKey = GlobalKey();
   final GlobalKey _fabKey = GlobalKey();
-  bool _showcaseStarted = false;
-  BuildContext? _showcaseContext;
+  final TutorialShowcaseController _showcase = TutorialShowcaseController();
 
   @override
   void initState() {
@@ -39,18 +39,12 @@ class _IncomePageState extends ConsumerState<IncomePage> {
   }
 
   void _maybeStartShowcase() {
-    if (_showcaseStarted) return;
-    if (_showcaseContext == null) return;
     final state = ref.read(tutorialProvider);
-    if (!state.isActive || state.phase != TutorialPhase.income) return;
-    _showcaseStarted = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _showcaseContext == null) return;
-      ShowCaseWidget.of(_showcaseContext!).startShowCase([
-        _budgetTileKey,
-        _fabKey,
-      ]);
-    });
+    _showcase.startIfReady(
+      enabled: state.isActive && state.phase == TutorialPhase.income,
+      keys: <GlobalKey>[_budgetTileKey, _fabKey],
+      isMounted: () => mounted,
+    );
   }
 
   void _onShowcaseComplete(int? index, GlobalKey key) {
@@ -93,33 +87,17 @@ class _IncomePageState extends ConsumerState<IncomePage> {
   }
 
   Future<void> _handleBackDuringTutorial() async {
-    if (_showcaseContext != null) {
-      try { ShowCaseWidget.of(_showcaseContext!).dismiss(); } catch (_) {}
-    }
+    _showcase.dismiss();
     final strings = ref.read(localizedStringsProvider);
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showTutorialExitConfirmation(
       context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: Text(strings['tutorialExitTitle'] ?? '튜토리얼 종료'),
-        content: Text(strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(strings['tutorialContinue'] ?? '계속하기'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(strings['tutorialExitConfirm'] ?? '종료'),
-          ),
-        ],
-      ),
+      strings: strings,
     );
-    if (confirmed == true && mounted) {
+    if (confirmed && mounted) {
       await ref.read(mockDataServiceProvider).cleanupMockData(ref);
       await ref.read(tutorialProvider.notifier).exitTutorial();
     } else if (mounted) {
-      _showcaseStarted = false;
+      _showcase.reset();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _maybeStartShowcase();
       });
@@ -139,7 +117,7 @@ class _IncomePageState extends ConsumerState<IncomePage> {
     ref.listen(currentNavTabProvider, (_, tab) {
       if (tab == 0 &&
           ref.read(tutorialProvider).phase == TutorialPhase.income) {
-        _showcaseStarted = false;
+        _showcase.reset();
         _maybeStartShowcase();
       }
     });
@@ -164,13 +142,15 @@ class _IncomePageState extends ConsumerState<IncomePage> {
         : ledger.settings.monthlyBudget;
 
     Widget buildInner(BuildContext showcaseCtx) {
-      _showcaseContext = showcaseCtx;
+      _showcase.bind(showcaseCtx);
       _maybeStartShowcase();
 
       final fab = Showcase(
         key: _fabKey,
         title: strings['tutIncomeFabTitle'] ?? '수입 추가',
-        description: strings['tutIncomeFabDesc'] ?? '이번달 소득을 기록해보세요!\n버튼을 탭하면 수입 입력 시트가 열립니다.',
+        description:
+            strings['tutIncomeFabDesc'] ??
+            '이번달 소득을 기록해보세요!\n버튼을 탭하면 수입 입력 시트가 열립니다.',
         tooltipPosition: TooltipPosition.top,
         child: FloatingActionButton.extended(
           onPressed: () => showIncomeEditorSheet(
@@ -230,14 +210,15 @@ class _IncomePageState extends ConsumerState<IncomePage> {
                   Showcase(
                     key: _budgetTileKey,
                     title: strings['tutIncomeSummaryTitle'] ?? '수입 요약',
-                    description: strings['tutIncomeSummaryDesc'] ?? '이번달 소득 합계와 예산이 표시됩니다.\n소득을 입력하면 홈 화면의 지출가능금액도 자동으로 업데이트돼요.',
+                    description:
+                        strings['tutIncomeSummaryDesc'] ??
+                        '이번달 소득 합계와 예산이 표시됩니다.\n소득을 입력하면 홈 화면의 지출가능금액도 자동으로 업데이트돼요.',
                     tooltipPosition: TooltipPosition.bottom,
                     child: Row(
                       children: <Widget>[
                         Expanded(
                           child: BootstrapSummaryTile(
-                            label:
-                                _text(strings, 'incomeTotal', '월 소득 합계'),
+                            label: _text(strings, 'incomeTotal', '월 소득 합계'),
                             value:
                                 '${monthlyIncome.toCurrency()} ${strings['currencyUnit'] ?? ''}',
                             color: const Color(0xFF0D6EFD),
@@ -246,8 +227,7 @@ class _IncomePageState extends ConsumerState<IncomePage> {
                         const SizedBox(width: 12),
                         Expanded(
                           child: BootstrapSummaryTile(
-                            label:
-                                _text(strings, 'budgetLabel', '월 예산'),
+                            label: _text(strings, 'budgetLabel', '월 예산'),
                             value:
                                 '${monthlyBudget.toCurrency()} ${strings['currencyUnit'] ?? ''}',
                             color: const Color(0xFF198754),
@@ -303,8 +283,7 @@ class _IncomePageState extends ConsumerState<IncomePage> {
                                   ),
                                   TextButton(
                                     onPressed: () => _delete(strings, item),
-                                    child:
-                                        Text(_text(strings, 'delete', '삭제')),
+                                    child: Text(_text(strings, 'delete', '삭제')),
                                   ),
                                 ],
                               ),

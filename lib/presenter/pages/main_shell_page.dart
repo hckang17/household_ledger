@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:household_ledger/presenter/common/bottom_navigation_bar.dart';
+import 'package:household_ledger/presenter/widgets/main_shell_page/bottom_navigation_bar.dart';
 import 'package:household_ledger/presenter/pages/analysis_page.dart';
 import 'package:household_ledger/presenter/pages/expense_record_page.dart';
 import 'package:household_ledger/presenter/pages/fixed_expense_page.dart';

@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
-import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
+import 'package:household_ledger/presenter/extensions/currency_extension.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
-import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/provider/nav_tab_provider.dart';
 import 'package:household_ledger/provider/tutorial_provider.dart';
 import 'package:household_ledger/router/app_router.dart';
-import 'package:household_ledger/presenter/common/widgets/expense_entry_tile.dart';
-import 'package:household_ledger/presenter/common/widgets/expense_calendar_section.dart';
-import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
-import 'package:household_ledger/presenter/common/widgets/expense_editor_sheet.dart';
+import 'package:household_ledger/presenter/widgets/common/expense_entry_tile.dart';
+import 'package:household_ledger/presenter/widgets/expense_record_page/expense_calendar_section.dart';
+import 'package:household_ledger/presenter/widgets/common/ledger_dialogs.dart';
+import 'package:household_ledger/presenter/widgets/common/expense_editor_sheet.dart';
 import 'package:household_ledger/services/mock_data_service.dart';
 import 'package:showcaseview/showcaseview.dart';
 
@@ -34,8 +35,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
 
   final GlobalKey _calendarKey = GlobalKey();
   final GlobalKey _fabKey = GlobalKey();
-  bool _showcaseStarted = false;
-  BuildContext? _showcaseContext;
+  final TutorialShowcaseController _showcase = TutorialShowcaseController();
 
   @override
   void initState() {
@@ -171,17 +171,12 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
   }
 
   void _maybeStartShowcase() {
-    if (_showcaseStarted) return;
-    if (_showcaseContext == null) return;
     final state = ref.read(tutorialProvider);
-    if (!state.isActive || state.phase != TutorialPhase.expenseRecord) return;
-    _showcaseStarted = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _showcaseContext == null) return;
-      ShowCaseWidget.of(
-        _showcaseContext!,
-      ).startShowCase([_calendarKey, _fabKey]);
-    });
+    _showcase.startIfReady(
+      enabled: state.isActive && state.phase == TutorialPhase.expenseRecord,
+      keys: <GlobalKey>[_calendarKey, _fabKey],
+      isMounted: () => mounted,
+    );
   }
 
   void _onShowcaseComplete(int? index, GlobalKey key) {
@@ -193,37 +188,17 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
   }
 
   Future<void> _handleBackDuringTutorial() async {
-    if (_showcaseContext != null) {
-      try {
-        ShowCaseWidget.of(_showcaseContext!).dismiss();
-      } catch (_) {}
-    }
+    _showcase.dismiss();
     final strings = ref.read(localizedStringsProvider);
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showTutorialExitConfirmation(
       context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: Text(strings['tutorialExitTitle'] ?? '튜토리얼 종료'),
-        content: Text(
-          strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(strings['tutorialContinue'] ?? '계속하기'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(strings['tutorialExitConfirm'] ?? '종료'),
-          ),
-        ],
-      ),
+      strings: strings,
     );
-    if (confirmed == true && mounted) {
+    if (confirmed && mounted) {
       await ref.read(mockDataServiceProvider).cleanupMockData(ref);
       await ref.read(tutorialProvider.notifier).exitTutorial();
     } else if (mounted) {
-      _showcaseStarted = false;
+      _showcase.reset();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _maybeStartShowcase();
       });
@@ -243,7 +218,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     ref.listen(currentNavTabProvider, (_, tab) {
       if (tab == 3 &&
           ref.read(tutorialProvider).phase == TutorialPhase.expenseRecord) {
-        _showcaseStarted = false;
+        _showcase.reset();
         _maybeStartShowcase();
       }
     });
@@ -312,7 +287,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     final monthlyRemaining = monthlyBudget - monthlySpent - monthlyFixedExpense;
 
     Widget buildInner(BuildContext showcaseCtx) {
-      _showcaseContext = showcaseCtx;
+      _showcase.bind(showcaseCtx);
       _maybeStartShowcase();
 
       final fab = Showcase(

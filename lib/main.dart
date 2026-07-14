@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -22,7 +23,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   /// 디버그 모드에서 레이아웃 경계선을 시각화한다. false로 설정하면 릴리즈 모드와 동일한 화면을 확인할 수 있다.
-  // debugPaintSizeEnabled = true;
+  debugPaintSizeEnabled = true;
 
   // 앱 콘텐츠가 시스템 상태바·하단 내비게이션바 뒤로 침범하지 않도록
   // 두 오버레이를 모두 활성화한 manual 모드로 고정한다.

@@ -2,18 +2,21 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:household_ledger/services/imexporting_file/pdf_report_generation_service.dart';
+import 'package:household_ledger/model/reporting/report_generation_request.dart';
+import 'package:household_ledger/model/reporting/report_options.dart';
+import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/income_entry.dart';
-import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
-import 'package:household_ledger/presenter/common/widgets/report_file_list.dart';
-import 'package:household_ledger/presenter/common/widgets/report_option_selector.dart';
-import 'package:household_ledger/presenter/common/widgets/report_period_selector.dart';
+import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/presenter/widgets/generating_report_page/report_file_list.dart';
+import 'package:household_ledger/presenter/widgets/generating_report_page/report_option_selector.dart';
+import 'package:household_ledger/presenter/widgets/generating_report_page/report_period_selector.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/provider/tutorial_provider.dart';
 import 'package:household_ledger/router/app_router.dart';
-import 'package:household_ledger/services/imexporting_file/export_pdf_report_service.dart';
 import 'package:household_ledger/services/mock_data_service.dart';
 import 'package:intl/intl.dart';
 import 'package:open_file/open_file.dart';
@@ -33,8 +36,9 @@ class GeneratingReportPage extends ConsumerStatefulWidget {
 }
 
 class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
-  final TextEditingController _titleCtrl =
-      TextEditingController(text: 'Household Ledger');
+  final TextEditingController _titleCtrl = TextEditingController(
+    text: 'Household Ledger',
+  );
   final TextEditingController _emailCtrl = TextEditingController();
   final TextEditingController _passwordCtrl = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
@@ -44,8 +48,7 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
   final GlobalKey _emailFieldKey = GlobalKey();
   final GlobalKey _optionSelectorKey = GlobalKey();
   final GlobalKey _generateBtnKey = GlobalKey();
-  bool _showcaseStarted = false;
-  BuildContext? _showcaseContext;
+  final TutorialShowcaseController _showcase = TutorialShowcaseController();
 
   _PeriodMode _periodMode = _PeriodMode.monthly;
   DateTime _selectedMonth = DateTime.now();
@@ -64,7 +67,8 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
   List<File> _existingReports = <File>[];
   bool _loadingReports = true;
 
-  final ExportPdfReportService _service = ExportPdfReportService();
+  final PdfReportGenerationService _reportService =
+      PdfReportGenerationService();
 
   // ─── 라이프사이클 ───────────────────────────────────────────────
 
@@ -86,21 +90,18 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
   // ─── 튜토리얼 ──────────────────────────────────────────────────
 
   void _maybeStartShowcase() {
-    if (_showcaseStarted) return;
-    if (_showcaseContext == null) return;
     final state = ref.read(tutorialProvider);
-    if (!state.isActive || state.phase != TutorialPhase.pdfReport) return;
-    _showcaseStarted = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _showcaseContext == null) return;
-      ShowCaseWidget.of(_showcaseContext!).startShowCase([
+    _showcase.startIfReady(
+      enabled: state.isActive && state.phase == TutorialPhase.pdfReport,
+      keys: <GlobalKey>[
         _periodSelectorKey,
         _titleFieldKey,
         _emailFieldKey,
         _optionSelectorKey,
         _generateBtnKey,
-      ]);
-    });
+      ],
+      isMounted: () => mounted,
+    );
   }
 
   void _onShowcaseComplete(int? index, GlobalKey key) {
@@ -111,33 +112,17 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
   }
 
   Future<void> _handleBackDuringTutorial() async {
-    if (_showcaseContext != null) {
-      try { ShowCaseWidget.of(_showcaseContext!).dismiss(); } catch (_) {}
-    }
+    _showcase.dismiss();
     final strings = ref.read(localizedStringsProvider);
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showTutorialExitConfirmation(
       context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: Text(strings['tutorialExitTitle'] ?? '튜토리얼 종료'),
-        content: Text(strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(strings['tutorialContinue'] ?? '계속하기'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(strings['tutorialExitConfirm'] ?? '종료'),
-          ),
-        ],
-      ),
+      strings: strings,
     );
-    if (confirmed == true && mounted) {
+    if (confirmed && mounted) {
       await ref.read(mockDataServiceProvider).cleanupMockData(ref);
       await ref.read(tutorialProvider.notifier).exitTutorial();
     } else if (mounted) {
-      _showcaseStarted = false;
+      _showcase.reset();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _maybeStartShowcase();
       });
@@ -147,7 +132,7 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
   // ─── 상태 메서드 ────────────────────────────────────────────────
 
   Future<void> _loadExistingReports() async {
-    final List<File> reports = await _service.getExistingReports();
+    final List<File> reports = await _reportService.getExistingReports();
     if (mounted) {
       setState(() {
         _existingReports = reports;
@@ -265,8 +250,9 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
           _selectedRange!.end.month,
         );
         while (!cursor.isAfter(endMonth)) {
-          final List<IncomeEntry> monthData =
-              await ref.read(monthlyIncomesProvider(cursor).future);
+          final List<IncomeEntry> monthData = await ref.read(
+            monthlyIncomesProvider(cursor).future,
+          );
           merged.addAll(
             monthData.where(
               (IncomeEntry i) =>
@@ -278,8 +264,7 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
         }
         incomes = merged;
       } else {
-        incomes =
-            await ref.read(monthlyIncomesProvider(_selectedMonth).future);
+        incomes = await ref.read(monthlyIncomesProvider(_selectedMonth).future);
       }
 
       final List<FixedExpense> fixedExpenses = !usingRange
@@ -293,8 +278,9 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
           : <FixedExpense>[];
 
       final ExpenseRangeQuery prevQuery = _computePrevPeriodQuery();
-      final List<ExpenseEntry> prevExpenses =
-          await ref.read(rangeExpensesProvider(prevQuery).future);
+      final List<ExpenseEntry> prevExpenses = await ref.read(
+        rangeExpensesProvider(prevQuery).future,
+      );
 
       final DateTime periodStart = usingRange
           ? _selectedRange!.start
@@ -304,26 +290,28 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
           ? 'Household Ledger'
           : _titleCtrl.text.trim();
 
-      final String path = await _service.generateReport(
-        expenses: expenses,
-        fixedExpenses: fixedExpenses,
-        incomes: incomes,
-        ledger: ledger,
-        email: _emailCtrl.text.trim(),
-        reportTitle: reportTitle,
-        options: ReportOptions(
-          includeDetailedData: _includeDetailedData,
-          includeTop10: _includeTop10,
-          includeFixedExpenses: _includeFixedExpenses,
-          includePaymentSummary: _includePaymentSummary,
-          includePrevComparison: _includePrevComparison,
-          includePrevCategoryAnalysis: _includePrevCategoryAnalysis,
+      final String path = await _reportService.generate(
+        ReportGenerationRequest(
+          expenses: expenses,
+          fixedExpenses: fixedExpenses,
+          incomes: incomes,
+          ledger: ledger,
+          email: _emailCtrl.text.trim(),
+          reportTitle: reportTitle,
+          options: ReportOptions(
+            includeDetailedData: _includeDetailedData,
+            includeTop10: _includeTop10,
+            includeFixedExpenses: _includeFixedExpenses,
+            includePaymentSummary: _includePaymentSummary,
+            includePrevComparison: _includePrevComparison,
+            includePrevCategoryAnalysis: _includePrevCategoryAnalysis,
+          ),
+          periodLabel: _periodLabel(),
+          periodStart: periodStart,
+          previousExpenses: prevExpenses,
+          previousPeriodStart: prevQuery.start,
+          strings: strings,
         ),
-        periodLabel: _periodLabel(),
-        periodStart: periodStart,
-        prevExpenses: prevExpenses,
-        prevPeriodStart: prevQuery.start,
-        strings: strings,
       );
 
       if (!mounted) return;
@@ -335,9 +323,7 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
         setState(() => _isGenerating = false);
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(
-              _t(strings, 'reportFailed', 'PDF 생성에 실패했습니다.'),
-            ),
+            content: Text(_t(strings, 'reportFailed', 'PDF 생성에 실패했습니다.')),
           ),
         );
       }
@@ -410,7 +396,7 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
     final String localeCode = ledger.settings.localeCode;
 
     Widget buildInner(BuildContext showcaseCtx) {
-      _showcaseContext = showcaseCtx;
+      _showcase.bind(showcaseCtx);
       _maybeStartShowcase();
 
       final page = BootstrapPage(
@@ -425,7 +411,9 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                 Showcase(
                   key: _periodSelectorKey,
                   title: strings['tutReportPeriodTitle'] ?? '리포트 기간 설정',
-                  description: strings['tutReportPeriodDesc'] ?? '분석 기간을 선택해요.\n월별 또는 직접 날짜 범위를 지정할 수 있습니다.',
+                  description:
+                      strings['tutReportPeriodDesc'] ??
+                      '분석 기간을 선택해요.\n월별 또는 직접 날짜 범위를 지정할 수 있습니다.',
                   tooltipPosition: TooltipPosition.bottom,
                   child: ReportPeriodSelector(
                     isRangeMode: _periodMode == _PeriodMode.range,
@@ -433,8 +421,9 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                     selectedRange: _selectedRange,
                     strings: strings,
                     onModeChanged: (bool isRange) => setState(() {
-                      _periodMode =
-                          isRange ? _PeriodMode.range : _PeriodMode.monthly;
+                      _periodMode = isRange
+                          ? _PeriodMode.range
+                          : _PeriodMode.monthly;
                       _selectedRange = null;
                     }),
                     onMonthChanged: (DateTime d) =>
@@ -449,7 +438,9 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                 Showcase(
                   key: _titleFieldKey,
                   title: strings['tutReportTitleFieldTitle'] ?? 'PDF 타이틀',
-                  description: strings['tutReportTitleFieldDesc'] ?? 'PDF 파일에 표시될 제목을 입력해요.\n기본값은 Household Ledger입니다.',
+                  description:
+                      strings['tutReportTitleFieldDesc'] ??
+                      'PDF 파일에 표시될 제목을 입력해요.\n기본값은 Household Ledger입니다.',
                   tooltipPosition: TooltipPosition.bottom,
                   child: BootstrapSectionCard(
                     child: Column(
@@ -457,11 +448,8 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                       children: <Widget>[
                         Text(
                           _t(strings, 'reportTitleLabel', 'PDF 타이틀 지정'),
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w700),
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -487,7 +475,9 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                 Showcase(
                   key: _emailFieldKey,
                   title: strings['tutReportEmailFieldTitle'] ?? '이메일 입력',
-                  description: strings['tutReportEmailFieldDesc'] ?? 'PDF에 표시될 이메일 주소를 입력해요.\n리포트 헤더에 담당자 이메일로 표시됩니다.',
+                  description:
+                      strings['tutReportEmailFieldDesc'] ??
+                      'PDF에 표시될 이메일 주소를 입력해요.\n리포트 헤더에 담당자 이메일로 표시됩니다.',
                   tooltipPosition: TooltipPosition.bottom,
                   child: BootstrapSectionCard(
                     child: Column(
@@ -495,11 +485,8 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                       children: <Widget>[
                         Text(
                           _t(strings, 'reportEmailLabel', '이메일 (필수)'),
-                          style: Theme.of(
-                            context,
-                          ).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.w700),
                         ),
                         const SizedBox(height: 12),
                         TextFormField(
@@ -544,11 +531,8 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                     children: <Widget>[
                       Text(
                         _t(strings, 'reportPasswordLabel', 'PDF 암호 (선택)'),
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(fontWeight: FontWeight.w700),
                       ),
                       const SizedBox(height: 12),
                       TextFormField(
@@ -586,7 +570,9 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                 Showcase(
                   key: _optionSelectorKey,
                   title: strings['tutReportOptionTitle'] ?? '리포트 포함 항목',
-                  description: strings['tutReportOptionDesc'] ?? 'PDF에 포함할 데이터 항목을 선택해요.\n필요한 항목만 체크하면 더 간결한 리포트가 생성됩니다.',
+                  description:
+                      strings['tutReportOptionDesc'] ??
+                      'PDF에 포함할 데이터 항목을 선택해요.\n필요한 항목만 체크하면 더 간결한 리포트가 생성됩니다.',
                   tooltipPosition: TooltipPosition.bottom,
                   child: ReportOptionSelector(
                     includeTop10: _includeTop10,
@@ -616,7 +602,9 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                 Showcase(
                   key: _generateBtnKey,
                   title: strings['tutReportGenerateBtnTitle'] ?? 'PDF 생성',
-                  description: strings['tutReportGenerateBtnDesc'] ?? '설정이 완료되면 이 버튼으로 PDF를 생성해요!\n다음은 데이터 관리 화면을 살펴볼게요.',
+                  description:
+                      strings['tutReportGenerateBtnDesc'] ??
+                      '설정이 완료되면 이 버튼으로 PDF를 생성해요!\n다음은 데이터 관리 화면을 살펴볼게요.',
                   tooltipPosition: TooltipPosition.top,
                   child: SizedBox(
                     width: double.infinity,
@@ -637,11 +625,7 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                       label: Text(
                         _isGenerating
                             ? _t(strings, 'reportGenerating', 'PDF 생성 중...')
-                            : _t(
-                                strings,
-                                'reportGenerateButton',
-                                'PDF 생성하기',
-                              ),
+                            : _t(strings, 'reportGenerateButton', 'PDF 생성하기'),
                       ),
                       style: FilledButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),

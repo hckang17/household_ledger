@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
-import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
-import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
-import 'package:household_ledger/presenter/common/widgets/comparison_card.dart';
-import 'package:household_ledger/presenter/common/widgets/expense_editor_sheet.dart';
-import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
-import 'package:household_ledger/presenter/common/widgets/recent_expenses_list.dart';
+import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/presenter/extensions/currency_extension.dart';
+import 'package:household_ledger/presenter/widgets/home_page/comparison_card.dart';
+import 'package:household_ledger/presenter/widgets/common/expense_editor_sheet.dart';
+import 'package:household_ledger/presenter/widgets/common/ledger_dialogs.dart';
+import 'package:household_ledger/presenter/widgets/home_page/recent_expenses_list.dart';
 import 'package:household_ledger/provider/comparison_provider.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
@@ -34,26 +35,22 @@ class _HomePageState extends ConsumerState<HomePage> {
   final GlobalKey _recentListKey = GlobalKey();
   final GlobalKey _bottomNavKey = GlobalKey();
 
-  bool _showcaseStarted = false;
-  BuildContext? _showcaseContext;
+  final TutorialShowcaseController _showcase = TutorialShowcaseController();
 
   void _maybeStartShowcase() {
-    if (_showcaseStarted) return;
-    if (_showcaseContext == null) return;
     final state = ref.read(tutorialProvider);
-    if (!state.isActive || state.phase != TutorialPhase.home) return;
-    _showcaseStarted = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _showcaseContext == null) return;
-      ShowCaseWidget.of(_showcaseContext!).startShowCase([
+    _showcase.startIfReady(
+      enabled: state.isActive && state.phase == TutorialPhase.home,
+      keys: <GlobalKey>[
         _totalSpentKey,
         _remainingKey,
         _compCardKey,
         _quickExpenseKey,
         _recentListKey,
         _bottomNavKey,
-      ]);
-    });
+      ],
+      isMounted: () => mounted,
+    );
   }
 
   Future<void> _deleteExpense(
@@ -78,37 +75,17 @@ class _HomePageState extends ConsumerState<HomePage> {
   }
 
   Future<void> _handleBackDuringTutorial() async {
-    if (_showcaseContext != null) {
-      try {
-        ShowCaseWidget.of(_showcaseContext!).dismiss();
-      } catch (_) {}
-    }
+    _showcase.dismiss();
     final strings = ref.read(localizedStringsProvider);
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showTutorialExitConfirmation(
       context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: Text(strings['tutorialExitTitle'] ?? '튜토리얼 종료'),
-        content: Text(
-          strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(strings['tutorialContinue'] ?? '계속하기'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(strings['tutorialExitConfirm'] ?? '종료'),
-          ),
-        ],
-      ),
+      strings: strings,
     );
-    if (confirmed == true && mounted) {
+    if (confirmed && mounted) {
       await ref.read(mockDataServiceProvider).cleanupMockData(ref);
       await ref.read(tutorialProvider.notifier).exitTutorial();
     } else if (mounted) {
-      _showcaseStarted = false;
+      _showcase.reset();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _maybeStartShowcase();
       });
@@ -176,13 +153,13 @@ class _HomePageState extends ConsumerState<HomePage> {
     // 튜토리얼 탭 전환 감지: 이 탭(2)이 선택되고 home 단계면 showcase를 시작한다.
     ref.listen(currentNavTabProvider, (_, tab) {
       if (tab == 2 && ref.read(tutorialProvider).phase == TutorialPhase.home) {
-        _showcaseStarted = false;
+        _showcase.reset();
         _maybeStartShowcase();
       }
     });
 
     Widget buildInner(BuildContext showcaseCtx) {
-      _showcaseContext = showcaseCtx;
+      _showcase.bind(showcaseCtx);
       _maybeStartShowcase();
 
       final scrollBody = SingleChildScrollView(
