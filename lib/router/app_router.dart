@@ -64,6 +64,9 @@ class AppRouter {
   /// 데이터 관리 라우트 이름을 정의한다.
   static const String dataManageRoute = '/data-manage';
 
+  /// 제작자 표시 화면 라우트 이름을 정의한다.
+  static const String copyrightsRoute = '/copyrights';
+
   /// 이름 기반 라우팅을 생성한다.
   Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
