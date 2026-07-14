@@ -1,19 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
-import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
+import 'package:household_ledger/presenter/extensions/currency_extension.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
-import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/provider/nav_tab_provider.dart';
 import 'package:household_ledger/provider/tutorial_provider.dart';
 import 'package:household_ledger/router/app_router.dart';
-import 'package:household_ledger/presenter/common/widgets/expense_entry_tile.dart';
-import 'package:household_ledger/presenter/common/widgets/expense_calendar_section.dart';
-import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
-import 'package:household_ledger/presenter/common/widgets/expense_editor_sheet.dart';
+import 'package:household_ledger/presenter/widgets/common/expense_entry_tile.dart';
+import 'package:household_ledger/presenter/widgets/expense_record_page/expense_calendar_section.dart';
+import 'package:household_ledger/presenter/widgets/common/ledger_dialogs.dart';
+import 'package:household_ledger/presenter/widgets/common/expense_editor_sheet.dart';
 import 'package:household_ledger/services/mock_data_service.dart';
 import 'package:showcaseview/showcaseview.dart';
 
@@ -34,8 +35,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
 
   final GlobalKey _calendarKey = GlobalKey();
   final GlobalKey _fabKey = GlobalKey();
-  bool _showcaseStarted = false;
-  BuildContext? _showcaseContext;
+  final TutorialShowcaseController _showcase = TutorialShowcaseController();
 
   @override
   void initState() {
@@ -154,6 +154,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     ExpenseEntry entry,
     List<MetadataTag> categoryTags,
     List<MetadataTag> subcategoryTags,
+    List<MetadataTag> diningOccasionTags,
     List<MetadataTag> paymentTags,
     Map<String, String> strings,
   ) {
@@ -162,6 +163,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
       entry: entry,
       categoryTags: categoryTags,
       subcategoryTags: subcategoryTags,
+      diningOccasionTags: diningOccasionTags,
       paymentTags: paymentTags,
       strings: strings,
       currency: _currencyUnit(strings),
@@ -169,18 +171,12 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
   }
 
   void _maybeStartShowcase() {
-    if (_showcaseStarted) return;
-    if (_showcaseContext == null) return;
     final state = ref.read(tutorialProvider);
-    if (!state.isActive || state.phase != TutorialPhase.expenseRecord) return;
-    _showcaseStarted = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _showcaseContext == null) return;
-      ShowCaseWidget.of(_showcaseContext!).startShowCase([
-        _calendarKey,
-        _fabKey,
-      ]);
-    });
+    _showcase.startIfReady(
+      enabled: state.isActive && state.phase == TutorialPhase.expenseRecord,
+      keys: <GlobalKey>[_calendarKey, _fabKey],
+      isMounted: () => mounted,
+    );
   }
 
   void _onShowcaseComplete(int? index, GlobalKey key) {
@@ -192,33 +188,17 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
   }
 
   Future<void> _handleBackDuringTutorial() async {
-    if (_showcaseContext != null) {
-      try { ShowCaseWidget.of(_showcaseContext!).dismiss(); } catch (_) {}
-    }
+    _showcase.dismiss();
     final strings = ref.read(localizedStringsProvider);
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showTutorialExitConfirmation(
       context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: Text(strings['tutorialExitTitle'] ?? '튜토리얼 종료'),
-        content: Text(strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(strings['tutorialContinue'] ?? '계속하기'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(strings['tutorialExitConfirm'] ?? '종료'),
-          ),
-        ],
-      ),
+      strings: strings,
     );
-    if (confirmed == true && mounted) {
+    if (confirmed && mounted) {
       await ref.read(mockDataServiceProvider).cleanupMockData(ref);
       await ref.read(tutorialProvider.notifier).exitTutorial();
     } else if (mounted) {
-      _showcaseStarted = false;
+      _showcase.reset();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _maybeStartShowcase();
       });
@@ -238,7 +218,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     ref.listen(currentNavTabProvider, (_, tab) {
       if (tab == 3 &&
           ref.read(tutorialProvider).phase == TutorialPhase.expenseRecord) {
-        _showcaseStarted = false;
+        _showcase.reset();
         _maybeStartShowcase();
       }
     });
@@ -279,6 +259,9 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     final currency = _currencyUnit(strings);
     final categoryTags = ledger.tagsByType(MetadataTagType.category);
     final subcategoryTags = ledger.tagsByType(MetadataTagType.subcategory);
+    final diningOccasionTags = ledger.tagsByType(
+      MetadataTagType.diningOccasion,
+    );
     final paymentTags = ledger.tagsByType(MetadataTagType.paymentMethod);
     final totalSpentLabel = _monthLabel(
       strings['monthlyTotalSpentLabel'] ?? '{month} total spent(error)',
@@ -304,13 +287,15 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     final monthlyRemaining = monthlyBudget - monthlySpent - monthlyFixedExpense;
 
     Widget buildInner(BuildContext showcaseCtx) {
-      _showcaseContext = showcaseCtx;
+      _showcase.bind(showcaseCtx);
       _maybeStartShowcase();
 
       final fab = Showcase(
         key: _fabKey,
         title: strings['tutExpenseFabTitle'] ?? '지출 추가',
-        description: strings['tutExpenseFabDesc'] ?? '오늘의 소비를 기록해보세요!\n날짜를 선택한 후 + 버튼을 탭하면 해당 날짜로 입력창이 열려요.',
+        description:
+            strings['tutExpenseFabDesc'] ??
+            '오늘의 소비를 기록해보세요!\n날짜를 선택한 후 + 버튼을 탭하면 해당 날짜로 입력창이 열려요.',
         tooltipPosition: TooltipPosition.top,
         child: FloatingActionButton.extended(
           onPressed: () => showExpenseEditorSheet(
@@ -345,7 +330,9 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
             Showcase(
               key: _calendarKey,
               title: strings['tutExpenseCalendarTitle'] ?? '캘린더',
-              description: strings['tutExpenseCalendarDesc'] ?? '날짜별로 소비 내역을 확인할 수 있어요.\n날짜를 탭하면 해당 날짜의 지출만 필터링됩니다.',
+              description:
+                  strings['tutExpenseCalendarDesc'] ??
+                  '날짜별로 소비 내역을 확인할 수 있어요.\n날짜를 탭하면 해당 날짜의 지출만 필터링됩니다.',
               tooltipPosition: TooltipPosition.bottom,
               child: ExpenseCalendarSection(
                 focusedMonth: _focusedMonth,
@@ -421,6 +408,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
                                       entry,
                                       categoryTags,
                                       subcategoryTags,
+                                      diningOccasionTags,
                                       paymentTags,
                                       strings,
                                     ),

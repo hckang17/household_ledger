@@ -1,5 +1,45 @@
 /// 메타데이터 태그의 종류를 정의한다.
-enum MetadataTagType { category, subcategory, paymentMethod }
+enum MetadataTagType { category, subcategory, diningOccasion, paymentMethod }
+
+/// 앱이 항상 제공하며 사용자가 수정하거나 삭제할 수 없는 태그의 언어팩 키다.
+const Map<MetadataTagType, Map<String, String>>
+systemMetadataTagLocalizationKeys = <MetadataTagType, Map<String, String>>{
+  MetadataTagType.category: <String, String>{
+    'C': 'systemTagCategoryCafe',
+    'D': 'systemTagCategoryDailyGoodsClothing',
+    'F': 'systemTagCategoryDining',
+    'G': 'systemTagCategoryGroceries',
+    'H': 'systemTagCategoryHealingHobby',
+    'L': 'systemTagCategoryLiving',
+    'T': 'systemTagCategoryTransport',
+  },
+  MetadataTagType.subcategory: <String, String>{
+    '_': 'systemTagSubcategoryUsual',
+    't': 'systemTagSubcategoryTravel',
+  },
+  MetadataTagType.diningOccasion: <String, String>{
+    'breakfast': 'systemTagDiningBreakfast',
+    'brunch': 'systemTagDiningBrunch',
+    'lunch': 'systemTagDiningLunch',
+    'snack': 'systemTagDiningSnack',
+    'dinner': 'systemTagDiningDinner',
+    'company': 'systemTagDiningCompany',
+  },
+};
+
+/// 언어팩을 적용한 시스템 기본 태그 목록을 생성한다.
+List<MetadataTag> localizedSystemMetadataTags(Map<String, String> strings) {
+  return <MetadataTag>[
+    for (final MapEntry<MetadataTagType, Map<String, String>> typeEntry
+        in systemMetadataTagLocalizationKeys.entries)
+      for (final MapEntry<String, String> tagEntry in typeEntry.value.entries)
+        MetadataTag(
+          type: typeEntry.key,
+          code: tagEntry.key,
+          label: strings[tagEntry.value] ?? tagEntry.key,
+        ),
+  ];
+}
 
 /// 메타데이터 태그 종류를 직렬화 가능한 문자열로 변환한다.
 extension MetadataTagTypeX on MetadataTagType {
@@ -10,6 +50,8 @@ extension MetadataTagTypeX on MetadataTagType {
         return 'category';
       case MetadataTagType.subcategory:
         return 'subcategory';
+      case MetadataTagType.diningOccasion:
+        return 'diningOccasion';
       case MetadataTagType.paymentMethod:
         return 'paymentMethod';
     }
@@ -22,6 +64,8 @@ extension MetadataTagTypeX on MetadataTagType {
         return 'Category';
       case MetadataTagType.subcategory:
         return 'Subcategory';
+      case MetadataTagType.diningOccasion:
+        return 'Dining Occasion';
       case MetadataTagType.paymentMethod:
         return 'Payment Method';
     }
@@ -34,6 +78,8 @@ extension MetadataTagTypeX on MetadataTagType {
         return MetadataTagType.category;
       case 'subcategory':
         return MetadataTagType.subcategory;
+      case 'diningOccasion':
+        return MetadataTagType.diningOccasion;
       case 'paymentMethod':
         return MetadataTagType.paymentMethod;
       default:
@@ -71,6 +117,14 @@ class MetadataTag {
 
   /// 태그의 화면 표시명을 보관한다.
   final String label;
+
+  /// 시스템에서 기본 제공하여 수정과 삭제가 제한되는 태그인지 반환한다.
+  bool get isSystemDefault =>
+      systemMetadataTagLocalizationKeys[type]?.containsKey(code) ?? false;
+
+  /// 시스템 기본 태그에 대응하는 언어팩 키를 반환한다.
+  String? get systemLocalizationKey =>
+      systemMetadataTagLocalizationKeys[type]?[code];
 
   /// 현재 태그의 수정본을 생성한다.
   MetadataTag copyWith({MetadataTagType? type, String? code, String? label}) {

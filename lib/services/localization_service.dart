@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 
 import 'package:flutter/services.dart';
 import 'package:household_ledger/services/debugging_logger.dart';
@@ -62,6 +62,21 @@ class LocalizationService {
     'noteLabel': '비고',
     'categoryLabel': '소비구분',
     'subcategoryLabel': '소비 소구분',
+    'systemTagCategoryCafe': '카페',
+    'systemTagCategoryDailyGoodsClothing': '일용품&의류',
+    'systemTagCategoryDining': '외식비',
+    'systemTagCategoryGroceries': '식료품',
+    'systemTagCategoryHealingHobby': '힐링&취미',
+    'systemTagCategoryLiving': '생활비',
+    'systemTagCategoryTransport': '교통비',
+    'systemTagSubcategoryUsual': '평상시',
+    'systemTagSubcategoryTravel': '여행',
+    'systemTagDiningBreakfast': '아침',
+    'systemTagDiningBrunch': '브런치',
+    'systemTagDiningLunch': '점심',
+    'systemTagDiningSnack': '간식',
+    'systemTagDiningDinner': '저녁',
+    'systemTagDiningCompany': '회식',
     'paymentMethodLabel': '소비수단',
     'expenseCategorySectionTitle': '지출구분',
     'expenseSubcategorySectionTitle': '지출소구분',
@@ -104,6 +119,8 @@ class LocalizationService {
     'analysisPrevMonthDiff': '전월동기 대비',
     'analysisPrevRangeDiff': '1개월전 동기 대비',
     'analysisNoCurrMonthData': '이번 달 소비 데이터가 없습니다.',
+    'analysisNoCurrentComparisonData': '비교할 데이터가 존재하지 않습니다. 데이터를 입력하러 갈까요?',
+    'analysisAddExpenseAction': '소비내역 입력하기',
     'analysisNoPrevPeriodData': '전월동기 비교 데이터가 없습니다.',
     'analysisCompPeriodHint': '{start} ~ {end} 기간과 비교한 결과도 표시됩니다.',
     'analysisDailyCurrMonth': '이번달',

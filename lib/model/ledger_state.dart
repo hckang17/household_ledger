@@ -103,6 +103,37 @@ class LedgerState {
           code: 't',
           label: isJa ? '旅行' : '여행',
         ),
+        // 외식 식사 유형 (diningOccasion)
+        MetadataTag(
+          type: MetadataTagType.diningOccasion,
+          code: 'breakfast',
+          label: isJa ? '朝食' : '아침',
+        ),
+        MetadataTag(
+          type: MetadataTagType.diningOccasion,
+          code: 'brunch',
+          label: isJa ? 'ブランチ' : '브런치',
+        ),
+        MetadataTag(
+          type: MetadataTagType.diningOccasion,
+          code: 'lunch',
+          label: isJa ? '昼食' : '점심',
+        ),
+        MetadataTag(
+          type: MetadataTagType.diningOccasion,
+          code: 'snack',
+          label: isJa ? '間食' : '간식',
+        ),
+        MetadataTag(
+          type: MetadataTagType.diningOccasion,
+          code: 'dinner',
+          label: isJa ? '夕食' : '저녁',
+        ),
+        MetadataTag(
+          type: MetadataTagType.diningOccasion,
+          code: 'company',
+          label: isJa ? '会食' : '회식',
+        ),
         // 소비수단 (paymentMethod)
         MetadataTag(
           type: MetadataTagType.paymentMethod,
@@ -208,6 +239,30 @@ class LedgerState {
     return copyWith(settings: settings.copyWith(currencyUnit: currencyUnit));
   }
 
+  /// 시스템 기본 태그를 복원하고 현재 언어팩의 레이블을 적용한다.
+  LedgerState localizeSystemMetadataTags(Map<String, String> strings) {
+    final defaults = localizedSystemMetadataTags(strings);
+    final defaultByIdentity = <String, MetadataTag>{
+      for (final tag in defaults) '${tag.type.code}:${tag.code}': tag,
+    };
+    final seen = <String>{};
+    final nextTags = <MetadataTag>[];
+    for (final tag in metadataTags) {
+      final identity = '${tag.type.code}:${tag.code}';
+      final defaultTag = defaultByIdentity[identity];
+      if (defaultTag == null) {
+        nextTags.add(tag);
+      } else if (seen.add(identity)) {
+        nextTags.add(defaultTag);
+      }
+    }
+
+    for (final entry in defaultByIdentity.entries) {
+      if (!seen.contains(entry.key)) nextTags.add(entry.value);
+    }
+    return copyWith(metadataTags: nextTags);
+  }
+
   /// 월 예산을 변경한 새 상태를 생성한다.
   LedgerState changeMonthlyBudget(int budget) {
     return copyWith(settings: settings.copyWith(monthlyBudget: budget));
@@ -295,6 +350,13 @@ class LedgerState {
 
   /// 새 메타데이터 태그를 추가한 새 상태를 생성한다.
   LedgerState addMetadataTag(MetadataTag tag) {
+    if (tag.isSystemDefault &&
+        metadataTags.any(
+          (MetadataTag current) =>
+              current.type == tag.type && current.code == tag.code,
+        )) {
+      return this;
+    }
     final filtered = metadataTags.where(
       (MetadataTag current) =>
           !(current.type == tag.type && current.code == tag.code),
@@ -309,6 +371,10 @@ class LedgerState {
     required String replacementCode,
   }) {
     if (targetCode == replacementCode) {
+      return this;
+    }
+    if (systemMetadataTagLocalizationKeys[type]?.containsKey(targetCode) ??
+        false) {
       return this;
     }
 
@@ -347,6 +413,10 @@ class LedgerState {
           return entry.subcategoryCode == targetCode
               ? entry.copyWith(subcategoryCode: replacementCode)
               : entry;
+        case MetadataTagType.diningOccasion:
+          return entry.diningOccasionCode == targetCode
+              ? entry.copyWith(diningOccasionCode: replacementCode)
+              : entry;
         case MetadataTagType.paymentMethod:
           return entry.paymentMethodCode == targetCode
               ? entry.copyWith(paymentMethodCode: replacementCode)
@@ -361,6 +431,8 @@ class LedgerState {
               ? item.copyWith(categoryCode: replacementCode)
               : item;
         case MetadataTagType.subcategory:
+          return item;
+        case MetadataTagType.diningOccasion:
           return item;
         case MetadataTagType.paymentMethod:
           return item.paymentMethodCode == targetCode
@@ -413,19 +485,59 @@ class LedgerState {
 
   /// JSON 구조에서 상태를 복원한다.
   factory LedgerState.fromJson(Map<String, dynamic> json) {
+    final settings = AppSettings.fromJson(
+      json['settings'] as Map<String, dynamic>? ?? <String, dynamic>{},
+    );
+    final metadataTags =
+        ((json['metadataTags'] as List<dynamic>?) ?? <dynamic>[])
+            .map(
+              (dynamic item) =>
+                  MetadataTag.fromJson(item as Map<String, dynamic>),
+            )
+            .toList();
+    if (!metadataTags.any(
+      (MetadataTag tag) => tag.type == MetadataTagType.diningOccasion,
+    )) {
+      final isJa = settings.localeCode == 'jp' || settings.localeCode == 'ja';
+      metadataTags.addAll(<MetadataTag>[
+        MetadataTag(
+          type: MetadataTagType.diningOccasion,
+          code: 'breakfast',
+          label: isJa ? '朝食' : '아침',
+        ),
+        MetadataTag(
+          type: MetadataTagType.diningOccasion,
+          code: 'brunch',
+          label: isJa ? 'ブランチ' : '브런치',
+        ),
+        MetadataTag(
+          type: MetadataTagType.diningOccasion,
+          code: 'lunch',
+          label: isJa ? '昼食' : '점심',
+        ),
+        MetadataTag(
+          type: MetadataTagType.diningOccasion,
+          code: 'snack',
+          label: isJa ? '間食' : '간식',
+        ),
+        MetadataTag(
+          type: MetadataTagType.diningOccasion,
+          code: 'dinner',
+          label: isJa ? '夕食' : '저녁',
+        ),
+        MetadataTag(
+          type: MetadataTagType.diningOccasion,
+          code: 'company',
+          label: isJa ? '会食' : '회식',
+        ),
+      ]);
+    }
     return LedgerState(
-      settings: AppSettings.fromJson(
-        json['settings'] as Map<String, dynamic>? ?? <String, dynamic>{},
-      ),
+      settings: settings,
       userProfile: UserProfile.fromJson(
         json['userProfile'] as Map<String, dynamic>? ?? <String, dynamic>{},
       ),
-      metadataTags: ((json['metadataTags'] as List<dynamic>?) ?? <dynamic>[])
-          .map(
-            (dynamic item) =>
-                MetadataTag.fromJson(item as Map<String, dynamic>),
-          )
-          .toList(),
+      metadataTags: metadataTags,
       expenses: ((json['expenses'] as List<dynamic>?) ?? <dynamic>[])
           .map(
             (dynamic item) =>

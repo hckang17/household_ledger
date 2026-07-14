@@ -3,13 +3,14 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';
 import 'package:household_ledger/model/data_search_filter.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
-import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
-import 'package:household_ledger/presenter/common/extension/currency_extension.dart';
-import 'package:household_ledger/presenter/common/widgets/expense_editor_sheet.dart';
-import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
+import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/presenter/extensions/currency_extension.dart';
+import 'package:household_ledger/presenter/widgets/common/expense_editor_sheet.dart';
+import 'package:household_ledger/presenter/widgets/common/ledger_dialogs.dart';
 import 'package:household_ledger/provider/data_manage_provider.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
@@ -33,15 +34,14 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
 
   final GlobalKey _filterCardKey = GlobalKey();
   final GlobalKey _settingsNavKey = GlobalKey();
-  bool _showcaseStarted = false;
-  BuildContext? _showcaseContext;
+  final TutorialShowcaseController _showcase = TutorialShowcaseController();
 
   // ── 검색 로딩 인디케이터용 상태 ──────────────────────────────────────────────
   double _searchProgress = 0.0;
   int _searchMsgIndex = 0;
   bool _isPostSearchRendering = false;
   int _postSearchToken = 0; // 완료 대기 콜백이 중복 실행되는 것을 방지한다.
-  int _renderTotal = 0;    // 검색 완료 후 처리중 N/N에 사용
+  int _renderTotal = 0; // 검색 완료 후 처리중 N/N에 사용
   int _renderCompleted = 0;
   Timer? _searchRotateTimer;
   Timer? _searchProgressTimer;
@@ -55,28 +55,26 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
       _searchMsgIndex = Random().nextInt(3);
       _isPostSearchRendering = false;
     });
-    _searchProgressTimer = Timer.periodic(
-      const Duration(milliseconds: 80),
-      (_) {
-        if (!mounted) return;
-        setState(() {
-          _searchProgress = (_searchProgress + 0.01).clamp(0.0, 0.9);
-        });
-      },
-    );
-    _searchRotateTimer = Timer.periodic(
-      const Duration(milliseconds: 1200),
-      (_) {
-        if (!mounted) return;
-        setState(() {
-          int next;
-          do {
-            next = Random().nextInt(3);
-          } while (next == _searchMsgIndex);
-          _searchMsgIndex = next;
-        });
-      },
-    );
+    _searchProgressTimer = Timer.periodic(const Duration(milliseconds: 80), (
+      _,
+    ) {
+      if (!mounted) return;
+      setState(() {
+        _searchProgress = (_searchProgress + 0.01).clamp(0.0, 0.9);
+      });
+    });
+    _searchRotateTimer = Timer.periodic(const Duration(milliseconds: 1200), (
+      _,
+    ) {
+      if (!mounted) return;
+      setState(() {
+        int next;
+        do {
+          next = Random().nextInt(3);
+        } while (next == _searchMsgIndex);
+        _searchMsgIndex = next;
+      });
+    });
   }
 
   // 검색 완료: 처리중 N/N 카운트 애니메이션 후 1.5초 뒤 결과 표시
@@ -105,6 +103,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
           setState(() => _renderCompleted = resultCount);
         }
       }
+
       Future.delayed(stepDuration, () => tick(1));
     }
     // 1500ms 후 로딩 카드 숨김 → 결과 표시
@@ -130,18 +129,12 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
   }
 
   void _maybeStartShowcase() {
-    if (_showcaseStarted) return;
-    if (_showcaseContext == null) return;
     final state = ref.read(tutorialProvider);
-    if (!state.isActive || state.phase != TutorialPhase.dataManage) return;
-    _showcaseStarted = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _showcaseContext == null) return;
-      ShowCaseWidget.of(_showcaseContext!).startShowCase([
-        _filterCardKey,
-        _settingsNavKey,
-      ]);
-    });
+    _showcase.startIfReady(
+      enabled: state.isActive && state.phase == TutorialPhase.dataManage,
+      keys: <GlobalKey>[_filterCardKey, _settingsNavKey],
+      isMounted: () => mounted,
+    );
   }
 
   void _onShowcaseComplete(int? index, GlobalKey key) {
@@ -152,33 +145,17 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
   }
 
   Future<void> _handleBackDuringTutorial() async {
-    if (_showcaseContext != null) {
-      try { ShowCaseWidget.of(_showcaseContext!).dismiss(); } catch (_) {}
-    }
+    _showcase.dismiss();
     final strings = ref.read(localizedStringsProvider);
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showTutorialExitConfirmation(
       context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: Text(strings['tutorialExitTitle'] ?? '튜토리얼 종료'),
-        content: Text(strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(strings['tutorialContinue'] ?? '계속하기'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(strings['tutorialExitConfirm'] ?? '종료'),
-          ),
-        ],
-      ),
+      strings: strings,
     );
-    if (confirmed == true && mounted) {
+    if (confirmed && mounted) {
       await ref.read(mockDataServiceProvider).cleanupMockData(ref);
       await ref.read(tutorialProvider.notifier).exitTutorial();
     } else if (mounted) {
-      _showcaseStarted = false;
+      _showcase.reset();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _maybeStartShowcase();
       });
@@ -541,6 +518,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 clearTableType: picked == null,
                 clearPaymentMethod: true,
                 clearCategory: true,
+                clearDiningOccasion: true,
               ),
             );
       },
@@ -654,7 +632,9 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
     DataSearchFilter filter,
     List<MetadataTag> categoryTags,
     List<MetadataTag> paymentTags,
+    List<MetadataTag> diningOccasionTags,
     bool isIncome,
+    bool isExpense,
   ) {
     return BootstrapSectionCard(
       child: Column(
@@ -729,6 +709,38 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                     );
               },
             ),
+            if (isExpense) ...<Widget>[
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                key: ValueKey<String?>('dining_${filter.diningOccasionCode}'),
+                initialValue: filter.diningOccasionCode,
+                decoration: InputDecoration(
+                  labelText: _s(strings, 'diningOccasionLabel', '식사 유형 (선택)'),
+                  isDense: true,
+                ),
+                items: <DropdownMenuItem<String>>[
+                  DropdownMenuItem<String>(
+                    value: null,
+                    child: Text(_s(strings, 'dataManageAll', '전체')),
+                  ),
+                  ...diningOccasionTags.map(
+                    (MetadataTag t) => DropdownMenuItem<String>(
+                      value: t.code,
+                      child: Text(t.label),
+                    ),
+                  ),
+                ],
+                onChanged: (String? value) {
+                  ref
+                      .read(dataManageProvider.notifier)
+                      .setFilter(
+                        value == null
+                            ? filter.copyWith(clearDiningOccasion: true)
+                            : filter.copyWith(diningOccasionCode: value),
+                      );
+                },
+              ),
+            ],
           ],
           const SizedBox(height: 12),
           TextField(
@@ -779,8 +791,9 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
   ) {
     if (_isPostSearchRendering) {
       // 검색 완료 후: 처리중 N/N건 (operation progress 스타일)
-      final double progress =
-          _renderTotal == 0 ? 1.0 : _renderCompleted / _renderTotal;
+      final double progress = _renderTotal == 0
+          ? 1.0
+          : _renderCompleted / _renderTotal;
       return BootstrapSectionCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -973,6 +986,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
     DataManageState s,
     List<MetadataTag> categoryTags,
     List<MetadataTag> subcategoryTags,
+    List<MetadataTag> diningOccasionTags,
     List<MetadataTag> paymentTags,
     String currency,
   ) {
@@ -982,9 +996,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
           child: Center(
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: 32),
-              child: Text(
-                _s(strings, 'dataManageEmptyResult', '검색 결과가 없습니다.'),
-              ),
+              child: Text(_s(strings, 'dataManageEmptyResult', '검색 결과가 없습니다.')),
             ),
           ),
         ),
@@ -1006,13 +1018,13 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 entry: e,
                 categoryTags: categoryTags,
                 subcategoryTags: subcategoryTags,
+                diningOccasionTags: diningOccasionTags,
                 paymentTags: paymentTags,
                 strings: strings,
                 currency: currency,
               ),
               child: BootstrapSectionCard(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 child: Row(
                   children: <Widget>[
                     Checkbox(
@@ -1105,10 +1117,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                   ),
                   Expanded(
                     flex: 3,
-                    child: Text(
-                      e.description,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    child: Text(e.description, overflow: TextOverflow.ellipsis),
                   ),
                   Expanded(
                     flex: 2,
@@ -1151,10 +1160,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                   ),
                   Expanded(
                     flex: 5,
-                    child: Text(
-                      e.description,
-                      overflow: TextOverflow.ellipsis,
-                    ),
+                    child: Text(e.description, overflow: TextOverflow.ellipsis),
                   ),
                   Expanded(
                     flex: 2,
@@ -1224,14 +1230,18 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
     final List<MetadataTag> subcategoryTags = ledger.tagsByType(
       MetadataTagType.subcategory,
     );
+    final List<MetadataTag> diningOccasionTags = ledger.tagsByType(
+      MetadataTagType.diningOccasion,
+    );
     final List<MetadataTag> paymentTags = ledger.tagsByType(
       MetadataTagType.paymentMethod,
     );
     final String currency = strings['currencyUnit'] ?? '';
     final bool isIncome = filter.tableType == DataTableType.income;
+    final bool isExpense = filter.tableType == DataTableType.expense;
 
     Widget buildInner(BuildContext showcaseCtx) {
-      _showcaseContext = showcaseCtx;
+      _showcase.bind(showcaseCtx);
       _maybeStartShowcase();
 
       final page = PopScope(
@@ -1257,7 +1267,9 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
             Showcase(
               key: _settingsNavKey,
               title: strings['tutDataManageSettingsNavTitle'] ?? '설정 화면으로 이동',
-              description: strings['tutDataManageSettingsNavDesc'] ?? '다음은 앱 설정 화면을 살펴볼게요!\n설정에서 태그 관리, 데이터 백업 등을 할 수 있어요.',
+              description:
+                  strings['tutDataManageSettingsNavDesc'] ??
+                  '다음은 앱 설정 화면을 살펴볼게요!\n설정에서 태그 관리, 데이터 백업 등을 할 수 있어요.',
               tooltipPosition: TooltipPosition.bottom,
               child: IconButton(
                 onPressed: () =>
@@ -1272,7 +1284,8 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 child: Showcase(
                   key: _filterCardKey,
                   title: strings['tutDataManageFilterTitle'] ?? '데이터 검색',
-                  description: strings['tutDataManageFilterDesc'] ??
+                  description:
+                      strings['tutDataManageFilterDesc'] ??
                       '소비수단, 기간, 카테고리 등 조건으로 기록을 조회하고\n일괄 삭제 또는 태그 변경을 할 수 있어요.',
                   tooltipPosition: TooltipPosition.bottom,
                   child: _buildFilterCard(
@@ -1280,7 +1293,9 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                     filter,
                     categoryTags,
                     paymentTags,
+                    diningOccasionTags,
                     isIncome,
+                    isExpense,
                   ),
                 ),
               ),
@@ -1314,6 +1329,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                   manageState,
                   categoryTags,
                   subcategoryTags,
+                  diningOccasionTags,
                   paymentTags,
                   currency,
                 ),

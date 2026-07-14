@@ -23,6 +23,10 @@ class DataSearchService {
           e.categoryCode != filter.categoryCode) {
         return false;
       }
+      if (filter.diningOccasionCode != null &&
+          e.diningOccasionCode != filter.diningOccasionCode) {
+        return false;
+      }
       if (filter.descriptionQuery.isNotEmpty &&
           !e.description.toLowerCase().contains(
             filter.descriptionQuery.toLowerCase(),

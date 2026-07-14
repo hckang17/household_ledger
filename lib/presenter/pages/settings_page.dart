@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
-import 'package:household_ledger/presenter/common/bootstrap_style/bootstrap_widgets.dart';
-import 'package:household_ledger/presenter/common/widgets/ledger_dialogs.dart';
-import 'package:household_ledger/presenter/common/widgets/tag_management_section.dart';
+import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/presenter/widgets/common/ledger_dialogs.dart';
+import 'package:household_ledger/presenter/widgets/settings_page/tag_management_section.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/provider/tutorial_provider.dart';
@@ -28,21 +29,16 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   final GlobalKey _tagSectionKey = GlobalKey();
   final GlobalKey _dataManageSectionKey = GlobalKey();
-  bool _showcaseStarted = false;
-  BuildContext? _showcaseContext;
+  bool _isMigratingDiningDescriptions = false;
+  final TutorialShowcaseController _showcase = TutorialShowcaseController();
 
   void _maybeStartShowcase() {
-    if (_showcaseStarted) return;
-    if (_showcaseContext == null) return;
     final state = ref.read(tutorialProvider);
-    if (!state.isActive || state.phase != TutorialPhase.settings) return;
-    _showcaseStarted = true;
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (!mounted || _showcaseContext == null) return;
-      ShowCaseWidget.of(
-        _showcaseContext!,
-      ).startShowCase([_tagSectionKey, _dataManageSectionKey]);
-    });
+    _showcase.startIfReady(
+      enabled: state.isActive && state.phase == TutorialPhase.settings,
+      keys: <GlobalKey>[_tagSectionKey, _dataManageSectionKey],
+      isMounted: () => mounted,
+    );
   }
 
   void _onShowcaseComplete(int? index, GlobalKey key) {
@@ -53,37 +49,17 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   }
 
   Future<void> _handleBackDuringTutorial() async {
-    if (_showcaseContext != null) {
-      try {
-        ShowCaseWidget.of(_showcaseContext!).dismiss();
-      } catch (_) {}
-    }
+    _showcase.dismiss();
     final strings = ref.read(localizedStringsProvider);
-    final confirmed = await showDialog<bool>(
+    final confirmed = await showTutorialExitConfirmation(
       context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: Text(strings['tutorialExitTitle'] ?? '튜토리얼 종료'),
-        content: Text(
-          strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: Text(strings['tutorialContinue'] ?? '계속하기'),
-          ),
-          FilledButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: Text(strings['tutorialExitConfirm'] ?? '종료'),
-          ),
-        ],
-      ),
+      strings: strings,
     );
-    if (confirmed == true && mounted) {
+    if (confirmed && mounted) {
       await ref.read(mockDataServiceProvider).cleanupMockData(ref);
       await ref.read(tutorialProvider.notifier).exitTutorial();
     } else if (mounted) {
-      _showcaseStarted = false;
+      _showcase.reset();
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted) _maybeStartShowcase();
       });
@@ -135,6 +111,50 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text(_text(strings, 'settingsSavedMessage'))),
+    );
+  }
+
+  Future<void> _migrateLegacyDiningDescriptions(
+    Map<String, String> strings,
+  ) async {
+    if (_isMigratingDiningDescriptions) return;
+    final notifier = ref.read(ledgerProvider.notifier);
+    final count = await notifier.countLegacyDiningDescriptions();
+    if (!mounted) return;
+    if (count == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_text(strings, 'diningMigrationNoData'))),
+      );
+      return;
+    }
+
+    final confirmed = await showLedgerConfirmDialog(
+      context: context,
+      title: _text(strings, 'diningMigrationTitle'),
+      message: _text(
+        strings,
+        'diningMigrationConfirm',
+      ).replaceAll('{count}', '$count'),
+      confirmLabel: _text(strings, 'diningMigrationAction'),
+      cancelLabel: _text(strings, 'cancel'),
+    );
+    if (!confirmed || !mounted) return;
+
+    setState(() => _isMigratingDiningDescriptions = true);
+    final migratedCount = await notifier.migrateLegacyDiningDescriptions();
+    ref.invalidate(monthlyExpensesProvider);
+    ref.invalidate(rangeExpensesProvider);
+    if (!mounted) return;
+    setState(() => _isMigratingDiningDescriptions = false);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _text(
+            strings,
+            'diningMigrationComplete',
+          ).replaceAll('{count}', '$migratedCount'),
+        ),
+      ),
     );
   }
 
@@ -190,6 +210,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   /// 태그를 수정한다.
   Future<void> _editTag(MetadataTag target) async {
+    if (target.isSystemDefault) return;
     final strings = ref.read(localizedStringsProvider);
     final ledger = ref.read(ledgerProvider).asData?.value;
     if (ledger == null) {
@@ -244,6 +265,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
 
   /// 태그를 다른 코드로 대체한 뒤 삭제한다.
   Future<void> _deleteTag(MetadataTag tag) async {
+    if (tag.isSystemDefault) return;
     final strings = ref.read(localizedStringsProvider);
     final ledger = ref.read(ledgerProvider).asData?.value;
     if (ledger == null) {
@@ -303,6 +325,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
         return _text(strings, 'expenseCategorySectionTitle');
       case MetadataTagType.subcategory:
         return _text(strings, 'expenseSubcategorySectionTitle');
+      case MetadataTagType.diningOccasion:
+        return _text(strings, 'diningOccasionSectionTitle');
       case MetadataTagType.paymentMethod:
         return _text(strings, 'paymentMethodSectionTitle');
     }
@@ -334,7 +358,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
 
     Widget buildInner(BuildContext showcaseCtx) {
-      _showcaseContext = showcaseCtx;
+      _showcase.bind(showcaseCtx);
       _maybeStartShowcase();
 
       final page = BootstrapPage(
@@ -455,6 +479,18 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                       onEdit: _editTag,
                       onDelete: _deleteTag,
                     ),
+                    const SizedBox(height: 16),
+                    TagManagementSection(
+                      title: _sectionTitle(
+                        MetadataTagType.diningOccasion,
+                        strings,
+                      ),
+                      tags: ledger.tagsByType(MetadataTagType.diningOccasion),
+                      strings: strings,
+                      onAdd: () => _addTag(MetadataTagType.diningOccasion),
+                      onEdit: _editTag,
+                      onDelete: _deleteTag,
+                    ),
                   ],
                 ),
               ),
@@ -523,6 +559,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
             onPressed: () {
               Navigator.of(context).pushNamed(AppRouter.importDataRoute);
             },
+          ),
+          const SizedBox(height: 12),
+          BootstrapActionButton(
+            label: _isMigratingDiningDescriptions
+                ? _text(strings, 'diningMigrationRunning')
+                : _text(strings, 'diningMigrationAction'),
+            icon: Icons.auto_fix_high_rounded,
+            backgroundColor: const Color(0xFF0D6EFD),
+            onPressed: () => _migrateLegacyDiningDescriptions(strings),
           ),
           const SizedBox(height: 12),
           BootstrapActionButton(
