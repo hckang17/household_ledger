@@ -1,11 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
-import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/router/app_router.dart';
+import 'package:household_ledger/services/localization_service.dart';
+import 'package:household_ledger/services/push_message/push_message_service.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 Locale _flutterLocaleFromCode(String localeCode) {
@@ -96,15 +99,69 @@ class _HouseholdLedgerAppState extends ConsumerState<HouseholdLedgerApp> {
   void initState() {
     super.initState();
     _lifecycleListener = AppLifecycleListener(
-      onPause: _persistState,
-      onDetach: _persistState,
-      onHide: _persistState,
+      onResume: () => unawaited(_cancelInactivityReminder()),
+      onPause: _handleBackground,
+      onDetach: _handleBackground,
+      onHide: _handleBackground,
     );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      unawaited(_initializePushMessages());
+    });
   }
 
   /// 앱이 백그라운드로 이동할 때 현재 상태를 저장한다.
   void _persistState() {
     ref.read(ledgerProvider.notifier).persistCurrentState();
+  }
+
+  void _handleBackground() {
+    _persistState();
+    unawaited(_refreshInactivityReminder());
+  }
+
+  Future<void> _initializePushMessages() async {
+    final ledger = await ref.read(ledgerProvider.future);
+    final service = ref.read(pushMessageServiceProvider);
+    final strings = await LocalizationService().loadStrings(
+      ledger.settings.localeCode,
+    );
+    await service.initialize(localeCode: ledger.settings.localeCode);
+
+    final permissionResult = await service.requestPermissionOnFirstLaunch();
+    var settings = ledger.settings.pushNotifications;
+    if (permissionResult != null && permissionResult != settings.enabled) {
+      settings = settings.copyWith(enabled: permissionResult);
+      await ref.read(ledgerProvider.notifier).changePushNotifications(settings);
+    }
+    await service.cancelInactivityReminder();
+    await service.syncRecurringSchedules(
+      settings: settings,
+      strings: strings,
+      localeCode: ledger.settings.localeCode,
+    );
+  }
+
+  Future<void> _refreshInactivityReminder() async {
+    final ledger = ref.read(ledgerProvider).asData?.value;
+    if (ledger == null) return;
+    final strings = await LocalizationService().loadStrings(
+      ledger.settings.localeCode,
+    );
+    await ref
+        .read(pushMessageServiceProvider)
+        .refreshInactivityReminder(
+          settings: ledger.settings.pushNotifications,
+          strings: strings,
+          localeCode: ledger.settings.localeCode,
+        );
+  }
+
+  Future<void> _cancelInactivityReminder() async {
+    final ledger = ref.read(ledgerProvider).asData?.value;
+    if (ledger == null) return;
+    final service = ref.read(pushMessageServiceProvider);
+    await service.initialize(localeCode: ledger.settings.localeCode);
+    await service.cancelInactivityReminder();
   }
 
   @override

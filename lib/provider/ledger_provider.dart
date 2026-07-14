@@ -4,6 +4,7 @@ import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/model/ledger_state.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/model/push_notification_settings.dart';
 import 'package:household_ledger/model/user_profile.dart';
 import 'package:household_ledger/services/debugging_logger.dart';
 import 'package:household_ledger/services/database/expense_database_service.dart';
@@ -330,6 +331,15 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
 
     await _commit(current.changeCurrencyUnit(currencyUnit));
     _logLedgerProvider('changeCurrencyUnit', '통화 단위 변경 완료');
+  }
+
+  /// 알림 설정을 저장한다.
+  Future<void> changePushNotifications(
+    PushNotificationSettings settings,
+  ) async {
+    final current = state.asData?.value;
+    if (current == null) return;
+    await _commit(current.changePushNotifications(settings));
   }
 
   /// 사용자 프로필 정보를 변경한다.

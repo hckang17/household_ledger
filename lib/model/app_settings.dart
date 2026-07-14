@@ -1,5 +1,7 @@
 import 'dart:ui' show PlatformDispatcher;
 
+import 'package:household_ledger/model/push_notification_settings.dart';
+
 /// 앱 전역 설정을 표현한다.
 class AppSettings {
   /// 앱 설정을 생성한다.
@@ -8,6 +10,7 @@ class AppSettings {
     required this.currencyUnit,
     required this.monthlyBudget,
     required this.onboardingCompleted,
+    this.pushNotifications = const PushNotificationSettings(),
   });
 
   /// 현재 언어 코드를 보관한다.
@@ -21,6 +24,9 @@ class AppSettings {
 
   /// 초기 설정 완료 여부를 보관한다.
   final bool onboardingCompleted;
+
+  /// 로컬 알림 수신 설정을 보관한다.
+  final PushNotificationSettings pushNotifications;
 
   /// 기기 언어 설정을 감지해 기본 앱 설정을 생성한다.
   ///
@@ -42,6 +48,7 @@ class AppSettings {
       currencyUnit: currencyUnit,
       monthlyBudget: 0,
       onboardingCompleted: false,
+      pushNotifications: const PushNotificationSettings(),
     );
   }
 
@@ -51,12 +58,14 @@ class AppSettings {
     String? currencyUnit,
     int? monthlyBudget,
     bool? onboardingCompleted,
+    PushNotificationSettings? pushNotifications,
   }) {
     return AppSettings(
       localeCode: localeCode ?? this.localeCode,
       currencyUnit: currencyUnit ?? this.currencyUnit,
       monthlyBudget: monthlyBudget ?? this.monthlyBudget,
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
+      pushNotifications: pushNotifications ?? this.pushNotifications,
     );
   }
 
@@ -67,6 +76,7 @@ class AppSettings {
       'currencyUnit': currencyUnit,
       'monthlyBudget': monthlyBudget,
       'onboardingCompleted': onboardingCompleted,
+      'pushNotifications': pushNotifications.toJson(),
     };
   }
 
@@ -79,6 +89,9 @@ class AppSettings {
       currencyUnit: json['currencyUnit'] as String? ?? fallbackCurrencyUnit,
       monthlyBudget: json['monthlyBudget'] as int? ?? 0,
       onboardingCompleted: json['onboardingCompleted'] as bool? ?? false,
+      pushNotifications: PushNotificationSettings.fromJson(
+        json['pushNotifications'] as Map<String, dynamic>?,
+      ),
     );
   }
 }
