@@ -1,13 +1,16 @@
+// """ MVVM 계층: View / Main Feature Shell """
+// """ 역할: 가계부 주기능 페이지와 하단 Navigation 상태를 조합 """
+
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/presenter/widgets/main_shell_page/bottom_navigation_bar.dart';
-import 'package:household_ledger/presenter/pages/analysis_page.dart';
-import 'package:household_ledger/presenter/pages/expense_record_page.dart';
-import 'package:household_ledger/presenter/pages/fixed_expense_page.dart';
-import 'package:household_ledger/presenter/pages/home_page.dart';
-import 'package:household_ledger/presenter/pages/income_page.dart';
+import 'package:household_ledger/presenter/pages/expense_page/analysis_page.dart';
+import 'package:household_ledger/presenter/pages/expense_page/expense_record_page.dart';
+import 'package:household_ledger/presenter/pages/expense_page/fixed_expense_page.dart';
+import 'package:household_ledger/presenter/pages/expense_page/home_page.dart';
+import 'package:household_ledger/presenter/pages/expense_page/income_page.dart';
 import 'package:household_ledger/provider/nav_tab_provider.dart';
 
 /// 바텀 내비게이션 바를 포함하는 공통 쉘 화면이다.

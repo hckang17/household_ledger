@@ -1,3 +1,6 @@
+// """ MVVM 계층: View / Main Feature Page """
+// """ 역할: 예산 현황, 전월 비교, 빠른 소비 입력을 제공하는 홈 화면 """
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';

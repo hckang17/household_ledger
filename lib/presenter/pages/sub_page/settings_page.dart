@@ -1,3 +1,6 @@
+// """ MVVM 계층: View / Sub Feature Page """
+// """ 역할: 사용자 정보·태그·데이터 관리·튜토리얼 설정 제공 """
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';

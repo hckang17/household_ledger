@@ -1,3 +1,6 @@
+// """ MVVM 계층: View / Main Feature Page """
+// """ 역할: 소비 기록과 고정지출 관리 화면으로 이동하는 주기능 진입점 """
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/provider/localization_provider.dart';

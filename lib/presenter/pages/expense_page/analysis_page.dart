@@ -1,3 +1,6 @@
+// """ MVVM 계층: View / Main Feature Page """
+// """ 역할: 수입·지출 분석 기간과 분석 탭 화면을 구성 """
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';

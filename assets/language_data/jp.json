@@ -348,7 +348,7 @@
   "tooltipRemainingFixed": "固定金額",
   "tooltipRemainingMid": "と",
   "tooltipRemainingTotal": "総支出額",
-  "tooltipRemainingSuffix": "を引いた残りの金額です。",
+  "tooltipRemainingSuffix": "を引いた残りの金額です。もし収入データが存在しなければ設定の月予算額が基準となります。",
 
   "tutorialAgainButtonTitle": "チュートリアルを再度する",
   "tutorialExitTitle": "チュートリアル終了",

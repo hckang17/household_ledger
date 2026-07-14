@@ -357,7 +357,7 @@
   "tooltipRemainingFixed": "고정금액",
   "tooltipRemainingMid": "과 ",
   "tooltipRemainingTotal": "총 지출금액",
-  "tooltipRemainingSuffix": "을 제외한 금액입니다.",
+  "tooltipRemainingSuffix": "을 제외한 금액입니다. 만약 수입데이터가 없다면, 설정해둔 월 예산이 기준금액입니다.",
 
   "tutorialAgainButtonTitle": "튜토리얼 다시보기",
   "tutorialExitTitle": "튜토리얼 종료",
