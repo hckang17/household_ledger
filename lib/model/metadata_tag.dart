@@ -7,11 +7,14 @@ systemMetadataTagLocalizationKeys = <MetadataTagType, Map<String, String>>{
   MetadataTagType.category: <String, String>{
     'C': 'systemTagCategoryCafe',
     'D': 'systemTagCategoryDailyGoodsClothing',
+    'E': 'systemTagCategoryOther',
     'F': 'systemTagCategoryDining',
     'G': 'systemTagCategoryGroceries',
     'H': 'systemTagCategoryHealingHobby',
     'L': 'systemTagCategoryLiving',
+    'S': 'systemTagCategorySports',
     'T': 'systemTagCategoryTransport',
+    'X': 'systemTagCategoryCeremonialExpenses',
   },
   MetadataTagType.subcategory: <String, String>{
     '_': 'systemTagSubcategoryUsual',
@@ -23,9 +26,131 @@ systemMetadataTagLocalizationKeys = <MetadataTagType, Map<String, String>>{
     'lunch': 'systemTagDiningLunch',
     'snack': 'systemTagDiningSnack',
     'dinner': 'systemTagDiningDinner',
+    'lateNight': 'systemTagDiningLateNight',
     'company': 'systemTagDiningCompany',
   },
+  MetadataTagType.paymentMethod: <String, String>{
+    '_c': 'systemTagPaymentCash',
+    '_s': 'systemTagPaymentCreditCard',
+  },
 };
+
+/// 지원 언어 전체에서 시스템 태그가 예약한 화면 표시명이다.
+///
+/// 현재 선택된 언어와 관계없이 같은 태그 종류에 아래 이름을 사용자 태그로
+/// 등록할 수 없다. 언어팩을 추가할 때 해당 번역명도 함께 추가해야 한다.
+const Map<MetadataTagType, Set<String>> systemMetadataTagReservedLabels =
+    <MetadataTagType, Set<String>>{
+      MetadataTagType.category: <String>{
+        '카페',
+        'カフェ',
+        '일용품&의류',
+        '日用品＆衣料',
+        '기타',
+        'その他',
+        '외식비',
+        '外食費',
+        '식료품',
+        '食料品',
+        '힐링&취미',
+        'ヒーリング＆趣味',
+        '생활비',
+        '生活費',
+        '스포츠',
+        'スポーツ',
+        '교통비',
+        '交通費',
+        '경조사비',
+        '慶弔費',
+      },
+      MetadataTagType.subcategory: <String>{'평상시', '普段', '여행', '旅行'},
+      MetadataTagType.diningOccasion: <String>{
+        '아침',
+        '朝食',
+        '브런치',
+        'ブランチ',
+        '점심',
+        '昼食',
+        '간식',
+        '間食',
+        '저녁',
+        '夕食',
+        '야식',
+        '夜食',
+        '회식',
+        '会食',
+      },
+      MetadataTagType.paymentMethod: <String>{'현금', '現金', '신용카드', 'クレジットカード'},
+    };
+
+/// 사용자 태그에 내부 저장용 2문자 코드를 할당한다.
+///
+/// 시스템 기본 카테고리의 1문자 코드와 겹치지 않도록 영문 대문자와 숫자로
+/// 구성된 2문자 코드를 태그 종류별로 탐색한다. 기존 사용자 데이터의 임의
+/// 코드는 그대로 허용하되, 새 사용자 태그에는 이 생성 규칙을 적용한다.
+abstract final class MetadataTagCodeGenerator {
+  static const String _characters = '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+  /// 같은 태그 종류에서 현재 사용하지 않는 다음 사용자 코드를 반환한다.
+  ///
+  /// 가능한 2문자 코드가 모두 사용 중이면 `null`을 반환한다.
+  static String? nextUserCode({
+    required MetadataTagType type,
+    required Iterable<MetadataTag> tags,
+  }) {
+    final usedCodes = tags
+        .where((MetadataTag tag) => tag.type == type)
+        .map((MetadataTag tag) => tag.code)
+        .toSet();
+
+    for (var first = 0; first < _characters.length; first++) {
+      for (var second = 0; second < _characters.length; second++) {
+        final code = '${_characters[first]}${_characters[second]}';
+        if (!usedCodes.contains(code)) {
+          return code;
+        }
+      }
+    }
+    return null;
+  }
+}
+
+/// 사용자 태그 이름의 입력 검증 결과다.
+enum MetadataTagLabelValidation { valid, empty, duplicate }
+
+/// 사용자 태그 이름에 공통 검증 규칙을 적용한다.
+abstract final class MetadataTagLabelValidator {
+  /// 빈칸과 같은 태그 종류 안의 이름 중복을 검사한다.
+  ///
+  /// 수정 중인 태그의 [currentCode]는 중복 검사에서 제외한다.
+  static MetadataTagLabelValidation validate({
+    required MetadataTagType type,
+    required String label,
+    required Iterable<MetadataTag> tags,
+    String? currentCode,
+  }) {
+    final normalizedLabel = label.trim().toLowerCase();
+    if (normalizedLabel.isEmpty) {
+      return MetadataTagLabelValidation.empty;
+    }
+
+    final matchesReservedSystemLabel =
+        systemMetadataTagReservedLabels[type]?.any(
+          (String reservedLabel) =>
+              reservedLabel.trim().toLowerCase() == normalizedLabel,
+        ) ??
+        false;
+    final matchesExistingLabel = tags.any(
+      (MetadataTag tag) =>
+          tag.type == type &&
+          tag.code != currentCode &&
+          tag.label.trim().toLowerCase() == normalizedLabel,
+    );
+    return matchesReservedSystemLabel || matchesExistingLabel
+        ? MetadataTagLabelValidation.duplicate
+        : MetadataTagLabelValidation.valid;
+  }
+}
 
 /// 언어팩을 적용한 시스템 기본 태그 목록을 생성한다.
 List<MetadataTag> localizedSystemMetadataTags(Map<String, String> strings) {

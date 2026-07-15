@@ -362,7 +362,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                     ...paymentTags.map(
                       (MetadataTag t) => DropdownMenuItem<String>(
                         value: t.code,
-                        child: Text('${t.code} · ${t.label}'),
+                        child: Text(t.label),
                       ),
                     ),
                   ],
@@ -382,7 +382,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                     ...categoryTags.map(
                       (MetadataTag t) => DropdownMenuItem<String>(
                         value: t.code,
-                        child: Text('${t.code} · ${t.label}'),
+                        child: Text(t.label),
                       ),
                     ),
                   ],
@@ -668,7 +668,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 ...paymentTags.map(
                   (MetadataTag t) => DropdownMenuItem<String>(
                     value: t.code,
-                    child: Text('${t.code} · ${t.label}'),
+                    child: Text(t.label),
                   ),
                 ),
               ],
@@ -698,21 +698,24 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 ...categoryTags.map(
                   (MetadataTag t) => DropdownMenuItem<String>(
                     value: t.code,
-                    child: Text('${t.code} · ${t.label}'),
+                    child: Text(t.label),
                   ),
                 ),
               ],
               onChanged: (String? v) {
-                ref
-                    .read(dataManageProvider.notifier)
-                    .setFilter(
-                      v == null
-                          ? filter.copyWith(clearCategory: true)
-                          : filter.copyWith(categoryCode: v),
-                    );
+                final DataSearchFilter nextFilter = v == null
+                    ? filter.copyWith(
+                        clearCategory: true,
+                        clearDiningOccasion: true,
+                      )
+                    : filter.copyWith(
+                        categoryCode: v,
+                        clearDiningOccasion: v != 'F',
+                      );
+                ref.read(dataManageProvider.notifier).setFilter(nextFilter);
               },
             ),
-            if (isExpense) ...<Widget>[
+            if (isExpense && filter.categoryCode == 'F') ...<Widget>[
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
                 key: ValueKey<String?>('dining_${filter.diningOccasionCode}'),

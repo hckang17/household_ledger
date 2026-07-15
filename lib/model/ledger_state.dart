@@ -65,6 +65,11 @@ class LedgerState {
         ),
         MetadataTag(
           type: MetadataTagType.category,
+          code: 'E',
+          label: isJa ? 'その他' : '기타',
+        ),
+        MetadataTag(
+          type: MetadataTagType.category,
           code: 'F',
           label: isJa ? '外食費' : '외식비',
         ),
@@ -92,6 +97,11 @@ class LedgerState {
           type: MetadataTagType.category,
           code: 'T',
           label: isJa ? '交通費' : '교통비',
+        ),
+        MetadataTag(
+          type: MetadataTagType.category,
+          code: 'X',
+          label: isJa ? '慶弔費' : '경조사비',
         ),
         // 소비 소구분 (subcategory)
         MetadataTag(
@@ -129,6 +139,11 @@ class LedgerState {
           type: MetadataTagType.diningOccasion,
           code: 'dinner',
           label: isJa ? '夕食' : '저녁',
+        ),
+        MetadataTag(
+          type: MetadataTagType.diningOccasion,
+          code: 'lateNight',
+          label: isJa ? '夜食' : '야식',
         ),
         MetadataTag(
           type: MetadataTagType.diningOccasion,
@@ -356,6 +371,15 @@ class LedgerState {
 
   /// 새 메타데이터 태그를 추가한 새 상태를 생성한다.
   LedgerState addMetadataTag(MetadataTag tag) {
+    final labelValidation = MetadataTagLabelValidator.validate(
+      type: tag.type,
+      label: tag.label,
+      tags: metadataTags,
+      currentCode: tag.code,
+    );
+    if (labelValidation != MetadataTagLabelValidation.valid) {
+      return this;
+    }
     if (tag.isSystemDefault &&
         metadataTags.any(
           (MetadataTag current) =>
@@ -530,6 +554,11 @@ class LedgerState {
           type: MetadataTagType.diningOccasion,
           code: 'dinner',
           label: isJa ? '夕食' : '저녁',
+        ),
+        MetadataTag(
+          type: MetadataTagType.diningOccasion,
+          code: 'lateNight',
+          label: isJa ? '夜食' : '야식',
         ),
         MetadataTag(
           type: MetadataTagType.diningOccasion,

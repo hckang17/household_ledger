@@ -13,6 +13,7 @@ void main() {
     'lunch',
     'snack',
     'dinner',
+    'lateNight',
     'company',
   ];
 
@@ -56,5 +57,17 @@ void main() {
     );
 
     expect(selected, 'dinner');
+  });
+
+  test('밤 9시 이후 신규 외식 입력에는 야식을 추천한다', () {
+    final selected = policy.initialCode(
+      isEditing: false,
+      savedCode: null,
+      categoryCode: 'F',
+      selectedDate: DateTime(2026, 7, 14, 23),
+      availableCodes: codes,
+    );
+
+    expect(selected, 'lateNight');
   });
 }

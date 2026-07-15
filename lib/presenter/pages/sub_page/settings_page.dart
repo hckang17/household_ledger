@@ -244,23 +244,6 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     );
   }
 
-  void _showCodeDuplicationAlert(Map<String, String> strings) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(_text(strings, 'codeDuplicationAlert'))),
-    );
-  }
-
-  bool _hasDuplicateCode({
-    required List<MetadataTag> tags,
-    required String code,
-    String? ignoreCode,
-  }) {
-    return tags.any(
-      (MetadataTag item) =>
-          item.code == code && (ignoreCode == null || item.code != ignoreCode),
-    );
-  }
-
   /// 새 태그를 추가한다.
   Future<void> _addTag(MetadataTagType type) async {
     final strings = ref.read(localizedStringsProvider);
@@ -269,24 +252,30 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       return;
     }
 
+    final generatedCode = MetadataTagCodeGenerator.nextUserCode(
+      type: type,
+      tags: ledger.metadataTags,
+    );
+    if (generatedCode == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_text(strings, 'metadataCodeExhausted'))),
+      );
+      return;
+    }
+
     final tag = await showTagEditorDialog(
       context: context,
       type: type,
       title: _text(strings, 'addTag'),
-      saveLabel: _text(strings, 'save'),
-      cancelLabel: _text(strings, 'cancel'),
+      code: generatedCode,
+      existingTags: ledger.tagsByType(type),
+      strings: strings,
     );
     if (!mounted) {
       return;
     }
 
     if (tag == null) {
-      return;
-    }
-
-    final sameTypeTags = ledger.tagsByType(type);
-    if (_hasDuplicateCode(tags: sameTypeTags, code: tag.code)) {
-      _showCodeDuplicationAlert(strings);
       return;
     }
 
@@ -307,9 +296,9 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       context: context,
       type: target.type,
       title: _text(strings, 'edit'),
-      saveLabel: _text(strings, 'save'),
-      cancelLabel: _text(strings, 'cancel'),
-      initialCode: target.code,
+      code: target.code,
+      existingTags: ledger.tagsByType(target.type),
+      strings: strings,
       initialLabel: target.label,
     );
 
@@ -321,31 +310,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       return;
     }
 
-    final sameTypeTags = ledger.tagsByType(target.type);
-    if (_hasDuplicateCode(
-      tags: sameTypeTags,
-      code: edited.code,
-      ignoreCode: target.code,
-    )) {
-      _showCodeDuplicationAlert(strings);
-      return;
-    }
-
-    if (edited.code == target.code) {
-      await ref.read(ledgerProvider.notifier).addMetadataTag(edited);
-      ref.invalidate(ledgerProvider);
-      return;
-    }
-
-    // 새 코드를 먼저 생성한 뒤, 기존 코드를 참조 데이터에서 치환/삭제한다.
     await ref.read(ledgerProvider.notifier).addMetadataTag(edited);
-    await ref
-        .read(ledgerProvider.notifier)
-        .replaceAndDeleteTag(
-          type: target.type,
-          targetCode: target.code,
-          replacementCode: edited.code,
-        );
     ref.invalidate(ledgerProvider);
   }
 
@@ -382,7 +347,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     final confirmed = await showLedgerConfirmDialog(
       context: context,
       title: _text(strings, 'confirmDelete'),
-      message: '${tag.code} · ${tag.label}',
+      message: tag.label,
       confirmLabel: _text(strings, 'delete'),
       cancelLabel: _text(strings, 'cancel'),
     );

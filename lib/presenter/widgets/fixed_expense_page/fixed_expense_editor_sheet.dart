@@ -67,7 +67,7 @@ Future<void> showFixedExpenseEditorSheet({
                           .map(
                             (MetadataTag tag) => DropdownMenuItem<String>(
                               value: tag.code,
-                              child: Text('${tag.code} · ${tag.label}'),
+                              child: Text(tag.label),
                             ),
                           )
                           .toList(),
@@ -87,7 +87,7 @@ Future<void> showFixedExpenseEditorSheet({
                           .map(
                             (MetadataTag tag) => DropdownMenuItem<String>(
                               value: tag.code,
-                              child: Text('${tag.code} · ${tag.label}'),
+                              child: Text(tag.label),
                             ),
                           )
                           .toList(),
