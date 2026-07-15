@@ -362,7 +362,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                     ...paymentTags.map(
                       (MetadataTag t) => DropdownMenuItem<String>(
                         value: t.code,
-                        child: Text('${t.code} · ${t.label}'),
+                        child: Text(t.label),
                       ),
                     ),
                   ],
@@ -382,7 +382,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                     ...categoryTags.map(
                       (MetadataTag t) => DropdownMenuItem<String>(
                         value: t.code,
-                        child: Text('${t.code} · ${t.label}'),
+                        child: Text(t.label),
                       ),
                     ),
                   ],
@@ -668,7 +668,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 ...paymentTags.map(
                   (MetadataTag t) => DropdownMenuItem<String>(
                     value: t.code,
-                    child: Text('${t.code} · ${t.label}'),
+                    child: Text(t.label),
                   ),
                 ),
               ],
@@ -698,7 +698,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 ...categoryTags.map(
                   (MetadataTag t) => DropdownMenuItem<String>(
                     value: t.code,
-                    child: Text('${t.code} · ${t.label}'),
+                    child: Text(t.label),
                   ),
                 ),
               ],
