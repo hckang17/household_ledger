@@ -10,6 +10,7 @@ import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/provider/tutorial_provider.dart';
 import 'package:household_ledger/router/app_router.dart';
 import 'package:household_ledger/services/mock_data_service.dart';
+import 'package:intl/intl.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 /// 초기 설정 화면이다.
@@ -23,23 +24,24 @@ class SetupPage extends ConsumerStatefulWidget {
 
 class _SetupPageState extends ConsumerState<SetupPage> {
   late final TextEditingController _nameController;
-  late final TextEditingController _ageController;
+  late final TextEditingController _birthDateController;
   late final TextEditingController _budgetController;
   late final String _localeCode;
 
   final GlobalKey _nameKey = GlobalKey();
-  final GlobalKey _ageKey = GlobalKey();
+  final GlobalKey _birthDateKey = GlobalKey();
   final GlobalKey _budgetKey = GlobalKey();
   final GlobalKey _importKey = GlobalKey();
   final GlobalKey _saveKey = GlobalKey();
 
   final TutorialShowcaseController _showcase = TutorialShowcaseController();
+  DateTime? _birthDate;
 
   @override
   void initState() {
     super.initState();
     _nameController = TextEditingController();
-    _ageController = TextEditingController();
+    _birthDateController = TextEditingController();
     _budgetController = TextEditingController();
     final deviceLang =
         WidgetsBinding.instance.platformDispatcher.locale.languageCode;
@@ -50,19 +52,34 @@ class _SetupPageState extends ConsumerState<SetupPage> {
     final phase = ref.read(tutorialProvider).phase;
     _showcase.startIfReady(
       enabled: phase == TutorialPhase.setup,
-      keys: <GlobalKey>[_nameKey, _ageKey, _budgetKey, _importKey, _saveKey],
+      keys: <GlobalKey>[
+        _nameKey,
+        _birthDateKey,
+        _budgetKey,
+        _importKey,
+        _saveKey,
+      ],
       isMounted: () => mounted,
     );
   }
 
   Future<void> _submit() async {
-    final age = int.tryParse(_ageController.text.trim()) ?? 0;
+    final DateTime? birthDate = _birthDate;
+    if (birthDate == null) {
+      final strings = ref.read(localizedStringsProvider);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(strings['myPageBirthDateRequired'] ?? '생년월일을 선택해주세요.'),
+        ),
+      );
+      return;
+    }
     final budget = int.tryParse(_budgetController.text.trim()) ?? 0;
     await ref
         .read(ledgerProvider.notifier)
         .completeSetup(
           name: _nameController.text,
-          age: age,
+          birthDate: birthDate,
           monthlyBudget: budget,
           localeCode: _localeCode,
         );
@@ -80,6 +97,21 @@ class _SetupPageState extends ConsumerState<SetupPage> {
       AppRouter.homeRoute,
       (Route<dynamic> route) => false,
     );
+  }
+
+  Future<void> _pickBirthDate() async {
+    final DateTime today = DateTime.now();
+    final DateTime? selected = await showDatePicker(
+      context: context,
+      initialDate: _birthDate ?? DateTime(today.year - 30),
+      firstDate: DateTime(1900),
+      lastDate: DateTime(today.year, today.month, today.day),
+    );
+    if (selected == null || !mounted) return;
+    setState(() {
+      _birthDate = selected;
+      _birthDateController.text = DateFormat('yyyy.MM.dd').format(selected);
+    });
   }
 
   Future<void> _handleBackDuringTutorial() async {
@@ -102,7 +134,7 @@ class _SetupPageState extends ConsumerState<SetupPage> {
   @override
   void dispose() {
     _nameController.dispose();
-    _ageController.dispose();
+    _birthDateController.dispose();
     _budgetController.dispose();
     super.dispose();
   }
@@ -146,16 +178,19 @@ class _SetupPageState extends ConsumerState<SetupPage> {
                   ),
                   const SizedBox(height: 16),
                   Showcase(
-                    key: _ageKey,
-                    title: strings['tutSetupAgeTitle'] ?? '나이 입력',
+                    key: _birthDateKey,
+                    title: strings['tutSetupAgeTitle'] ?? '생년월일 선택',
                     description:
-                        strings['tutSetupAgeDesc'] ?? '현재 나이를 숫자로 입력해주세요.',
+                        strings['tutSetupAgeDesc'] ??
+                        '생년월일을 선택하면 현재 나이를 자동으로 계산합니다.',
                     tooltipPosition: TooltipPosition.bottom,
                     child: TextField(
-                      controller: _ageController,
-                      keyboardType: TextInputType.number,
+                      controller: _birthDateController,
+                      readOnly: true,
+                      onTap: _pickBirthDate,
                       decoration: InputDecoration(
-                        labelText: strings['ageLabel'],
+                        labelText: strings['myPageBirthDateLabel'] ?? '생년월일',
+                        suffixIcon: const Icon(Icons.calendar_month_outlined),
                       ),
                     ),
                   ),

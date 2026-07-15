@@ -16,6 +16,7 @@ import 'package:household_ledger/router/app_router.dart';
 import 'package:household_ledger/services/mock_data_service.dart';
 import 'package:household_ledger/services/push_message/push_message_service.dart';
 import 'package:household_ledger/services/tutorial_service.dart';
+import 'package:intl/intl.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 /// 환경설정 화면이다.
@@ -30,7 +31,8 @@ class SettingsPage extends ConsumerStatefulWidget {
 /// 환경설정 화면의 폼 상태를 관리한다.
 class _SettingsPageState extends ConsumerState<SettingsPage> {
   late final TextEditingController _nameController;
-  late final TextEditingController _ageController;
+  late final TextEditingController _birthDateController;
+  DateTime? _birthDate;
 
   final GlobalKey _tagSectionKey = GlobalKey();
   final GlobalKey _dataManageSectionKey = GlobalKey();
@@ -96,19 +98,41 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
     _nameController = TextEditingController(
       text: ledger?.userProfile.name ?? '',
     );
-    _ageController = TextEditingController(
-      text: (ledger?.userProfile.age ?? 0) > 0
-          ? (ledger?.userProfile.age ?? 0).toString()
-          : '',
+    _birthDate = ledger?.userProfile.birthDate;
+    _birthDateController = TextEditingController(
+      text: _birthDate == null
+          ? ''
+          : DateFormat('yyyy.MM.dd').format(_birthDate!),
     );
   }
 
-  /// 이름/나이를 저장한다.
+  Future<void> _pickBirthDate() async {
+    final DateTime today = DateTime.now();
+    final DateTime? selected = await showDatePicker(
+      context: context,
+      initialDate: _birthDate ?? DateTime(today.year - 30),
+      firstDate: DateTime(1900),
+      lastDate: DateTime(today.year, today.month, today.day),
+    );
+    if (selected == null || !mounted) return;
+    setState(() {
+      _birthDate = selected;
+      _birthDateController.text = DateFormat('yyyy.MM.dd').format(selected);
+    });
+  }
+
+  /// 이름/생년월일을 저장한다.
   Future<void> _saveProfile(Map<String, String> strings) async {
-    final age = int.tryParse(_ageController.text.trim()) ?? 0;
+    final DateTime? birthDate = _birthDate;
+    if (birthDate == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(_text(strings, 'myPageBirthDateRequired'))),
+      );
+      return;
+    }
     await ref
         .read(ledgerProvider.notifier)
-        .updateUserProfile(name: _nameController.text, age: age);
+        .updateUserProfile(name: _nameController.text, birthDate: birthDate);
 
     if (!mounted) {
       return;
@@ -386,7 +410,7 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
   @override
   void dispose() {
     _nameController.dispose();
-    _ageController.dispose();
+    _birthDateController.dispose();
     super.dispose();
   }
 
@@ -428,10 +452,12 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     ),
                     const SizedBox(height: 12),
                     TextField(
-                      controller: _ageController,
-                      keyboardType: TextInputType.number,
+                      controller: _birthDateController,
+                      readOnly: true,
+                      onTap: _pickBirthDate,
                       decoration: InputDecoration(
-                        labelText: _text(strings, 'ageLabel'),
+                        labelText: _text(strings, 'myPageBirthDateLabel'),
+                        suffixIcon: const Icon(Icons.calendar_month_outlined),
                       ),
                     ),
                     const SizedBox(height: 12),

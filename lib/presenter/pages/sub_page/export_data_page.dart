@@ -74,6 +74,8 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
   @override
   void initState() {
     super.initState();
+    _emailController.text =
+        ref.read(ledgerProvider).asData?.value.userProfile.email ?? '';
     final now = DateTime.now();
     _selectedMonth = DateTime(now.year, now.month);
   }

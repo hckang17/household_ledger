@@ -130,12 +130,8 @@ class RightSideBar extends ConsumerWidget {
                           child: _SideBarTopAction(
                             icon: Icons.person_outline_rounded,
                             label: _text(strings, 'sideBarMyPage', '마이페이지'),
-                            status: _text(
-                              strings,
-                              'sideBarNotImplemented',
-                              '미구현',
-                            ),
-                            onTap: () => _showComingSoon(context, strings),
+                            onTap: () =>
+                                _navigate(context, AppRouter.myPageRoute),
                           ),
                         ),
                         const SizedBox(width: 10),
@@ -363,13 +359,13 @@ class _SideBarTopAction extends StatelessWidget {
   const _SideBarTopAction({
     required this.icon,
     required this.label,
-    required this.status,
     required this.onTap,
+    this.status,
   });
 
   final IconData icon;
   final String label;
-  final String status;
+  final String? status;
   final VoidCallback onTap;
 
   @override
@@ -401,7 +397,10 @@ class _SideBarTopAction extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 6),
-              _SideBarBadge(label: status),
+              if (status != null)
+                _SideBarBadge(label: status!)
+              else
+                const SizedBox(height: 19),
             ],
           ),
         ),

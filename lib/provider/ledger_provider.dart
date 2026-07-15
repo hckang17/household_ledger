@@ -285,14 +285,14 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
   /// 초기 설정을 완료한다.
   Future<void> completeSetup({
     required String name,
-    required int age,
+    required DateTime birthDate,
     required int monthlyBudget,
     required String localeCode,
   }) async {
     _logLedgerProvider('completeSetup', '초기 설정 완료 처리 시작');
     final current = state.asData?.value ?? LedgerState.initial();
     final setupState = current.completeSetup(
-      profile: UserProfile(name: name.trim(), age: age),
+      profile: UserProfile(name: name.trim(), birthDate: birthDate),
       monthlyBudget: monthlyBudget,
       localeCode: localeCode,
       currencyUnit: _defaultCurrencyUnitByLocale(localeCode),
@@ -345,7 +345,9 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
   /// 사용자 프로필 정보를 변경한다.
   Future<void> updateUserProfile({
     required String name,
-    required int age,
+    String? email,
+    DateTime? birthDate,
+    int? age,
   }) async {
     _logLedgerProvider('updateUserProfile', '사용자 프로필 변경 시작');
     final current = state.asData?.value;
@@ -354,7 +356,14 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
       return;
     }
 
-    await _commit(current.updateUserProfile(name: name, age: age));
+    await _commit(
+      current.updateUserProfile(
+        name: name,
+        email: email,
+        birthDate: birthDate,
+        age: age,
+      ),
+    );
     _logLedgerProvider('updateUserProfile', '사용자 프로필 변경 완료');
   }
 
