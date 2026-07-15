@@ -45,6 +45,7 @@ class OnboardingPage extends ConsumerWidget {
       data: (state) {
         return BootstrapPage(
           title: "    ${strings['appTitle'] ?? ''}",
+          showSideBar: false,
           child: Center(
             child: ConstrainedBox(
               constraints: const BoxConstraints(maxWidth: 720),

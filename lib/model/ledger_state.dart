@@ -290,9 +290,19 @@ class LedgerState {
   }
 
   /// 사용자 프로필을 변경한 새 상태를 생성한다.
-  LedgerState updateUserProfile({required String name, required int age}) {
+  LedgerState updateUserProfile({
+    required String name,
+    String? email,
+    DateTime? birthDate,
+    int? age,
+  }) {
     return copyWith(
-      userProfile: userProfile.copyWith(name: name.trim(), age: age),
+      userProfile: userProfile.copyWith(
+        name: name.trim(),
+        email: email?.trim(),
+        birthDate: birthDate,
+        age: age,
+      ),
     );
   }
 

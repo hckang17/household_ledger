@@ -11,6 +11,7 @@ import 'package:household_ledger/presenter/pages/expense_page/main_shell_page.da
 import 'package:household_ledger/presenter/pages/sub_page/import_data_page.dart';
 import 'package:household_ledger/presenter/pages/expense_page/income_page.dart';
 import 'package:household_ledger/presenter/pages/sub_page/loading_page.dart';
+import 'package:household_ledger/presenter/pages/sub_page/my_page.dart';
 import 'package:household_ledger/presenter/pages/sub_page/onboarding_page.dart';
 import 'package:household_ledger/presenter/pages/sub_page/settings_page.dart';
 import 'package:household_ledger/presenter/pages/sub_page/setup_page.dart';
@@ -46,6 +47,9 @@ class AppRouter {
 
   /// 설정 라우트 이름을 정의한다.
   static const String settingsRoute = '/settings';
+
+  /// 마이페이지 라우트 이름을 정의한다.
+  static const String myPageRoute = '/my-page';
 
   /// 수입 관리 라우트 이름을 정의한다.
   static const String incomeRoute = '/income';
@@ -87,6 +91,8 @@ class AppRouter {
         return _buildRoute(const ExpenseRecordPage(), settings);
       case settingsRoute:
         return _buildRoute(const SettingsPage(), settings);
+      case myPageRoute:
+        return _buildRoute(const MyPage(), settings);
       case incomeRoute:
         return _buildRoute(const IncomePage(), settings);
       case analysisRoute:

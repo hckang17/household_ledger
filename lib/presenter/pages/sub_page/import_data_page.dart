@@ -38,6 +38,13 @@ class _ImportDataPageState extends ConsumerState<ImportDataPage> {
 
   final DataImExportService _service = DataImExportService();
 
+  @override
+  void initState() {
+    super.initState();
+    _emailController.text =
+        ref.read(ledgerProvider).asData?.value.userProfile.email ?? '';
+  }
+
   String _text(Map<String, String> strings, String tag) {
     return strings[tag] ??
         '${strings['failedReadingData'] ?? 'ErrorCode: 4401'}+$tag';
@@ -180,6 +187,7 @@ class _ImportDataPageState extends ConsumerState<ImportDataPage> {
       children: <Widget>[
         BootstrapPage(
           title: _text(strings, 'importDataPageTitle'),
+          showSideBar: !widget.fromSetup,
           child: SingleChildScrollView(
             child: Column(
               children: <Widget>[

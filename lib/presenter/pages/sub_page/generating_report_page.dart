@@ -80,6 +80,8 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
   @override
   void initState() {
     super.initState();
+    _emailCtrl.text =
+        ref.read(ledgerProvider).asData?.value.userProfile.email ?? '';
     _selectedMonth = DateTime(DateTime.now().year, DateTime.now().month);
     _loadExistingReports();
   }

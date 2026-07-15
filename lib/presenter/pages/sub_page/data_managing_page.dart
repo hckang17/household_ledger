@@ -36,7 +36,6 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
   final TextEditingController _noteController = TextEditingController();
 
   final GlobalKey _filterCardKey = GlobalKey();
-  final GlobalKey _settingsNavKey = GlobalKey();
   final TutorialShowcaseController _showcase = TutorialShowcaseController();
 
   // ── 검색 로딩 인디케이터용 상태 ──────────────────────────────────────────────
@@ -135,13 +134,13 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
     final state = ref.read(tutorialProvider);
     _showcase.startIfReady(
       enabled: state.isActive && state.phase == TutorialPhase.dataManage,
-      keys: <GlobalKey>[_filterCardKey, _settingsNavKey],
+      keys: <GlobalKey>[_filterCardKey],
       isMounted: () => mounted,
     );
   }
 
   void _onShowcaseComplete(int? index, GlobalKey key) {
-    if (key == _settingsNavKey) {
+    if (key == _filterCardKey) {
       ref.read(tutorialProvider.notifier).setPhase(TutorialPhase.settings);
       Navigator.of(context).pushNamed(AppRouter.settingsRoute);
     }
@@ -1269,21 +1268,6 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
         },
         child: BootstrapPage(
           title: _s(strings, 'dataManageTitle', '데이터 관리'),
-          actions: <Widget>[
-            Showcase(
-              key: _settingsNavKey,
-              title: strings['tutDataManageSettingsNavTitle'] ?? '설정 화면으로 이동',
-              description:
-                  strings['tutDataManageSettingsNavDesc'] ??
-                  '다음은 앱 설정 화면을 살펴볼게요!\n설정에서 태그 관리, 데이터 백업 등을 할 수 있어요.',
-              tooltipPosition: TooltipPosition.bottom,
-              child: IconButton(
-                onPressed: () =>
-                    Navigator.of(context).pushNamed(AppRouter.settingsRoute),
-                icon: const Icon(Icons.settings_outlined),
-              ),
-            ),
-          ],
           child: CustomScrollView(
             slivers: <Widget>[
               SliverToBoxAdapter(

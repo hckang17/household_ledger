@@ -176,11 +176,6 @@ class _IncomePageState extends ConsumerState<IncomePage> {
             icon: const Icon(Icons.manage_search_rounded),
             tooltip: strings['dataManageTitle'] ?? '데이터 관리',
           ),
-          IconButton(
-            onPressed: () =>
-                Navigator.of(context).pushNamed(AppRouter.settingsRoute),
-            icon: const Icon(Icons.settings_outlined),
-          ),
         ],
         floatingActionButton: fab,
         child: Column(

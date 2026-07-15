@@ -169,6 +169,13 @@ class DataImExportService {
       _csvRow(['monthlyBudget', ledgerState.settings.monthlyBudget.toString()]),
     );
     buffer.writeln(_csvRow(['userName', ledgerState.userProfile.name]));
+    buffer.writeln(_csvRow(['userEmail', ledgerState.userProfile.email]));
+    buffer.writeln(
+      _csvRow([
+        'userBirthDate',
+        ledgerState.userProfile.birthDate?.toIso8601String() ?? '',
+      ]),
+    );
     buffer.writeln(
       _csvRow(['userAge', ledgerState.userProfile.age.toString()]),
     );
@@ -303,6 +310,8 @@ class DataImExportService {
       );
       final profile = UserProfile(
         name: settingsMap['userName'] ?? '',
+        email: settingsMap['userEmail'] ?? metaMap['email'] ?? '',
+        birthDate: DateTime.tryParse(settingsMap['userBirthDate'] ?? ''),
         age: int.tryParse(settingsMap['userAge'] ?? '') ?? 0,
       );
 

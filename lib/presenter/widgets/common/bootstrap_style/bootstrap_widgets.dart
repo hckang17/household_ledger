@@ -2,6 +2,7 @@
 // """ 역할: 여러 페이지가 공유하는 Bootstrap 스타일 기본 Widget 제공 """
 
 import 'package:flutter/material.dart';
+import 'package:household_ledger/presenter/widgets/common/side_bar.dart';
 
 /// 부트스트랩 스타일을 참고한 카드 래퍼를 제공한다.
 class BootstrapSectionCard extends StatelessWidget {
@@ -196,6 +197,7 @@ class BootstrapPage extends StatelessWidget {
     this.actions,
     this.floatingActionButton,
     this.bottomNavigationBar,
+    this.showSideBar = true,
   });
 
   /// 페이지 제목을 보관한다.
@@ -213,9 +215,17 @@ class BootstrapPage extends StatelessWidget {
   /// 하단 내비게이션 바를 보관한다. null 이면 표시하지 않는다.
   final Widget? bottomNavigationBar;
 
+  /// 우측 공통 사이드바와 앱바 메뉴 버튼을 표시할지 여부다.
+  final bool showSideBar;
+
   @override
   Widget build(BuildContext context) {
+    final bool shouldShowSideBar =
+        showSideBar && !Navigator.of(context).canPop();
+
     return Scaffold(
+      endDrawer: shouldShowSideBar ? const RightSideBar() : null,
+
       /// 앱바는 페이지마다 일관된 스타일을 유지하되, 제목과 액션은 페이지별로 다르게 설정할 수 있도록 한다.
       appBar: AppBar(
         titleSpacing: 16,
@@ -229,7 +239,10 @@ class BootstrapPage extends StatelessWidget {
             letterSpacing: -0.3,
           ),
         ),
-        actions: actions,
+        actions: <Widget>[
+          ...?actions,
+          if (shouldShowSideBar) const SideBarButton(),
+        ],
       ),
 
       /// 프롤팅 버튼이 있을 경우, 플로팅 버튼을 상속받아온다.
