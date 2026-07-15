@@ -122,6 +122,7 @@ class _SetupPageState extends ConsumerState<SetupPage> {
 
       final inner = BootstrapPage(
         title: strings['setupTitle'] ?? '',
+        showSideBar: false,
         child: Center(
           child: ConstrainedBox(
             constraints: const BoxConstraints(maxWidth: 720),

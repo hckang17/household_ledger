@@ -180,6 +180,7 @@ class _ImportDataPageState extends ConsumerState<ImportDataPage> {
       children: <Widget>[
         BootstrapPage(
           title: _text(strings, 'importDataPageTitle'),
+          showSideBar: !widget.fromSetup,
           child: SingleChildScrollView(
             child: Column(
               children: <Widget>[
