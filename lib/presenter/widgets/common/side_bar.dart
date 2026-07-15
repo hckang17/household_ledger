@@ -66,18 +66,21 @@ class RightSideBar extends ConsumerWidget {
     final Map<String, String> strings = ref.watch(localizedStringsProvider);
     final double screenWidth = MediaQuery.sizeOf(context).width;
 
-    return Drawer(
-      width: screenWidth < 420 ? screenWidth * 0.9 : 380,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.horizontal(left: Radius.circular(14)),
-      ),
-      child: ColoredBox(
-        color: const Color(0xFFF8F9FA),
-        child: SafeArea(
+    return SafeArea(
+      bottom: false,
+      left: false,
+      right: false,
+      child: Drawer(
+        width: screenWidth < 420 ? screenWidth * 0.9 : 380,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.horizontal(left: Radius.circular(14)),
+        ),
+        child: ColoredBox(
+          color: const Color(0xFFF8F9FA),
           child: Column(
             children: <Widget>[
               Container(
-                padding: const EdgeInsets.fromLTRB(20, 18, 12, 18),
+                padding: const EdgeInsets.fromLTRB(16, 8, 8, 8),
                 decoration: const BoxDecoration(
                   color: Color(0xFF0D6EFD),
                   borderRadius: BorderRadius.only(topLeft: Radius.circular(14)),
@@ -87,21 +90,29 @@ class RightSideBar extends ConsumerWidget {
                     const Icon(
                       Icons.account_balance_wallet_rounded,
                       color: Colors.white,
+                      size: 22,
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Text(
                         _text(strings, 'sideBarTitle', '빠른 메뉴'),
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w700,
-                        ),
+                        style: Theme.of(context).textTheme.titleMedium
+                            ?.copyWith(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w700,
+                            ),
                       ),
                     ),
                     IconButton(
                       onPressed: () => Navigator.of(context).pop(),
-                      icon: const Icon(Icons.close_rounded),
+                      icon: const Icon(Icons.close_rounded, size: 20),
                       color: Colors.white,
+                      constraints: const BoxConstraints.tightFor(
+                        width: 36,
+                        height: 36,
+                      ),
+                      padding: const EdgeInsets.all(6),
+                      visualDensity: VisualDensity.compact,
                       tooltip: MaterialLocalizations.of(
                         context,
                       ).closeButtonTooltip,
