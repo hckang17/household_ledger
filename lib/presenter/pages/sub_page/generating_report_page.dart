@@ -14,6 +14,7 @@ import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/presenter/widgets/generating_report_page/report_file_list.dart';
+import 'package:household_ledger/presenter/widgets/generating_report_page/report_generation_progress.dart';
 import 'package:household_ledger/presenter/widgets/generating_report_page/report_option_selector.dart';
 import 'package:household_ledger/presenter/widgets/generating_report_page/report_period_selector.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
@@ -65,6 +66,7 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
   bool _includePrevCategoryAnalysis = false;
 
   bool _isGenerating = false;
+  double _generationProgress = 0;
   DateTime? _lastGenerateTime;
 
   List<File> _existingReports = <File>[];
@@ -156,6 +158,13 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
   String _t(Map<String, String> strings, String key, String fallback) =>
       strings[key] ?? fallback;
 
+  void _updateGenerationProgress(double value) {
+    if (!mounted) return;
+    final double next = value.clamp(0.0, 1.0);
+    if (next <= _generationProgress) return;
+    setState(() => _generationProgress = next);
+  }
+
   DateTime _shiftOneMonthBack(DateTime d) {
     final int year = d.month == 1 ? d.year - 1 : d.year;
     final int month = d.month == 1 ? 12 : d.month - 1;
@@ -221,10 +230,14 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
       return;
     }
 
-    setState(() => _isGenerating = true);
+    setState(() {
+      _isGenerating = true;
+      _generationProgress = 0;
+    });
     _lastGenerateTime = DateTime.now();
 
     try {
+      _updateGenerationProgress(0.03);
       final ledger = ref.read(ledgerProvider).asData?.value;
       if (ledger == null) throw Exception('ledger unavailable');
 
@@ -240,6 +253,7 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
       final List<ExpenseEntry> expenses = usingRange
           ? await ref.read(rangeExpensesProvider(rangeQuery!).future)
           : await ref.read(monthlyExpensesProvider(_selectedMonth).future);
+      _updateGenerationProgress(0.10);
 
       final List<IncomeEntry> incomes;
       if (usingRange && _selectedRange != null) {
@@ -269,6 +283,7 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
       } else {
         incomes = await ref.read(monthlyIncomesProvider(_selectedMonth).future);
       }
+      _updateGenerationProgress(0.18);
 
       final List<FixedExpense> fixedExpenses = !usingRange
           ? ledger.fixedExpenses
@@ -284,6 +299,7 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
       final List<ExpenseEntry> prevExpenses = await ref.read(
         rangeExpensesProvider(prevQuery).future,
       );
+      _updateGenerationProgress(0.25);
 
       final DateTime periodStart = usingRange
           ? _selectedRange!.start
@@ -315,6 +331,9 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
           previousPeriodStart: prevQuery.start,
           strings: strings,
         ),
+        onProgress: (double progress) {
+          _updateGenerationProgress(0.25 + (progress * 0.75));
+        },
       );
 
       if (!mounted) return;
@@ -636,6 +655,13 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                     ),
                   ),
                 ),
+                if (_isGenerating) ...<Widget>[
+                  const SizedBox(height: 12),
+                  ReportGenerationProgress(
+                    progress: _generationProgress,
+                    strings: strings,
+                  ),
+                ],
                 const SizedBox(height: 32),
 
                 // ── 이전에 생성된 리포트 목록 ──

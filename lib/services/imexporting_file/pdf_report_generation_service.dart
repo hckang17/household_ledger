@@ -18,7 +18,10 @@ class PdfReportGenerationService {
   Future<List<File>> getExistingReports() => _renderer.getExistingReports();
 
   // """ PDF 생성 유스케이스 """
-  Future<String> generate(ReportGenerationRequest request) {
+  Future<String> generate(
+    ReportGenerationRequest request, {
+    void Function(double progress)? onProgress,
+  }) {
     return _renderer.generateReport(
       expenses: request.expenses,
       fixedExpenses: request.fixedExpenses,
@@ -32,6 +35,7 @@ class PdfReportGenerationService {
       periodStart: request.periodStart,
       prevPeriodStart: request.previousPeriodStart,
       reportTitle: request.reportTitle,
+      onProgress: onProgress,
     );
   }
 }
