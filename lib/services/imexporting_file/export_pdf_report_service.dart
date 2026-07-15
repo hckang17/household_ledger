@@ -126,7 +126,9 @@ class ExportPdfReportService {
     DateTime? periodStart,
     DateTime? prevPeriodStart,
     String reportTitle = 'Household Ledger',
+    void Function(double progress)? onProgress,
   }) async {
+    onProgress?.call(0.02);
     final String localeCode = ledger.settings.localeCode;
     final String currency = strings['currencyUnit'] ?? '₩';
     final String name = ledger.userProfile.name;
@@ -134,6 +136,7 @@ class ExportPdfReportService {
     // ── UI 폰트: 로케일 언어(JP or KO)용 ──
     final pw.Font uiFont = await _loadFont(localeCode);
     final pw.Font uiBoldFont = await _loadBoldFont(localeCode);
+    onProgress?.call(0.12);
 
     // ── 데이터 폰트: 사용자 입력 한국어 콘텐츠(설명·태그명·이름)용 ──
     // JP 로케일에서도 데이터는 한국어이므로 KR 폰트를 별도 로드한다.
@@ -143,6 +146,7 @@ class ExportPdfReportService {
     final pw.Font dataBoldFont = localeCode == 'jp'
         ? await _loadBoldFont('ko')
         : uiBoldFont;
+    onProgress?.call(0.24);
 
     // ts : UI 문자열(언어팩, 컬럼 헤더, 섹션 제목)에 사용하는 스타일 팩토리
     pw.TextStyle ts({
@@ -180,6 +184,7 @@ class ExportPdfReportService {
     final List<MapEntry<String, int>> catSorted = summary.categoryTotalsSorted;
     final List<MapEntry<String, int>> pmSorted =
         summary.paymentMethodTotalsSorted;
+    onProgress?.call(0.32);
 
     // ── 태그 라벨 조회 ──
     String tagLabel(MetadataTagType type, String code) {
@@ -239,6 +244,7 @@ class ExportPdfReportService {
         tsD: tsD,
       ),
     );
+    onProgress?.call(0.40);
 
     // 2. 개요 (멀티페이지)
     pdf.addPage(
@@ -269,6 +275,7 @@ class ExportPdfReportService {
         ),
       ),
     );
+    onProgress?.call(0.50);
 
     // 3. Top 10
     if (options.includeTop10) {
@@ -296,6 +303,7 @@ class ExportPdfReportService {
         ),
       );
     }
+    onProgress?.call(0.56);
 
     // 4. 전월동기 소비 비교
     if (options.includePrevComparison && prevExpenses.isNotEmpty) {
@@ -315,6 +323,7 @@ class ExportPdfReportService {
         ),
       );
     }
+    onProgress?.call(0.62);
 
     // 5. 카테고리별 전월동기 비교
     if (options.includePrevCategoryAnalysis && prevExpenses.isNotEmpty) {
@@ -336,6 +345,7 @@ class ExportPdfReportService {
         ),
       );
     }
+    onProgress?.call(0.68);
 
     // 6. 전체 거래내역 (부록)
     if (options.includeDetailedData) {
@@ -358,9 +368,11 @@ class ExportPdfReportService {
         ),
       );
     }
+    onProgress?.call(0.75);
 
     // ── 저장 ──
     final List<int> bytes = await pdf.save();
+    onProgress?.call(0.92);
     final String safeName = name.replaceAll(RegExp(r'[/\\:*?"<>|]'), '_');
     final String safePeriod = periodLabel.replaceAll(
       RegExp(r'[/\\:*?"<>| ]'),
@@ -369,8 +381,10 @@ class ExportPdfReportService {
     final String fileName =
         'Household_ledger_report_${safeName}_$safePeriod.pdf';
     final Directory dir = await _getReportDirectory();
+    onProgress?.call(0.96);
     final File file = File('${dir.path}${Platform.pathSeparator}$fileName');
     await file.writeAsBytes(bytes);
+    onProgress?.call(1.0);
     return file.path;
   }
 

@@ -255,6 +255,7 @@
   "reportIncludePaymentSummary": "支払手段別サマリー",
   "reportGenerateButton": "PDFを生成する",
   "reportGenerating": "PDF生成中...",
+  "reportGeneratingNotice": "PDFの作成が完了するまでアプリを終了しないでください。レポートを一生懸命作成しています。",
   "reportSuccessTitle": "PDF生成完了！",
   "reportSavedPath": "保存されたパス",
   "reportPreviousFiles": "以前に生成したレポート",

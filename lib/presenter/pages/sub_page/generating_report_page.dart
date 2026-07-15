@@ -65,6 +65,7 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
   bool _includePrevCategoryAnalysis = false;
 
   bool _isGenerating = false;
+  double _generationProgress = 0;
   DateTime? _lastGenerateTime;
 
   List<File> _existingReports = <File>[];
@@ -156,6 +157,13 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
   String _t(Map<String, String> strings, String key, String fallback) =>
       strings[key] ?? fallback;
 
+  void _updateGenerationProgress(double value) {
+    if (!mounted) return;
+    final double next = value.clamp(0.0, 1.0);
+    if (next <= _generationProgress) return;
+    setState(() => _generationProgress = next);
+  }
+
   DateTime _shiftOneMonthBack(DateTime d) {
     final int year = d.month == 1 ? d.year - 1 : d.year;
     final int month = d.month == 1 ? 12 : d.month - 1;
@@ -221,10 +229,14 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
       return;
     }
 
-    setState(() => _isGenerating = true);
+    setState(() {
+      _isGenerating = true;
+      _generationProgress = 0;
+    });
     _lastGenerateTime = DateTime.now();
 
     try {
+      _updateGenerationProgress(0.03);
       final ledger = ref.read(ledgerProvider).asData?.value;
       if (ledger == null) throw Exception('ledger unavailable');
 
@@ -240,6 +252,7 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
       final List<ExpenseEntry> expenses = usingRange
           ? await ref.read(rangeExpensesProvider(rangeQuery!).future)
           : await ref.read(monthlyExpensesProvider(_selectedMonth).future);
+      _updateGenerationProgress(0.10);
 
       final List<IncomeEntry> incomes;
       if (usingRange && _selectedRange != null) {
@@ -269,6 +282,7 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
       } else {
         incomes = await ref.read(monthlyIncomesProvider(_selectedMonth).future);
       }
+      _updateGenerationProgress(0.18);
 
       final List<FixedExpense> fixedExpenses = !usingRange
           ? ledger.fixedExpenses
@@ -284,6 +298,7 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
       final List<ExpenseEntry> prevExpenses = await ref.read(
         rangeExpensesProvider(prevQuery).future,
       );
+      _updateGenerationProgress(0.25);
 
       final DateTime periodStart = usingRange
           ? _selectedRange!.start
@@ -315,6 +330,9 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
           previousPeriodStart: prevQuery.start,
           strings: strings,
         ),
+        onProgress: (double progress) {
+          _updateGenerationProgress(0.25 + (progress * 0.75));
+        },
       );
 
       if (!mounted) return;
@@ -636,6 +654,71 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                     ),
                   ),
                 ),
+                if (_isGenerating) ...<Widget>[
+                  const SizedBox(height: 12),
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFE7F1FF),
+                      border: Border.all(color: const Color(0xFFB6D4FE)),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: <Widget>[
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: <Widget>[
+                            const Icon(
+                              Icons.info_outline_rounded,
+                              size: 20,
+                              color: Color(0xFF084298),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                _t(
+                                  strings,
+                                  'reportGeneratingNotice',
+                                  'PDF가 작성될 때까지 앱을 종료하지 말아주세요. '
+                                      '열심히 보고서를 작성 중입니다.',
+                                ),
+                                style: const TextStyle(
+                                  color: Color(0xFF084298),
+                                  fontSize: 13,
+                                  height: 1.45,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(4),
+                          child: LinearProgressIndicator(
+                            value: _generationProgress,
+                            minHeight: 8,
+                            backgroundColor: const Color(0xFFD0E2FF),
+                            color: const Color(0xFF0D6EFD),
+                          ),
+                        ),
+                        const SizedBox(height: 6),
+                        Align(
+                          alignment: Alignment.centerRight,
+                          child: Text(
+                            '${(_generationProgress * 100).round()}%',
+                            style: const TextStyle(
+                              color: Color(0xFF084298),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 32),
 
                 // ── 이전에 생성된 리포트 목록 ──

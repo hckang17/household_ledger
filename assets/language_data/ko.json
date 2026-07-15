@@ -261,6 +261,7 @@
   "reportIncludePaymentSummary": "소비수단 별 요약",
   "reportGenerateButton": "PDF 생성하기",
   "reportGenerating": "PDF 생성 중...",
+  "reportGeneratingNotice": "PDF가 작성될 때까지 앱을 종료하지 말아주세요. 열심히 보고서를 작성 중입니다.",
   "reportSuccessTitle": "PDF 생성 완료!",
   "reportSavedPath": "저장된 경로",
   "reportPreviousFiles": "이전에 생성된 리포트",
