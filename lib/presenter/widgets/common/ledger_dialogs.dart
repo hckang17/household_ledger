@@ -54,62 +54,134 @@ Future<MetadataTag?> showTagEditorDialog({
   required BuildContext context,
   required MetadataTagType type,
   required String title,
-  required String saveLabel,
-  required String cancelLabel,
-  String initialCode = '',
+  required String code,
+  required List<MetadataTag> existingTags,
+  required Map<String, String> strings,
   String initialLabel = '',
 }) async {
-  String code = initialCode;
   String label = initialLabel;
+  String? errorText;
 
-  final result = await showDialog<MetadataTag>(
+  return showDialog<MetadataTag>(
     context: context,
     builder: (BuildContext dialogContext) {
-      return AlertDialog(
-        title: Text(title),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: <Widget>[
-            TextFormField(
-              initialValue: initialCode,
-              decoration: const InputDecoration(labelText: 'Code'),
-              onChanged: (String value) {
-                code = value;
-              },
+      return StatefulBuilder(
+        builder: (BuildContext context, StateSetter setDialogState) {
+          void submit() {
+            final validation = MetadataTagLabelValidator.validate(
+              type: type,
+              label: label,
+              tags: existingTags,
+              currentCode:
+                  existingTags.any(
+                    (MetadataTag tag) => tag.type == type && tag.code == code,
+                  )
+                  ? code
+                  : null,
+            );
+            if (validation != MetadataTagLabelValidation.valid) {
+              setDialogState(() {
+                errorText = switch (validation) {
+                  MetadataTagLabelValidation.empty =>
+                    strings['metadataTagNameRequired'] ??
+                        '카테고리 명은 빈칸으로 저장할 수 없습니다.',
+                  MetadataTagLabelValidation.duplicate =>
+                    strings['metadataTagNameDuplicate'] ??
+                        '같은 구분에 이미 존재하는 카테고리 명입니다.',
+                  MetadataTagLabelValidation.valid => null,
+                };
+              });
+              return;
+            }
+
+            Navigator.of(
+              dialogContext,
+            ).pop(MetadataTag(type: type, code: code, label: label.trim()));
+          }
+
+          return BootstrapDialog(
+            title: title,
+            icon: Icons.label_outline_rounded,
+            content: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 420),
+              child: TextFormField(
+                initialValue: initialLabel,
+                autofocus: true,
+                textInputAction: TextInputAction.done,
+                decoration: InputDecoration(
+                  labelText: strings['metadataTagNameLabel'] ?? '카테고리 명',
+                  hintText: strings['metadataTagNameHint'] ?? '카테고리 명을 입력해주세요',
+                  errorText: errorText,
+                  prefixIcon: const Icon(Icons.sell_outlined),
+                  filled: true,
+                  fillColor: const Color(0xFFF6F9FF),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Color(0xFFDCE6F5)),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(
+                      color: Color(0xFF0D6EFD),
+                      width: 1.5,
+                    ),
+                  ),
+                  errorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(color: Color(0xFFDC3545)),
+                  ),
+                  focusedErrorBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: const BorderSide(
+                      color: Color(0xFFDC3545),
+                      width: 1.5,
+                    ),
+                  ),
+                ),
+                onChanged: (String value) {
+                  label = value;
+                  if (errorText != null) {
+                    setDialogState(() => errorText = null);
+                  }
+                },
+                onFieldSubmitted: (_) => submit(),
+              ),
             ),
-            const SizedBox(height: 12),
-            TextFormField(
-              initialValue: initialLabel,
-              decoration: const InputDecoration(labelText: 'Label'),
-              onChanged: (String value) {
-                label = value;
-              },
-            ),
-          ],
-        ),
-        actions: <Widget>[
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: Text(cancelLabel),
-          ),
-          FilledButton(
-            onPressed: () {
-              final trimmedCode = code.trim();
-              final trimmedLabel = label.trim();
-              if (trimmedCode.isEmpty || trimmedLabel.isEmpty) {
-                return;
-              }
-              Navigator.of(dialogContext).pop(
-                MetadataTag(type: type, code: trimmedCode, label: trimmedLabel),
-              );
-            },
-            child: Text(saveLabel),
-          ),
-        ],
+            actions: <Widget>[
+              OutlinedButton(
+                onPressed: () => Navigator.of(dialogContext).pop(),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFF495057),
+                  side: const BorderSide(color: Color(0xFFCED4DA)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                child: Text(strings['cancel'] ?? '취소'),
+              ),
+              const SizedBox(width: 8),
+              FilledButton.icon(
+                onPressed: submit,
+                style: FilledButton.styleFrom(
+                  backgroundColor: const Color(0xFF0D6EFD),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                ),
+                icon: const Icon(Icons.check_rounded, size: 18),
+                label: Text(strings['save'] ?? '저장'),
+              ),
+            ],
+          );
+        },
       );
     },
   );
-  return result;
 }
 
 /// 태그 삭제 시 대체 태그를 선택하는 다이얼로그를 표시한다.
@@ -139,7 +211,7 @@ Future<String?> showReplacementTagDialog({
                   .map(
                     (MetadataTag tag) => DropdownMenuItem<String>(
                       value: tag.code,
-                      child: Text('${tag.code} · ${tag.label}'),
+                      child: Text(tag.label),
                     ),
                   )
                   .toList(),

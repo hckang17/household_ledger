@@ -31,7 +31,7 @@ class ExpenseEditorDiningPolicy {
       >= 11 && < 14 => 'lunch',
       >= 14 && < 18 => 'snack',
       >= 18 && < 21 => 'dinner',
-      _ => 'company',
+      _ => 'lateNight',
     };
     return availableCodes.contains(recommended) ? recommended : null;
   }

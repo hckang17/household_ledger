@@ -338,6 +338,11 @@ class DataImExportService {
           ),
           MetadataTag(
             type: MetadataTagType.diningOccasion,
+            code: 'lateNight',
+            label: isJa ? '夜食' : '야식',
+          ),
+          MetadataTag(
+            type: MetadataTagType.diningOccasion,
             code: 'company',
             label: isJa ? '会食' : '회식',
           ),

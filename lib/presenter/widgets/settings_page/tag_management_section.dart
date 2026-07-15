@@ -85,7 +85,7 @@ class _TagManagementSectionState extends State<TagManagementSection> {
                           children: <Widget>[
                             Expanded(
                               child: Text(
-                                '${tag.code} : ${tag.label}',
+                                tag.label,
                                 style: Theme.of(context).textTheme.bodyMedium
                                     ?.copyWith(fontWeight: FontWeight.w600),
                               ),

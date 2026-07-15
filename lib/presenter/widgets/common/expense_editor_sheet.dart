@@ -270,7 +270,7 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
                 items: widget.categoryTags.map((MetadataTag tag) {
                   return DropdownMenuItem<String>(
                     value: tag.code,
-                    child: Text('${tag.code} · ${tag.label}'),
+                    child: Text(tag.label),
                   );
                 }).toList(),
                 onChanged: (String? value) {
@@ -300,7 +300,7 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
                 items: widget.subcategoryTags.map((MetadataTag tag) {
                   return DropdownMenuItem<String>(
                     value: tag.code,
-                    child: Text('${tag.code} · ${tag.label}'),
+                    child: Text(tag.label),
                   );
                 }).toList(),
                 onChanged: (String? value) {
@@ -322,7 +322,7 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
                 items: widget.paymentTags.map((MetadataTag tag) {
                   return DropdownMenuItem<String>(
                     value: tag.code,
-                    child: Text('${tag.code} · ${tag.label}'),
+                    child: Text(tag.label),
                   );
                 }).toList(),
                 onChanged: (String? value) {
