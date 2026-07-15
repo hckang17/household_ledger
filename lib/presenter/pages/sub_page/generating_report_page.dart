@@ -14,6 +14,7 @@ import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/presenter/widgets/generating_report_page/report_file_list.dart';
+import 'package:household_ledger/presenter/widgets/generating_report_page/report_generation_progress.dart';
 import 'package:household_ledger/presenter/widgets/generating_report_page/report_option_selector.dart';
 import 'package:household_ledger/presenter/widgets/generating_report_page/report_period_selector.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
@@ -656,67 +657,9 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                 ),
                 if (_isGenerating) ...<Widget>[
                   const SizedBox(height: 12),
-                  Container(
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFE7F1FF),
-                      border: Border.all(color: const Color(0xFFB6D4FE)),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: <Widget>[
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: <Widget>[
-                            const Icon(
-                              Icons.info_outline_rounded,
-                              size: 20,
-                              color: Color(0xFF084298),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                _t(
-                                  strings,
-                                  'reportGeneratingNotice',
-                                  'PDF가 작성될 때까지 앱을 종료하지 말아주세요. '
-                                      '열심히 보고서를 작성 중입니다.',
-                                ),
-                                style: const TextStyle(
-                                  color: Color(0xFF084298),
-                                  fontSize: 13,
-                                  height: 1.45,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 14),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(4),
-                          child: LinearProgressIndicator(
-                            value: _generationProgress,
-                            minHeight: 8,
-                            backgroundColor: const Color(0xFFD0E2FF),
-                            color: const Color(0xFF0D6EFD),
-                          ),
-                        ),
-                        const SizedBox(height: 6),
-                        Align(
-                          alignment: Alignment.centerRight,
-                          child: Text(
-                            '${(_generationProgress * 100).round()}%',
-                            style: const TextStyle(
-                              color: Color(0xFF084298),
-                              fontSize: 12,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  ReportGenerationProgress(
+                    progress: _generationProgress,
+                    strings: strings,
                   ),
                 ],
                 const SizedBox(height: 32),
