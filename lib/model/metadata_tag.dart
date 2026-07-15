@@ -7,12 +7,14 @@ systemMetadataTagLocalizationKeys = <MetadataTagType, Map<String, String>>{
   MetadataTagType.category: <String, String>{
     'C': 'systemTagCategoryCafe',
     'D': 'systemTagCategoryDailyGoodsClothing',
+    'E': 'systemTagCategoryOther',
     'F': 'systemTagCategoryDining',
     'G': 'systemTagCategoryGroceries',
     'H': 'systemTagCategoryHealingHobby',
     'L': 'systemTagCategoryLiving',
     'S': 'systemTagCategorySports',
     'T': 'systemTagCategoryTransport',
+    'X': 'systemTagCategoryCeremonialExpenses',
   },
   MetadataTagType.subcategory: <String, String>{
     '_': 'systemTagSubcategoryUsual',
@@ -44,6 +46,8 @@ const Map<MetadataTagType, Set<String>> systemMetadataTagReservedLabels =
         'カフェ',
         '일용품&의류',
         '日用品＆衣料',
+        '기타',
+        'その他',
         '외식비',
         '外食費',
         '식료품',
@@ -56,6 +60,8 @@ const Map<MetadataTagType, Set<String>> systemMetadataTagReservedLabels =
         'スポーツ',
         '교통비',
         '交通費',
+        '경조사비',
+        '慶弔費',
       },
       MetadataTagType.subcategory: <String>{'평상시', '普段', '여행', '旅行'},
       MetadataTagType.diningOccasion: <String>{

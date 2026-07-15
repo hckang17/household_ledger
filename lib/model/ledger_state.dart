@@ -65,6 +65,11 @@ class LedgerState {
         ),
         MetadataTag(
           type: MetadataTagType.category,
+          code: 'E',
+          label: isJa ? 'その他' : '기타',
+        ),
+        MetadataTag(
+          type: MetadataTagType.category,
           code: 'F',
           label: isJa ? '外食費' : '외식비',
         ),
@@ -92,6 +97,11 @@ class LedgerState {
           type: MetadataTagType.category,
           code: 'T',
           label: isJa ? '交通費' : '교통비',
+        ),
+        MetadataTag(
+          type: MetadataTagType.category,
+          code: 'X',
+          label: isJa ? '慶弔費' : '경조사비',
         ),
         // 소비 소구분 (subcategory)
         MetadataTag(
