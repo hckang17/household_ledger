@@ -11,6 +11,7 @@
 - 주 대상은 Android와 Windows다. iOS, macOS, Linux, Web 셸도 존재하지만 모든 기능이 동일하게 지원되는 것은 아니다.
 - 상태 관리는 Riverpod 3, 네이티브 데이터 저장은 SQLite, 설정과 웹 대체 저장은 SharedPreferences를 사용한다.
 - 앱 서버, 로그인, 광고, 분석 SDK, 실제 클라우드 백업은 아직 없다. `docs/developing/clouding.md`는 구현물이 아니라 향후 설계안이다.
+- 개별 여행별 지출을 묶는 여행 모드는 `docs/developing/travel_mode_design.md`에 설계되어 있다. 현재 `household_travel.db`의 `trips` schema 초기화만 구현되었고 CRUD, 지출 연결, UI는 미구현이다.
 - 2026-09-03 기준 `flutter analyze`와 전체 33개 테스트가 통과한다.
 - 한국어와 일본어 언어팩은 각각 502개 키이며 현재 키 집합이 일치한다.
 
@@ -126,6 +127,7 @@ Provider / 서비스 조정
 - 지출: `household_ledger.db`, `expense_entries`, schema version 2
 - 수입: `household_income.db`, `income_entries`, schema version 1
 - 고정지출: `household_fixed_expense.db`, `fixed_expenses`, schema version 1
+- 여행 메타데이터: `household_travel.db`, `trips`, schema version 1
 - 네이티브에서는 SQLite, Web에서는 각 DB 서비스가 SharedPreferences JSON으로 분기한다.
 - 날짜는 ISO-8601 문자열로 저장하며 기간 조회는 `[start, endExclusive)` 규칙을 사용한다.
 - DB 필드나 모델 직렬화 키를 변경할 때 기존 설치 데이터용 migration과 구버전 JSON/CSV 호환 처리를 함께 작성한다. 기존 컬럼이나 키를 조용히 재해석하지 않는다.

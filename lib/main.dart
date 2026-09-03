@@ -8,6 +8,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/router/app_router.dart';
+import 'package:household_ledger/services/database/travel_database_service.dart';
 import 'package:household_ledger/services/localization_service.dart';
 import 'package:household_ledger/services/push_message/push_message_service.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -38,6 +39,7 @@ Future<void> main() async {
   );
 
   await initializeDateFormatting();
+  await TravelDatabaseService.instance.initialize();
   runApp(
     const AppRestartWidget(child: ProviderScope(child: HouseholdLedgerApp())),
   );
