@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/model/trip.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/presenter/widgets/common/travel_editor_sheet.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/provider/travel_provider.dart';
-import 'package:household_ledger/router/app_router.dart';
 
 /// 저장된 여행 메타데이터를 조회하고 관리하는 화면이다.
 class TravelManagementPage extends ConsumerWidget {
@@ -17,9 +17,7 @@ class TravelManagementPage extends ConsumerWidget {
     return BootstrapPage(
       title: strings['travelManagementTitle'] ?? '여행정보 관리',
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => Navigator.of(
-          context,
-        ).pushNamed<String>(AppRouter.travelEditorRoute),
+        onPressed: () => showTravelEditorSheet(context: context),
         icon: const Icon(Icons.add_rounded),
         label: Text(strings['travelAddButton'] ?? '새 여행 추가'),
       ),
@@ -46,10 +44,8 @@ class TravelManagementPage extends ConsumerWidget {
                 trip: trip,
                 isActive: trip.id == travelState.activeTripId,
                 strings: strings,
-                onEdit: () => Navigator.of(context).pushNamed<String>(
-                  AppRouter.travelEditorRoute,
-                  arguments: trip,
-                ),
+                onEdit: () =>
+                    showTravelEditorSheet(context: context, trip: trip),
                 onArchiveChanged: (bool archived) => ref
                     .read(travelProvider.notifier)
                     .setArchived(trip, archived),

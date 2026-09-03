@@ -8,7 +8,6 @@ import 'package:household_ledger/presenter/pages/expense_page/expense_management
 import 'package:household_ledger/presenter/pages/expense_page/expense_record_page.dart';
 import 'package:household_ledger/presenter/pages/expense_page/fixed_expense_page.dart';
 import 'package:household_ledger/presenter/pages/expense_page/main_shell_page.dart';
-import 'package:household_ledger/presenter/pages/expense_page/travel_editor_page.dart';
 import 'package:household_ledger/presenter/pages/expense_page/travel_management_page.dart';
 import 'package:household_ledger/presenter/pages/sub_page/import_data_page.dart';
 import 'package:household_ledger/presenter/pages/expense_page/income_page.dart';
@@ -18,7 +17,6 @@ import 'package:household_ledger/presenter/pages/sub_page/onboarding_page.dart';
 import 'package:household_ledger/presenter/pages/sub_page/settings_page.dart';
 import 'package:household_ledger/presenter/pages/sub_page/setup_page.dart';
 import 'package:household_ledger/presenter/pages/sub_page/copyrights_page.dart';
-import 'package:household_ledger/model/trip.dart';
 
 /// 앱 라우터를 주입한다.
 final appRouterProvider = Provider<AppRouter>((Ref ref) {
@@ -78,9 +76,6 @@ class AppRouter {
   /// 여행정보 관리 라우트 이름을 정의한다.
   static const String travelManagementRoute = '/travel-management';
 
-  /// 여행정보 추가·수정 라우트 이름을 정의한다.
-  static const String travelEditorRoute = '/travel-editor';
-
   /// 이름 기반 라우팅을 생성한다.
   Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -120,11 +115,6 @@ class AppRouter {
         return _buildRoute(const CopyrightsPage(), settings);
       case travelManagementRoute:
         return _buildRoute(const TravelManagementPage(), settings);
-      case travelEditorRoute:
-        return _buildRoute(
-          TravelEditorPage(trip: settings.arguments as Trip?),
-          settings,
-        );
       default:
         return _buildRoute(const OnboardingPage(), settings);
     }
