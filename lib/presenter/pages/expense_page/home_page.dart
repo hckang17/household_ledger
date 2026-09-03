@@ -12,6 +12,7 @@ import 'package:household_ledger/presenter/extensions/currency_extension.dart';
 import 'package:household_ledger/presenter/widgets/home_page/comparison_card.dart';
 import 'package:household_ledger/presenter/widgets/common/expense_editor_sheet.dart';
 import 'package:household_ledger/presenter/widgets/common/ledger_dialogs.dart';
+import 'package:household_ledger/presenter/widgets/common/travel_mode_control.dart';
 import 'package:household_ledger/presenter/widgets/home_page/recent_expenses_list.dart';
 import 'package:household_ledger/provider/comparison_provider.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
@@ -313,6 +314,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                 child: const SizedBox.shrink(),
               ),
             ],
+
+            const TravelModeControl(),
+
+            const SizedBox(height: 10),
 
             Showcase(
               key: _quickExpenseKey,

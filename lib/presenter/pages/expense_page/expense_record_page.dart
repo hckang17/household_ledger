@@ -18,6 +18,7 @@ import 'package:household_ledger/presenter/widgets/common/expense_entry_tile.dar
 import 'package:household_ledger/presenter/widgets/expense_record_page/expense_calendar_section.dart';
 import 'package:household_ledger/presenter/widgets/common/ledger_dialogs.dart';
 import 'package:household_ledger/presenter/widgets/common/expense_editor_sheet.dart';
+import 'package:household_ledger/presenter/widgets/common/travel_mode_control.dart';
 import 'package:household_ledger/services/mock_data_service.dart';
 import 'package:showcaseview/showcaseview.dart';
 
@@ -324,6 +325,8 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
         floatingActionButton: fab,
         child: Column(
           children: <Widget>[
+            const TravelModeControl(),
+            const SizedBox(height: 8),
             Showcase(
               key: _calendarKey,
               title: strings['tutExpenseCalendarTitle'] ?? '캘린더',

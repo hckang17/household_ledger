@@ -4,11 +4,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/features/expense/calculators/expense_editor_dining_policy.dart';
+import 'package:household_ledger/features/expense/calculators/expense_editor_travel_policy.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/model/trip.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
+import 'package:household_ledger/provider/travel_provider.dart';
 
 /// 튜토리얼 모드에서 사용할 초기값 프리셋.
 class TutorialExpensePreset {
@@ -42,6 +45,13 @@ Future<void> showExpenseEditorSheet({
   if (ledger == null) {
     return;
   }
+  TravelState? travelState;
+  try {
+    travelState = await ref.read(travelProvider.future);
+  } catch (_) {
+    // 여행정보 로드가 실패해도 일반 지출 입력은 계속 사용할 수 있어야 한다.
+  }
+  if (!context.mounted) return;
 
   final categoryTags = ledger.tagsByType(MetadataTagType.category);
   final subcategoryTags = ledger.tagsByType(MetadataTagType.subcategory);
@@ -77,6 +87,10 @@ Future<void> showExpenseEditorSheet({
         paymentTags: paymentTags,
         strings: strings,
         tutorialPreset: tutorialPreset,
+        trips: travelState?.trips ?? const <Trip>[],
+        initialActiveTripId: entry == null && tutorialPreset == null
+            ? travelState?.activeTripId
+            : null,
       );
     },
   );
@@ -101,7 +115,9 @@ class _ExpenseEditorSheetBody extends StatefulWidget {
     required this.diningOccasionTags,
     required this.paymentTags,
     required this.strings,
+    required this.trips,
     this.tutorialPreset,
+    this.initialActiveTripId,
   });
 
   final ExpenseEntry? entry;
@@ -111,7 +127,9 @@ class _ExpenseEditorSheetBody extends StatefulWidget {
   final List<MetadataTag> diningOccasionTags;
   final List<MetadataTag> paymentTags;
   final Map<String, String> strings;
+  final List<Trip> trips;
   final TutorialExpensePreset? tutorialPreset;
+  final String? initialActiveTripId;
 
   @override
   State<_ExpenseEditorSheetBody> createState() =>
@@ -120,6 +138,7 @@ class _ExpenseEditorSheetBody extends StatefulWidget {
 
 class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
   static const _diningPolicy = ExpenseEditorDiningPolicy();
+  static const _travelPolicy = ExpenseEditorTravelPolicy();
 
   late final TextEditingController descriptionController;
   late final TextEditingController amountController;
@@ -128,6 +147,7 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
 
   late String categoryCode;
   late String subcategoryCode;
+  String? tripId;
   String? diningOccasionCode;
   late String paymentCode;
   late DateTime selectedDate;
@@ -148,10 +168,18 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
         preset?.categoryCode ??
         widget.entry?.categoryCode ??
         widget.categoryTags.first.code;
-    subcategoryCode =
-        preset?.subcategoryCode ??
-        widget.entry?.subcategoryCode ??
-        widget.subcategoryTags.first.code;
+    final travelSelection = _travelPolicy.initialSelection(
+      isEditing: widget.entry != null,
+      savedOrDefaultSubcategoryCode:
+          preset?.subcategoryCode ??
+          widget.entry?.subcategoryCode ??
+          widget.subcategoryTags.first.code,
+      savedTripId: widget.entry?.tripId,
+      activeTripId: widget.initialActiveTripId,
+      knownTripIds: widget.trips.map((Trip trip) => trip.id).toSet(),
+    );
+    subcategoryCode = travelSelection.subcategoryCode;
+    tripId = travelSelection.tripId;
     diningOccasionCode = _diningPolicy.initialCode(
       isEditing: widget.entry != null,
       savedCode: widget.entry?.diningOccasionCode,
@@ -310,10 +338,52 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
 
                   setState(() {
                     subcategoryCode = value;
+                    tripId = _travelPolicy.tripAfterSubcategoryChanged(
+                      subcategoryCode: value,
+                      currentTripId: tripId,
+                    );
                   });
                 },
               ),
               const SizedBox(height: 12),
+              if (subcategoryCode == 't') ...<Widget>[
+                DropdownButtonFormField<String>(
+                  initialValue: tripId ?? '',
+                  isExpanded: true,
+                  decoration: InputDecoration(
+                    labelText:
+                        widget.strings['travelExpenseTripLabel'] ?? '여행 이름',
+                    prefixIcon: const Icon(Icons.flight_takeoff_rounded),
+                  ),
+                  items: <DropdownMenuItem<String>>[
+                    DropdownMenuItem<String>(
+                      value: '',
+                      child: Text(
+                        widget.strings['travelUnassignedLabel'] ?? '미지정',
+                      ),
+                    ),
+                    ...widget.trips
+                        .where(
+                          (Trip trip) => !trip.isArchived || trip.id == tripId,
+                        )
+                        .map(
+                          (Trip trip) => DropdownMenuItem<String>(
+                            value: trip.id,
+                            child: Text(
+                              trip.name,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ),
+                  ],
+                  onChanged: (String? value) {
+                    setState(() {
+                      tripId = value == null || value.isEmpty ? null : value;
+                    });
+                  },
+                ),
+                const SizedBox(height: 12),
+              ],
               DropdownButtonFormField<String>(
                 initialValue: paymentCode,
                 decoration: InputDecoration(
@@ -452,6 +522,7 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
                     spentAt: selectedDate,
                     categoryCode: categoryCode,
                     subcategoryCode: subcategoryCode,
+                    tripId: subcategoryCode == 't' ? tripId : null,
                     diningOccasionCode: categoryCode == 'F'
                         ? diningOccasionCode
                         : null,

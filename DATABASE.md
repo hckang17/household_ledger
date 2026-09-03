@@ -9,11 +9,12 @@
 - Native(Android/iOS/Desktop): `sqflite` 기반 SQLite 사용
 - Web: `shared_preferences` 기반 JSON 문자열 저장
 
-DB 서비스는 3개다.
+DB 서비스는 4개다.
 
-- 지출: `ExpenseDatabaseService` (`lib/services/expense_database_service.dart`)
-- 수입: `IncomeDatabaseService` (`lib/services/income_database_service.dart`)
-- 고정지출: `FixedExpenseDatabaseService` (`lib/services/fixed_expense_database_service.dart`)
+- 지출: `ExpenseDatabaseService` (`lib/services/database/expense_database_service.dart`)
+- 수입: `IncomeDatabaseService` (`lib/services/database/income_database_service.dart`)
+- 고정지출: `FixedExpenseDatabaseService` (`lib/services/database/fixed_expense_database_service.dart`)
+- 여행: `TravelDatabaseService` (`lib/services/database/travel_database_service.dart`)
 
 ## 1) Expense DB
 
@@ -21,7 +22,7 @@ DB 서비스는 3개다.
 
 - DB 파일명: `household_ledger.db`
 - 테이블명: `expense_entries`
-- SQLite 버전: `1`
+- SQLite 버전: `3`
 - Web 저장 키: `household_ledger_expenses`
 
 ### 테이블 스키마
@@ -32,6 +33,8 @@ CREATE TABLE expense_entries (
   spentAt TEXT NOT NULL,
   categoryCode TEXT NOT NULL,
   subcategoryCode TEXT NOT NULL,
+  tripId TEXT,
+  diningOccasionCode TEXT,
   paymentMethodCode TEXT NOT NULL,
   description TEXT NOT NULL,
   amount INTEGER NOT NULL,
@@ -45,6 +48,8 @@ CREATE TABLE expense_entries (
 - `spentAt` (TEXT): 지출 일시(ISO-8601 문자열)
 - `categoryCode` (TEXT): 카테고리 코드
 - `subcategoryCode` (TEXT): 서브카테고리 코드
+- `tripId` (TEXT, nullable): 여행 소구분 지출이 연결된 여행 식별자
+- `diningOccasionCode` (TEXT, nullable): 외식비의 식사 유형 코드
 - `paymentMethodCode` (TEXT): 결제수단 코드
 - `description` (TEXT): 지출 설명
 - `amount` (INTEGER): 금액
@@ -136,10 +141,11 @@ CREATE TABLE income_entries (
 
 ## 3) 플랫폼별 저장소 차이
 
-- Native는 실제 SQLite 파일 3개를 분리 운용한다.
+- Native는 실제 SQLite 파일 4개를 분리 운용한다.
   - 지출 DB: `household_ledger.db`
   - 수입 DB: `household_income.db`
   - 고정지출 DB: `household_fixed_expense.db`
+  - 여행 DB: `household_travel.db`
 - Web은 SQLite를 사용하지 않고 `SharedPreferences` 문자열에 JSON으로 저장한다.
 - 지출/수입/고정지출 모두 날짜 컬럼을 TEXT(ISO-8601)로 저장하고 문자열 범위 조회를 사용한다.
 
@@ -196,11 +202,36 @@ CREATE TABLE fixed_expenses (
 - `LocalStorageService.saveState()` 저장 시 `expenses`, `fixedExpenses`는 제외한다.
 - `LedgerNotifier.build()`에서 기존 설정 저장본의 `fixedExpenses`가 남아있고 DB가 비어있으면 1회 마이그레이션한다.
 
-## 5) 마이그레이션/버전 관리 현황
+## 5) 여행정보 저장 경로
 
-- 세 DB 모두 `version: 1`
-- `onUpgrade` 구현 없음
-- 현재는 초기 스키마 생성(`onCreate`)만 존재
+### 기본 정보
+
+- DB 파일명: `household_travel.db`
+- 테이블명: `trips`
+- SQLite 버전: `1`
+- Web 저장 키: `household_ledger_trips`
+
+```sql
+CREATE TABLE trips (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  startDate TEXT NOT NULL,
+  endDate TEXT NOT NULL,
+  budget INTEGER,
+  note TEXT NOT NULL DEFAULT '',
+  createdAt TEXT NOT NULL,
+  updatedAt TEXT NOT NULL,
+  archivedAt TEXT,
+  CHECK (endDate >= startDate)
+)
+```
+
+활성 여행 목록의 시작일 역순 조회에는 partial index `idx_trips_active_start_date`를 사용한다.
+
+## 6) 마이그레이션/버전 관리 현황
+
+- 지출 DB는 `version: 3`이며 v2에서 식사 유형, v3에서 여행 ID와 partial index를 추가한다.
+- 수입, 고정지출, 여행 DB는 `version: 1`이다.
 
 향후 스키마 변경 시 권장 사항:
 
@@ -208,10 +239,11 @@ CREATE TABLE fixed_expenses (
 - 컬럼 추가/기본값/인덱스 생성 SQL을 버전별로 분기
 - 기존 데이터 백필(backfill) 로직 명시
 
-## 6) 참고 코드 위치
+## 7) 참고 코드 위치
 
-- `lib/services/expense_database_service.dart`
-- `lib/services/income_database_service.dart`
-- `lib/services/fixed_expense_database_service.dart`
+- `lib/services/database/expense_database_service.dart`
+- `lib/services/database/income_database_service.dart`
+- `lib/services/database/fixed_expense_database_service.dart`
+- `lib/services/database/travel_database_service.dart`
 - `lib/model/fixed_expense.dart`
 - `lib/provider/ledger_provider.dart` (서비스 주입/호출)

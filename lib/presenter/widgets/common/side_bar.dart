@@ -202,6 +202,23 @@ class RightSideBar extends ConsumerWidget {
                       ],
                     ),
                     _SideBarSection(
+                      title: _text(strings, 'sideBarTravelGroup', '여행'),
+                      children: <Widget>[
+                        _SideBarItem(
+                          icon: Icons.flight_takeoff_rounded,
+                          label: _text(
+                            strings,
+                            'sideBarTravelManagement',
+                            '여행정보 관리',
+                          ),
+                          onTap: () => _navigate(
+                            context,
+                            AppRouter.travelManagementRoute,
+                          ),
+                        ),
+                      ],
+                    ),
+                    _SideBarSection(
                       title: _text(strings, 'sideBarReportGroup', '보고서 출력'),
                       children: <Widget>[
                         _SideBarItem(

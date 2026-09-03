@@ -11,8 +11,8 @@
 - 주 대상은 Android와 Windows다. iOS, macOS, Linux, Web 셸도 존재하지만 모든 기능이 동일하게 지원되는 것은 아니다.
 - 상태 관리는 Riverpod 3, 네이티브 데이터 저장은 SQLite, 설정과 웹 대체 저장은 SharedPreferences를 사용한다.
 - 앱 서버, 로그인, 광고, 분석 SDK, 실제 클라우드 백업은 아직 없다. `docs/developing/clouding.md`는 구현물이 아니라 향후 설계안이다.
-- 개별 여행별 지출을 묶는 여행 모드는 `docs/developing/travel_mode_design.md`에 설계되어 있다. 현재 `household_travel.db`의 `trips` schema 초기화만 구현되었고 CRUD, 지출 연결, UI는 미구현이다.
-- 2026-09-03 기준 `flutter analyze`와 전체 33개 테스트가 통과한다.
+- 개별 여행별 지출을 묶는 여행 모드는 `docs/developing/travel_mode_design.md`를 기준으로 구현 중이다. 여행 CRUD·활성 모드·신규 지출 연결·홈/소비기록 컨트롤·관리 화면까지 구현되었고, 여행별 상세 집계와 CSV 백업은 후속 범위다.
+- 2026-09-03 기준 `flutter analyze`와 전체 42개 테스트가 통과한다.
 - 한국어와 일본어 언어팩은 각각 502개 키이며 현재 키 집합이 일치한다.
 
 ### 진행된 구조 개선
@@ -124,7 +124,7 @@ Provider / 서비스 조정
 
 ### 데이터베이스
 
-- 지출: `household_ledger.db`, `expense_entries`, schema version 2
+- 지출: `household_ledger.db`, `expense_entries`, schema version 3
 - 수입: `household_income.db`, `income_entries`, schema version 1
 - 고정지출: `household_fixed_expense.db`, `fixed_expenses`, schema version 1
 - 여행 메타데이터: `household_travel.db`, `trips`, schema version 1

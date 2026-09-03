@@ -8,6 +8,7 @@ class ExpenseEntry {
     required this.spentAt,
     required this.categoryCode,
     required this.subcategoryCode,
+    this.tripId,
     this.diningOccasionCode,
     required this.paymentMethodCode,
     required this.description,
@@ -26,6 +27,9 @@ class ExpenseEntry {
 
   /// 소분류 코드를 보관한다.
   final String subcategoryCode;
+
+  /// 여행 소구분 지출이 연결된 여행 ID. 미분류 또는 일반 지출이면 null이다.
+  final String? tripId;
 
   /// 외식비에서 사용하는 식사 유형 코드. 외식비가 아니거나 미선택이면 null이다.
   final String? diningOccasionCode;
@@ -48,19 +52,24 @@ class ExpenseEntry {
     required DateTime spentAt,
     required String categoryCode,
     String subcategoryCode = '_',
+    String? tripId,
     String? diningOccasionCode,
     String paymentMethodCode = '_s',
     required String description,
     required int amount,
     String note = '',
   }) {
+    final normalizedSubcategory = subcategoryCode.trim().isEmpty
+        ? '_'
+        : subcategoryCode.trim();
     return ExpenseEntry(
       id: id ?? DateTime.now().microsecondsSinceEpoch.toString(),
       spentAt: normalizeDate(spentAt),
       categoryCode: categoryCode.trim().isEmpty ? 'F' : categoryCode.trim(),
-      subcategoryCode: subcategoryCode.trim().isEmpty
-          ? '_'
-          : subcategoryCode.trim(),
+      subcategoryCode: normalizedSubcategory,
+      tripId: normalizedSubcategory == 't' && tripId?.trim().isNotEmpty == true
+          ? tripId!.trim()
+          : null,
       diningOccasionCode:
           diningOccasionCode == null || diningOccasionCode.trim().isEmpty
           ? null
@@ -104,6 +113,8 @@ class ExpenseEntry {
     DateTime? spentAt,
     String? categoryCode,
     String? subcategoryCode,
+    String? tripId,
+    bool clearTrip = false,
     String? diningOccasionCode,
     bool clearDiningOccasion = false,
     String? paymentMethodCode,
@@ -116,6 +127,7 @@ class ExpenseEntry {
       spentAt: spentAt ?? this.spentAt,
       categoryCode: categoryCode ?? this.categoryCode,
       subcategoryCode: subcategoryCode ?? this.subcategoryCode,
+      tripId: clearTrip ? null : (tripId ?? this.tripId),
       diningOccasionCode: clearDiningOccasion
           ? null
           : (diningOccasionCode ?? this.diningOccasionCode),
@@ -133,6 +145,7 @@ class ExpenseEntry {
       'spentAt': spentAt.toIso8601String(),
       'categoryCode': categoryCode,
       'subcategoryCode': subcategoryCode,
+      'tripId': tripId,
       'diningOccasionCode': diningOccasionCode,
       'paymentMethodCode': paymentMethodCode,
       'description': description,
@@ -148,6 +161,7 @@ class ExpenseEntry {
       spentAt: DateTime.parse(json['spentAt'] as String),
       categoryCode: json['categoryCode'] as String? ?? 'F',
       subcategoryCode: json['subcategoryCode'] as String? ?? '_',
+      tripId: json['tripId'] as String?,
       diningOccasionCode: json['diningOccasionCode'] as String?,
       paymentMethodCode: json['paymentMethodCode'] as String? ?? '_s',
       description: json['description'] as String? ?? '',
