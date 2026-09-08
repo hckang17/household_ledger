@@ -87,6 +87,7 @@ class TravelDetailPage extends ConsumerWidget {
         subcategoryTags: subcategoryTags,
         diningOccasionTags: diningTags,
         paymentTags: paymentTags,
+        trips: <Trip>[trip],
         strings: strings,
         currency: currency,
       );

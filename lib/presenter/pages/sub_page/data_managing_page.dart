@@ -10,14 +10,17 @@ import 'package:household_ledger/presenter/controllers/tutorial_showcase_control
 import 'package:household_ledger/model/data_search_filter.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/model/trip.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/presenter/extensions/currency_extension.dart';
+import 'package:household_ledger/presenter/widgets/data_managing_page/bulk_tag_change_sheet.dart';
 import 'package:household_ledger/presenter/widgets/common/expense_editor_sheet.dart';
 import 'package:household_ledger/presenter/widgets/common/ledger_dialogs.dart';
 import 'package:household_ledger/provider/data_manage_provider.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/provider/tutorial_provider.dart';
+import 'package:household_ledger/provider/travel_provider.dart';
 import 'package:household_ledger/router/app_router.dart';
 import 'package:household_ledger/services/mock_data_service.dart';
 import 'package:intl/intl.dart';
@@ -307,177 +310,77 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
   Future<void> _showTagChangeSheet(
     Map<String, String> strings,
     List<MetadataTag> categoryTags,
+    List<MetadataTag> subcategoryTags,
     List<MetadataTag> paymentTags,
+    List<Trip> trips,
+    String? activeTripId,
     DataManageState manageState,
   ) async {
-    if (manageState.searchedTableType == DataTableType.income) {
-      return;
-    }
+    if (manageState.searchedTableType == DataTableType.income) return;
 
-    String? selectedPayment;
-    String? selectedCategory;
-
-    final int selCount = manageState.selectedIds.length;
-
-    await showModalBottomSheet<void>(
+    final selection = await showBulkTagChangeSheet(
       context: context,
-      isScrollControlled: true,
-      useSafeArea: true,
-      builder: (BuildContext sheetCtx) => StatefulBuilder(
-        builder: (BuildContext _, StateSetter setModal) {
-          return Padding(
-            padding: EdgeInsets.only(
-              left: 20,
-              right: 20,
-              top: 20,
-              bottom: MediaQuery.of(sheetCtx).viewInsets.bottom + 24,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Text(
-                  _s(strings, 'dataManageChangeTagTitle', '태그 일괄 변경'),
-                  style: Theme.of(
-                    context,
-                  ).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '$selCount${_s(strings, 'dataManageSelectedCount', '건 선택됨')}',
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-                const SizedBox(height: 20),
-                DropdownButtonFormField<String>(
-                  initialValue: selectedPayment,
-                  decoration: InputDecoration(
-                    labelText: _s(strings, 'paymentMethodLabel', '소비수단'),
-                  ),
-                  items: <DropdownMenuItem<String>>[
-                    DropdownMenuItem<String>(
-                      value: null,
-                      child: Text(_s(strings, 'dataManageNoChange', '변경 안함')),
-                    ),
-                    ...paymentTags.map(
-                      (MetadataTag t) => DropdownMenuItem<String>(
-                        value: t.code,
-                        child: Text(t.label),
-                      ),
-                    ),
-                  ],
-                  onChanged: (String? v) => setModal(() => selectedPayment = v),
-                ),
-                const SizedBox(height: 12),
-                DropdownButtonFormField<String>(
-                  initialValue: selectedCategory,
-                  decoration: InputDecoration(
-                    labelText: _s(strings, 'categoryLabel', '소비구분'),
-                  ),
-                  items: <DropdownMenuItem<String>>[
-                    DropdownMenuItem<String>(
-                      value: null,
-                      child: Text(_s(strings, 'dataManageNoChange', '변경 안함')),
-                    ),
-                    ...categoryTags.map(
-                      (MetadataTag t) => DropdownMenuItem<String>(
-                        value: t.code,
-                        child: Text(t.label),
-                      ),
-                    ),
-                  ],
-                  onChanged: (String? v) =>
-                      setModal(() => selectedCategory = v),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: FilledButton(
-                    onPressed:
-                        (selectedPayment == null && selectedCategory == null)
-                        ? null
-                        : () async {
-                            // 변경 확인 다이얼로그
-                            final bool? confirmed = await showDialog<bool>(
-                              context: context,
-                              builder: (BuildContext dialogCtx) => AlertDialog(
-                                title: Text(
-                                  _s(
-                                    strings,
-                                    'dataManageChangeConfirmTitle',
-                                    '태그 변경 확인',
-                                  ),
-                                ),
-                                content: Text(
-                                  _s(
-                                    strings,
-                                    'dataManageChangeConfirmMessage',
-                                    '{count}건의 태그를 변경하시겠습니까?',
-                                  ).replaceAll('{count}', selCount.toString()),
-                                ),
-                                actions: <Widget>[
-                                  TextButton(
-                                    onPressed: () =>
-                                        Navigator.pop(dialogCtx, false),
-                                    child: Text(_s(strings, 'cancel', '취소')),
-                                  ),
-                                  FilledButton(
-                                    onPressed: () =>
-                                        Navigator.pop(dialogCtx, true),
-                                    child: Text(
-                                      _s(
-                                        strings,
-                                        'dataManageChangeTagApply',
-                                        '변경 적용',
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                            if (confirmed != true) {
-                              return;
-                            }
-                            // 시트를 닫고 일괄 변경 실행
-                            if (sheetCtx.mounted) {
-                              Navigator.pop(sheetCtx);
-                            }
-                            await ref
-                                .read(dataManageProvider.notifier)
-                                .bulkChangeTags(
-                                  paymentMethodCode: selectedPayment,
-                                  categoryCode: selectedCategory,
-                                );
-                            if (mounted) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(
-                                  content: Text(
-                                    _s(
-                                      strings,
-                                      'dataManageChangeSuccess',
-                                      '{count}건의 태그가 변경되었습니다.',
-                                    ).replaceAll(
-                                      '{count}',
-                                      selCount.toString(),
-                                    ),
-                                  ),
-                                  backgroundColor: const Color(0xFF198754),
-                                ),
-                              );
-                            }
-                          },
-                    child: Text(
-                      _s(strings, 'dataManageChangeTagApply', '변경 적용'),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
+      strings: strings,
+      categoryTags: categoryTags,
+      subcategoryTags: subcategoryTags,
+      paymentTags: paymentTags,
+      trips: trips,
+      activeTripId: activeTripId,
+      selectedCount: manageState.selectedIds.length,
+      isExpense: manageState.searchedTableType == DataTableType.expense,
+    );
+    if (selection == null || !mounted) return;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext dialogContext) => AlertDialog(
+        title: Text(_s(strings, 'dataManageChangeConfirmTitle', '태그 변경 확인')),
+        content: Text(
+          _s(
+            strings,
+            'dataManageChangeConfirmMessage',
+            '{count}건의 태그를 변경하시겠습니까?',
+          ).replaceAll('{count}', manageState.selectedIds.length.toString()),
+        ),
+        actions: <Widget>[
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext, false),
+            child: Text(_s(strings, 'cancel', '취소')),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(dialogContext, true),
+            child: Text(_s(strings, 'dataManageChangeTagApply', '변경 적용')),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    final classification = selection.expenseClassification;
+    final selectedCount = manageState.selectedIds.length;
+    await ref
+        .read(dataManageProvider.notifier)
+        .bulkChangeTags(
+          paymentMethodCode: selection.paymentMethodCode,
+          categoryCode: selection.categoryCode,
+          subcategoryCode: classification.subcategoryCode,
+          changeTripId: classification.changeTripId,
+          tripId: classification.tripId,
+        );
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _s(
+            strings,
+            'dataManageChangeSuccess',
+            '{count}건의 태그가 변경되었습니다.',
+          ).replaceAll('{count}', selectedCount.toString()),
+        ),
+        backgroundColor: const Color(0xFF198754),
       ),
     );
   }
-
   // ── Filter section ─────────────────────────────────────────────────────────
 
   Widget _buildTableSelector(
@@ -520,6 +423,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 clearTableType: picked == null,
                 clearPaymentMethod: true,
                 clearCategory: true,
+                clearSubcategory: true,
                 clearDiningOccasion: true,
               ),
             );
@@ -633,6 +537,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
     Map<String, String> strings,
     DataSearchFilter filter,
     List<MetadataTag> categoryTags,
+    List<MetadataTag> subcategoryTags,
     List<MetadataTag> paymentTags,
     List<MetadataTag> diningOccasionTags,
     bool isIncome,
@@ -714,6 +619,38 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 ref.read(dataManageProvider.notifier).setFilter(nextFilter);
               },
             ),
+            if (isExpense) ...<Widget>[
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String>(
+                key: ValueKey<String?>('subcat_${filter.subcategoryCode}'),
+                initialValue: filter.subcategoryCode,
+                decoration: InputDecoration(
+                  labelText: _s(strings, 'subcategoryLabel', '소비 소구분'),
+                  isDense: true,
+                ),
+                items: <DropdownMenuItem<String>>[
+                  DropdownMenuItem<String>(
+                    value: null,
+                    child: Text(_s(strings, 'dataManageAll', '전체')),
+                  ),
+                  ...subcategoryTags.map(
+                    (MetadataTag tag) => DropdownMenuItem<String>(
+                      value: tag.code,
+                      child: Text(tag.label),
+                    ),
+                  ),
+                ],
+                onChanged: (String? value) {
+                  ref
+                      .read(dataManageProvider.notifier)
+                      .setFilter(
+                        value == null
+                            ? filter.copyWith(clearSubcategory: true)
+                            : filter.copyWith(subcategoryCode: value),
+                      );
+                },
+              ),
+            ],
             if (isExpense && filter.categoryCode == 'F') ...<Widget>[
               const SizedBox(height: 12),
               DropdownButtonFormField<String>(
@@ -919,7 +856,10 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
     Map<String, String> strings,
     DataManageState s,
     List<MetadataTag> categoryTags,
+    List<MetadataTag> subcategoryTags,
     List<MetadataTag> paymentTags,
+    List<Trip> trips,
+    String? activeTripId,
   ) {
     final bool canChangeTag =
         s.searchedTableType != DataTableType.income && s.hasSelection;
@@ -970,7 +910,10 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                     ? () => _showTagChangeSheet(
                         strings,
                         categoryTags,
+                        subcategoryTags,
                         paymentTags,
+                        trips,
+                        activeTripId,
                         s,
                       )
                     : null,
@@ -993,6 +936,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
     List<MetadataTag> subcategoryTags,
     List<MetadataTag> diningOccasionTags,
     List<MetadataTag> paymentTags,
+    List<Trip> trips,
     String currency,
   ) {
     if (s.resultCount == 0) {
@@ -1025,6 +969,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 subcategoryTags: subcategoryTags,
                 diningOccasionTags: diningOccasionTags,
                 paymentTags: paymentTags,
+                trips: trips,
                 strings: strings,
                 currency: currency,
               ),
@@ -1048,12 +993,24 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                     ),
                     Expanded(
                       flex: 2,
-                      child: Text(
-                        _tagLabel(categoryTags, e.categoryCode),
-                        overflow: TextOverflow.ellipsis,
-                        style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
-                          fontWeight: FontWeight.w600,
-                        ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          Text(
+                            _tagLabel(categoryTags, e.categoryCode),
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(ctx).textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Text(
+                            _tagLabel(subcategoryTags, e.subcategoryCode),
+                            overflow: TextOverflow.ellipsis,
+                            style: Theme.of(ctx).textTheme.labelSmall?.copyWith(
+                              color: const Color(0xFF6C757D),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                     Expanded(
@@ -1207,6 +1164,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
     final Map<String, String> strings = ref.watch(localizedStringsProvider);
     final ledger = ref.watch(ledgerProvider).asData?.value;
     final DataManageState manageState = ref.watch(dataManageProvider);
+    final travelState = ref.watch(travelProvider).asData?.value;
     final DataSearchFilter filter = manageState.filter;
     final isTutorial = ref.watch(
       tutorialProvider.select(
@@ -1276,12 +1234,13 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                   title: strings['tutDataManageFilterTitle'] ?? '데이터 검색',
                   description:
                       strings['tutDataManageFilterDesc'] ??
-                      '소비수단, 기간, 카테고리 등 조건으로 기록을 조회하고\n일괄 삭제 또는 태그 변경을 할 수 있어요.',
+                      '소비수단, 기간, 소비구분·소구분 등 조건으로 기록을 조회하고\n일괄 삭제 또는 태그 변경을 할 수 있어요.',
                   tooltipPosition: TooltipPosition.bottom,
                   child: _buildFilterCard(
                     strings,
                     filter,
                     categoryTags,
+                    subcategoryTags,
                     paymentTags,
                     diningOccasionTags,
                     isIncome,
@@ -1311,7 +1270,10 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                     strings,
                     manageState,
                     categoryTags,
+                    subcategoryTags,
                     paymentTags,
+                    travelState?.trips ?? const <Trip>[],
+                    travelState?.activeTripId,
                   ),
                 ),
                 ..._buildResultSlivers(
@@ -1321,6 +1283,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                   subcategoryTags,
                   diningOccasionTags,
                   paymentTags,
+                  travelState?.trips ?? const <Trip>[],
                   currency,
                 ),
               ],

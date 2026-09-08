@@ -353,6 +353,8 @@
   "dataManageEndDate": "종료일",
   "dataManageAll": "전체",
   "dataManageNoChange": "변경 안함",
+  "dataManageTripChangeLabel": "여행 연결",
+  "dataManageTripChangeHint": "여행을 선택하면 소비 소구분도 여행으로 변경됩니다.",
   "dataManageSearch": "검색",
   "dataManageResultCount": "건",
   "dataManageSelectedCount": "건 선택됨",
@@ -473,7 +475,7 @@
   "tutReportGenerateBtnDesc": "설정이 완료되면 이 버튼으로 PDF를 생성해요!\n다음은 데이터 관리 화면을 살펴볼게요.",
 
   "tutDataManageFilterTitle": "데이터 검색",
-  "tutDataManageFilterDesc": "소비수단, 기간, 카테고리 등 조건으로 기록을 조회하고\n일괄 삭제 또는 태그 변경을 할 수 있어요.",
+  "tutDataManageFilterDesc": "소비수단, 기간, 소비구분·소구분 등 조건으로 기록을 조회하고\n일괄 삭제 또는 태그 변경을 할 수 있어요.",
   "tutDataManageSettingsNavTitle": "설정 화면으로 이동",
   "tutDataManageSettingsNavDesc": "다음은 앱 설정 화면을 살펴볼게요!\n설정에서 태그 관리, 데이터 백업 등을 할 수 있어요.",
 

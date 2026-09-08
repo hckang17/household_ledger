@@ -344,6 +344,8 @@
   "dataManageEndDate": "終了日",
   "dataManageAll": "全て",
   "dataManageNoChange": "変更しない",
+  "dataManageTripChangeLabel": "旅行への紐付け",
+  "dataManageTripChangeHint": "旅行を選択すると、支出小区分も旅行に変更されます。",
   "dataManageSearch": "検索",
   "dataManageResultCount": "件",
   "dataManageSelectedCount": "件選択中",
@@ -464,7 +466,7 @@
   "tutReportGenerateBtnDesc": "設定が完了したらこのボタンでPDFを生成します！\n次はデータ管理画面を見てみましょう。",
 
   "tutDataManageFilterTitle": "データ検索",
-  "tutDataManageFilterDesc": "支払手段・期間・カテゴリなどの条件で記録を照会し\n一括削除またはタグ変更ができます。",
+  "tutDataManageFilterDesc": "支払手段・期間・支出区分・小区分などの条件で記録を照会し\n一括削除またはタグ変更ができます。",
   "tutDataManageSettingsNavTitle": "設定画面へ移動",
   "tutDataManageSettingsNavDesc": "次はアプリの設定画面を見てみましょう！\n設定でタグ管理・データバックアップなどができます。",
 

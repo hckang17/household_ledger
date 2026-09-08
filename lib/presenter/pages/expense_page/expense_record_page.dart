@@ -7,12 +7,14 @@ import 'package:household_ledger/presenter/controllers/tutorial_showcase_control
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/model/trip.dart';
 import 'package:household_ledger/presenter/extensions/currency_extension.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/provider/nav_tab_provider.dart';
 import 'package:household_ledger/provider/tutorial_provider.dart';
+import 'package:household_ledger/provider/travel_provider.dart';
 import 'package:household_ledger/provider/travel_summary_provider.dart';
 import 'package:household_ledger/router/app_router.dart';
 import 'package:household_ledger/presenter/widgets/common/expense_entry_tile.dart';
@@ -163,6 +165,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     List<MetadataTag> subcategoryTags,
     List<MetadataTag> diningOccasionTags,
     List<MetadataTag> paymentTags,
+    List<Trip> trips,
     Map<String, String> strings,
   ) {
     showExpenseDetailDialog(
@@ -172,6 +175,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
       subcategoryTags: subcategoryTags,
       diningOccasionTags: diningOccasionTags,
       paymentTags: paymentTags,
+      trips: trips,
       strings: strings,
       currency: _currencyUnit(strings),
     );
@@ -216,6 +220,8 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
   Widget build(BuildContext context) {
     final strings = ref.watch(localizedStringsProvider);
     final ledger = ref.watch(ledgerProvider).asData?.value;
+    final trips =
+        ref.watch(travelProvider).asData?.value.trips ?? const <Trip>[];
     final isTutorial = ref.watch(
       tutorialProvider.select(
         (s) => s.isActive && s.phase == TutorialPhase.expenseRecord,
@@ -413,6 +419,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
                                       subcategoryTags,
                                       diningOccasionTags,
                                       paymentTags,
+                                      trips,
                                       strings,
                                     ),
                                     onEdit: () => showExpenseEditorSheet(

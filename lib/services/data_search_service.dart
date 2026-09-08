@@ -23,6 +23,10 @@ class DataSearchService {
           e.categoryCode != filter.categoryCode) {
         return false;
       }
+      if (filter.subcategoryCode != null &&
+          e.subcategoryCode != filter.subcategoryCode) {
+        return false;
+      }
       if (filter.diningOccasionCode != null &&
           e.diningOccasionCode != filter.diningOccasionCode) {
         return false;

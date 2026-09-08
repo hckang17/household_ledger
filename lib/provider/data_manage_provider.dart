@@ -244,15 +244,31 @@ class DataManageNotifier extends Notifier<DataManageState> {
     }
   }
 
-  /// 선택된 항목의 소비수단/소비구분을 일괄 변경한다. (수입 테이블에서는 무시됨)
+  /// 선택된 항목의 소비수단·소비구분·소비 소구분을 일괄 변경한다.
+  ///
+  /// [changeTripId]가 true이면 선택한 지출을 여행 소구분으로 바꾸고
+  /// [tripId]에 연결한다. [tripId]가 null이면 여행 미지정 상태로 만든다.
   Future<void> bulkChangeTags({
     String? paymentMethodCode,
     String? categoryCode,
+    String? subcategoryCode,
+    bool changeTripId = false,
+    String? tripId,
   }) async {
     if (state.selectedIds.isEmpty || state.searchedTableType == null) {
       return;
     }
-    if (paymentMethodCode == null && categoryCode == null) {
+    final tableType = state.searchedTableType!;
+    final hasExpenseChange =
+        paymentMethodCode != null ||
+        categoryCode != null ||
+        subcategoryCode != null ||
+        changeTripId;
+    final hasFixedExpenseChange =
+        paymentMethodCode != null || categoryCode != null;
+    if ((tableType == DataTableType.expense && !hasExpenseChange) ||
+        (tableType == DataTableType.fixedExpense && !hasFixedExpenseChange) ||
+        tableType == DataTableType.income) {
       return;
     }
 
@@ -264,20 +280,21 @@ class DataManageNotifier extends Notifier<DataManageState> {
       operationCompleted: 0,
     );
 
-    switch (state.searchedTableType!) {
+    switch (tableType) {
       case DataTableType.expense:
         final db = ref.read(expenseDatabaseServiceProvider);
         for (final ExpenseEntry e in state.expenses) {
           if (!ids.contains(e.id)) {
             continue;
           }
-          ExpenseEntry updated = e;
-          if (paymentMethodCode != null) {
-            updated = updated.copyWith(paymentMethodCode: paymentMethodCode);
-          }
-          if (categoryCode != null) {
-            updated = updated.copyWith(categoryCode: categoryCode);
-          }
+          final updated = _updatedExpense(
+            e,
+            paymentMethodCode: paymentMethodCode,
+            categoryCode: categoryCode,
+            subcategoryCode: subcategoryCode,
+            changeTripId: changeTripId,
+            tripId: tripId,
+          );
           await db.upsertExpense(updated);
           state = state.copyWith(
             operationCompleted: state.operationCompleted + 1,
@@ -288,20 +305,22 @@ class DataManageNotifier extends Notifier<DataManageState> {
             if (!ids.contains(e.id)) {
               return e;
             }
-            ExpenseEntry updated = e;
-            if (paymentMethodCode != null) {
-              updated = updated.copyWith(paymentMethodCode: paymentMethodCode);
-            }
-            if (categoryCode != null) {
-              updated = updated.copyWith(categoryCode: categoryCode);
-            }
-            return updated;
+            return _updatedExpense(
+              e,
+              paymentMethodCode: paymentMethodCode,
+              categoryCode: categoryCode,
+              subcategoryCode: subcategoryCode,
+              changeTripId: changeTripId,
+              tripId: tripId,
+            );
           }).toList(),
           selectedIds: const <String>{},
           status: DataManageStatus.found,
         );
         ref.invalidate(monthlyExpensesProvider);
         ref.invalidate(rangeExpensesProvider);
+        ref.invalidate(travelExpensesProvider);
+        ref.invalidate(travelExpenseTotalsProvider);
         ref.invalidate(ledgerProvider);
       case DataTableType.fixedExpense:
         final db = ref.read(fixedExpenseDatabaseServiceProvider);
@@ -341,9 +360,37 @@ class DataManageNotifier extends Notifier<DataManageState> {
         ref.invalidate(monthlyFixedExpensesProvider);
         ref.invalidate(ledgerProvider);
       case DataTableType.income:
-        // 수입에는 소비수단/소비구분이 없음
+        // 위의 방어 조건에서 반환되며, enum 확장에 대비해 상태만 복원한다.
         state = state.copyWith(status: DataManageStatus.found);
     }
+  }
+
+  ExpenseEntry _updatedExpense(
+    ExpenseEntry entry, {
+    required String? paymentMethodCode,
+    required String? categoryCode,
+    required String? subcategoryCode,
+    required bool changeTripId,
+    required String? tripId,
+  }) {
+    var updated = entry;
+    if (paymentMethodCode != null) {
+      updated = updated.copyWith(paymentMethodCode: paymentMethodCode);
+    }
+    if (categoryCode != null) {
+      updated = updated.copyWith(categoryCode: categoryCode);
+    }
+    if (subcategoryCode != null) {
+      updated = updated.copyWith(subcategoryCode: subcategoryCode);
+    }
+    if (changeTripId) {
+      updated = updated.copyWith(
+        subcategoryCode: 't',
+        tripId: tripId,
+        clearTrip: tripId == null,
+      );
+    }
+    return updated;
   }
 }
 
