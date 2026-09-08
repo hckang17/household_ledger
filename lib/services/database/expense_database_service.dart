@@ -38,7 +38,7 @@ class ExpenseDatabaseService {
 
     _database = await openDatabase(
       fullPath,
-      version: 2,
+      version: 3,
       onCreate: (Database db, int version) async {
         logger.d(
           '$_logPrefix _getDatabase() onCreate() called. creating table=$_tableName',
@@ -49,6 +49,7 @@ class ExpenseDatabaseService {
             spentAt TEXT NOT NULL,
             categoryCode TEXT NOT NULL,
             subcategoryCode TEXT NOT NULL,
+            tripId TEXT,
             diningOccasionCode TEXT,
             paymentMethodCode TEXT NOT NULL,
             description TEXT NOT NULL,
@@ -57,12 +58,25 @@ class ExpenseDatabaseService {
           )
         ''');
         logger.d('$_logPrefix _getDatabase() table created: $_tableName');
+        await db.execute('''
+          CREATE INDEX idx_expense_entries_trip_id
+          ON $_tableName(tripId)
+          WHERE tripId IS NOT NULL
+        ''');
       },
       onUpgrade: (Database db, int oldVersion, int newVersion) async {
         if (oldVersion < 2) {
           await db.execute(
             'ALTER TABLE $_tableName ADD COLUMN diningOccasionCode TEXT',
           );
+        }
+        if (oldVersion < 3) {
+          await db.execute('ALTER TABLE $_tableName ADD COLUMN tripId TEXT');
+          await db.execute('''
+            CREATE INDEX idx_expense_entries_trip_id
+            ON $_tableName(tripId)
+            WHERE tripId IS NOT NULL
+          ''');
         }
       },
     );
@@ -147,6 +161,29 @@ class ExpenseDatabaseService {
       '$_logPrefix loadExpensesByRange() completed via SQLite. count=${entries.length}',
     );
     return entries;
+  }
+
+  /// 특정 여행에 연결된 지출을 최신순으로 조회한다.
+  Future<List<ExpenseEntry>> loadExpensesByTrip(String tripId) async {
+    if (kIsWeb) {
+      final entries = await _loadAllExpensesFromPreferences();
+      return entries
+          .where((ExpenseEntry entry) => entry.tripId == tripId)
+          .toList()
+        ..sort(
+          (ExpenseEntry left, ExpenseEntry right) =>
+              right.spentAt.compareTo(left.spentAt),
+        );
+    }
+
+    final db = await _getDatabase();
+    final rows = await db.query(
+      _tableName,
+      where: 'tripId = ?',
+      whereArgs: <Object?>[tripId],
+      orderBy: 'spentAt DESC',
+    );
+    return rows.map(_fromRow).toList(growable: false);
   }
 
   /// 지출내역 1건을 삽입하거나 갱신한다.
@@ -458,6 +495,7 @@ class ExpenseDatabaseService {
       'spentAt': entry.spentAt.toIso8601String(),
       'categoryCode': entry.categoryCode,
       'subcategoryCode': entry.subcategoryCode,
+      'tripId': entry.tripId,
       'diningOccasionCode': entry.diningOccasionCode,
       'paymentMethodCode': entry.paymentMethodCode,
       'description': entry.description,
@@ -475,6 +513,7 @@ class ExpenseDatabaseService {
       spentAt: DateTime.parse(row['spentAt']! as String),
       categoryCode: row['categoryCode']! as String,
       subcategoryCode: row['subcategoryCode']! as String,
+      tripId: row['tripId'] as String?,
       diningOccasionCode: row['diningOccasionCode'] as String?,
       paymentMethodCode: row['paymentMethodCode']! as String,
       description: row['description']! as String,
