@@ -1,4 +1,10 @@
 {
+  "travelGradientSettingsTitle": "旅行モードの背景",
+  "travelGradientSettingsDescription": "旅行モードで使用する淡いグラデーションを選択してください。",
+  "travelGradientBreeze": "そよ風",
+  "travelGradientOcean": "澄んだ海",
+  "travelGradientSunset": "夕焼け",
+  "travelGradientForest": "森の小道",
   "appTitle": "家計簿",
   "onboardingTitle": "生活費の流れを一つの画面で管理できます",
   "onboardingSubtitle": "初期設定が終わると、支出記録、固定費、月次分析をすぐ始められます。",

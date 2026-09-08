@@ -136,7 +136,7 @@ class _LoadingPageState extends ConsumerState<LoadingPage> {
         : _msgIndex;
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF0F4F8),
+      backgroundColor: Colors.transparent,
       body: Stack(
         children: <Widget>[
           // ── 탭 워밍업 : Offstage로 위젯 트리에 포함하되 화면에 표시하지 않음 ──

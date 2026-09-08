@@ -5,6 +5,7 @@ import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/model/push_notification_settings.dart';
+import 'package:household_ledger/model/travel_gradient_palette.dart';
 import 'package:household_ledger/model/user_profile.dart';
 
 /// 앱 전체 가계부 상태를 표현한다.
@@ -258,6 +259,13 @@ class LedgerState {
   /// 알림 설정을 변경한 새 상태를 생성한다.
   LedgerState changePushNotifications(PushNotificationSettings value) {
     return copyWith(settings: settings.copyWith(pushNotifications: value));
+  }
+
+  /// 여행 모드 배경 팔레트를 변경한다.
+  LedgerState changeTravelGradientPalette(TravelGradientPalette palette) {
+    return copyWith(
+      settings: settings.copyWith(travelGradientPalette: palette),
+    );
   }
 
   /// 시스템 기본 태그를 복원하고 현재 언어팩의 레이블을 적용한다.

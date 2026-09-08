@@ -12,6 +12,7 @@ import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/model/ledger_state.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/model/user_profile.dart';
+import 'package:household_ledger/model/travel_gradient_palette.dart';
 import 'package:household_ledger/services/tutorial_service.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -168,6 +169,12 @@ class DataImExportService {
     buffer.writeln(
       _csvRow(['monthlyBudget', ledgerState.settings.monthlyBudget.toString()]),
     );
+    buffer.writeln(
+      _csvRow([
+        'travelGradientPalette',
+        ledgerState.settings.travelGradientPalette.code,
+      ]),
+    );
     buffer.writeln(_csvRow(['userName', ledgerState.userProfile.name]));
     buffer.writeln(_csvRow(['userEmail', ledgerState.userProfile.email]));
     buffer.writeln(
@@ -307,6 +314,9 @@ class DataImExportService {
         currencyUnit: settingsMap['currencyUnit'] ?? '₩',
         monthlyBudget: int.tryParse(settingsMap['monthlyBudget'] ?? '') ?? 0,
         onboardingCompleted: true,
+        travelGradientPalette: TravelGradientPalette.fromCode(
+          settingsMap['travelGradientPalette'],
+        ),
       );
       final profile = UserProfile(
         name: settingsMap['userName'] ?? '',

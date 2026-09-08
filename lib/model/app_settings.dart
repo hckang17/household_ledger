@@ -1,6 +1,7 @@
 import 'dart:ui' show PlatformDispatcher;
 
 import 'package:household_ledger/model/push_notification_settings.dart';
+import 'package:household_ledger/model/travel_gradient_palette.dart';
 
 /// 앱 전역 설정을 표현한다.
 class AppSettings {
@@ -11,6 +12,7 @@ class AppSettings {
     required this.monthlyBudget,
     required this.onboardingCompleted,
     this.pushNotifications = const PushNotificationSettings(),
+    this.travelGradientPalette = TravelGradientPalette.breeze,
   });
 
   /// 현재 언어 코드를 보관한다.
@@ -27,6 +29,9 @@ class AppSettings {
 
   /// 로컬 알림 수신 설정을 보관한다.
   final PushNotificationSettings pushNotifications;
+
+  /// 여행 모드에서 사용하는 앱 배경 그라데이션 팔레트다.
+  final TravelGradientPalette travelGradientPalette;
 
   /// 기기 언어 설정을 감지해 기본 앱 설정을 생성한다.
   ///
@@ -59,6 +64,7 @@ class AppSettings {
     int? monthlyBudget,
     bool? onboardingCompleted,
     PushNotificationSettings? pushNotifications,
+    TravelGradientPalette? travelGradientPalette,
   }) {
     return AppSettings(
       localeCode: localeCode ?? this.localeCode,
@@ -66,6 +72,8 @@ class AppSettings {
       monthlyBudget: monthlyBudget ?? this.monthlyBudget,
       onboardingCompleted: onboardingCompleted ?? this.onboardingCompleted,
       pushNotifications: pushNotifications ?? this.pushNotifications,
+      travelGradientPalette:
+          travelGradientPalette ?? this.travelGradientPalette,
     );
   }
 
@@ -77,6 +85,7 @@ class AppSettings {
       'monthlyBudget': monthlyBudget,
       'onboardingCompleted': onboardingCompleted,
       'pushNotifications': pushNotifications.toJson(),
+      'travelGradientPalette': travelGradientPalette.code,
     };
   }
 
@@ -91,6 +100,9 @@ class AppSettings {
       onboardingCompleted: json['onboardingCompleted'] as bool? ?? false,
       pushNotifications: PushNotificationSettings.fromJson(
         json['pushNotifications'] as Map<String, dynamic>?,
+      ),
+      travelGradientPalette: TravelGradientPalette.fromCode(
+        json['travelGradientPalette'] as String?,
       ),
     );
   }

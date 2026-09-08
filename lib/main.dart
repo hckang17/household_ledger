@@ -7,6 +7,7 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
+import 'package:household_ledger/presenter/widgets/common/travel_mode_background.dart';
 import 'package:household_ledger/router/app_router.dart';
 import 'package:household_ledger/services/database/travel_database_service.dart';
 import 'package:household_ledger/services/localization_service.dart';
@@ -189,13 +190,16 @@ class _HouseholdLedgerAppState extends ConsumerState<HouseholdLedgerApp> {
       locale: _flutterLocaleFromCode(localeCode),
       supportedLocales: const <Locale>[Locale('ko'), Locale('ja')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
+      builder: (BuildContext context, Widget? child) {
+        return TravelModeBackground(child: child ?? const SizedBox.shrink());
+      },
       theme: ThemeData(
         useMaterial3: true,
         colorScheme: ColorScheme.fromSeed(
           seedColor: const Color(0xFF0D6EFD),
           brightness: Brightness.light,
         ),
-        scaffoldBackgroundColor: const Color(0xFFF4F7FB),
+        scaffoldBackgroundColor: Colors.transparent,
         appBarTheme: const AppBarTheme(
           centerTitle: false,
           backgroundColor: Colors.transparent,

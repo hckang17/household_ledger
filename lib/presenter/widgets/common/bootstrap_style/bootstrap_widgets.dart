@@ -224,6 +224,7 @@ class BootstrapPage extends StatelessWidget {
         showSideBar && !Navigator.of(context).canPop();
 
     return Scaffold(
+      backgroundColor: Colors.transparent,
       endDrawer: shouldShowSideBar ? const RightSideBar() : null,
 
       /// 앱바는 페이지마다 일관된 스타일을 유지하되, 제목과 액션은 페이지별로 다르게 설정할 수 있도록 한다.
@@ -251,20 +252,11 @@ class BootstrapPage extends StatelessWidget {
       /// 하단 내비게이션 바가 있을 경우 표시한다.
       bottomNavigationBar: bottomNavigationBar,
 
-      /// 페이지 본문은 공통된 배경과 여백을 갖게 한다.
-      body: DecoratedBox(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Color(0xFFF4F7FB), Color(0xFFE8EEF8)],
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-          ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
-            child: SizedBox.expand(child: child),
-          ),
+      /// 앱 루트의 공통 배경이 보이도록 유지하면서 동일한 여백을 적용한다.
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.fromLTRB(20, 10, 20, 0),
+          child: SizedBox.expand(child: child),
         ),
       ),
     );
