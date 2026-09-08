@@ -19,6 +19,7 @@ import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/provider/nav_tab_provider.dart';
 import 'package:household_ledger/provider/tutorial_provider.dart';
+import 'package:household_ledger/provider/travel_summary_provider.dart';
 import 'package:household_ledger/router/app_router.dart';
 import 'package:household_ledger/services/mock_data_service.dart';
 import 'package:showcaseview/showcaseview.dart';
@@ -76,6 +77,8 @@ class _HomePageState extends ConsumerState<HomePage> {
     await ref.read(ledgerProvider.notifier).deleteExpense(entry.id);
     ref.invalidate(monthlyExpensesProvider);
     ref.invalidate(rangeExpensesProvider);
+    ref.invalidate(travelExpensesProvider);
+    ref.invalidate(travelExpenseTotalsProvider);
   }
 
   Future<void> _handleBackDuringTutorial() async {

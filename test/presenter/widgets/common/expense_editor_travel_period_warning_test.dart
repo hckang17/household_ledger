@@ -40,6 +40,31 @@ void main() {
       findsNothing,
     );
   });
+
+  testWidgets('상세 화면의 명시적 여행은 다른 활성 여행보다 우선한다', (WidgetTester tester) async {
+    final otherTrip = Trip.create(
+      id: 'trip-b',
+      name: '겨울 여행',
+      startDate: DateTime(2026, 12, 1),
+      endDate: DateTime(2026, 12, 3),
+    );
+    await _openEditor(
+      tester,
+      trip: trip,
+      otherTrip: otherTrip,
+      initialTripId: otherTrip.id,
+      initialDate: DateTime(2026, 12, 2),
+    );
+
+    final tripDropdown = tester
+        .widgetList<DropdownButton<String>>(find.byType(DropdownButton<String>))
+        .firstWhere(
+          (DropdownButton<String> dropdown) =>
+              dropdown.items?.any((item) => item.value == otherTrip.id) ??
+              false,
+        );
+    expect(tripDropdown.value, otherTrip.id);
+  });
 }
 
 const String _warningText = '선택한 날짜는 여행 기간 밖입니다. 여행 전후에 발생한 지출이면 그대로 입력해주세요.';
@@ -48,12 +73,16 @@ Future<void> _openEditor(
   WidgetTester tester, {
   required Trip trip,
   required DateTime initialDate,
+  Trip? otherTrip,
+  String? initialTripId,
 }) async {
   final ledgerState = LedgerState.initial();
   final container = ProviderContainer(
     overrides: [
       ledgerProvider.overrideWith(() => _FakeLedgerNotifier(ledgerState)),
-      travelProvider.overrideWith(() => _FakeTravelNotifier(trip)),
+      travelProvider.overrideWith(
+        () => _FakeTravelNotifier(<Trip>[trip, ?otherTrip], trip.id),
+      ),
       localizedStringsProvider.overrideWithValue(const <String, String>{
         'travelExpenseTripLabel': '여행 이름',
         'travelUnassignedLabel': '미지정',
@@ -70,7 +99,12 @@ Future<void> _openEditor(
     UncontrolledProviderScope(
       container: container,
       child: MaterialApp(
-        home: Scaffold(body: _ExpenseEditorLauncher(initialDate: initialDate)),
+        home: Scaffold(
+          body: _ExpenseEditorLauncher(
+            initialDate: initialDate,
+            initialTripId: initialTripId,
+          ),
+        ),
       ),
     ),
   );
@@ -79,9 +113,10 @@ Future<void> _openEditor(
 }
 
 class _ExpenseEditorLauncher extends ConsumerWidget {
-  const _ExpenseEditorLauncher({required this.initialDate});
+  const _ExpenseEditorLauncher({required this.initialDate, this.initialTripId});
 
   final DateTime initialDate;
+  final String? initialTripId;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -91,6 +126,7 @@ class _ExpenseEditorLauncher extends ConsumerWidget {
           context: context,
           ref: ref,
           initialDate: initialDate,
+          initialTripId: initialTripId,
         ),
         child: const Text('입력 열기'),
       ),
@@ -108,12 +144,13 @@ class _FakeLedgerNotifier extends LedgerNotifier {
 }
 
 class _FakeTravelNotifier extends TravelNotifier {
-  _FakeTravelNotifier(this.trip);
+  _FakeTravelNotifier(this.trips, this.activeTripId);
 
-  final Trip trip;
+  final List<Trip> trips;
+  final String activeTripId;
 
   @override
   Future<TravelState> build() async {
-    return TravelState(trips: <Trip>[trip], activeTripId: trip.id);
+    return TravelState(trips: trips, activeTripId: activeTripId);
   }
 }

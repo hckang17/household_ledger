@@ -12,6 +12,7 @@ import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootst
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/provider/travel_provider.dart';
+import 'package:household_ledger/provider/travel_summary_provider.dart';
 
 /// 튜토리얼 모드에서 사용할 초기값 프리셋.
 class TutorialExpensePreset {
@@ -38,6 +39,7 @@ Future<void> showExpenseEditorSheet({
   required WidgetRef ref,
   ExpenseEntry? entry,
   DateTime? initialDate,
+  String? initialTripId,
   TutorialExpensePreset? tutorialPreset,
 }) async {
   final ledger = ref.read(ledgerProvider).asData?.value;
@@ -89,7 +91,7 @@ Future<void> showExpenseEditorSheet({
         tutorialPreset: tutorialPreset,
         trips: travelState?.trips ?? const <Trip>[],
         initialActiveTripId: entry == null && tutorialPreset == null
-            ? travelState?.activeTripId
+            ? (initialTripId ?? travelState?.activeTripId)
             : null,
       );
     },
@@ -103,6 +105,8 @@ Future<void> showExpenseEditorSheet({
     }
     ref.invalidate(monthlyExpensesProvider);
     ref.invalidate(rangeExpensesProvider);
+    ref.invalidate(travelExpensesProvider);
+    ref.invalidate(travelExpenseTotalsProvider);
   }
 }
 

@@ -4,6 +4,7 @@ import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
+import 'package:household_ledger/provider/travel_summary_provider.dart';
 import 'package:household_ledger/services/data_search_service.dart';
 
 enum DataManageStatus { idle, searching, found, operating }
@@ -199,6 +200,8 @@ class DataManageNotifier extends Notifier<DataManageState> {
         );
         ref.invalidate(monthlyExpensesProvider);
         ref.invalidate(rangeExpensesProvider);
+        ref.invalidate(travelExpensesProvider);
+        ref.invalidate(travelExpenseTotalsProvider);
         ref.invalidate(ledgerProvider);
       case DataTableType.fixedExpense:
         final db = ref.read(fixedExpenseDatabaseServiceProvider);

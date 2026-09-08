@@ -13,6 +13,7 @@ import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/provider/nav_tab_provider.dart';
 import 'package:household_ledger/provider/tutorial_provider.dart';
+import 'package:household_ledger/provider/travel_summary_provider.dart';
 import 'package:household_ledger/router/app_router.dart';
 import 'package:household_ledger/presenter/widgets/common/expense_entry_tile.dart';
 import 'package:household_ledger/presenter/widgets/expense_record_page/expense_calendar_section.dart';
@@ -152,6 +153,8 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     await ref.read(ledgerProvider.notifier).deleteExpense(entry.id);
     ref.invalidate(monthlyExpensesProvider);
     ref.invalidate(rangeExpensesProvider);
+    ref.invalidate(travelExpensesProvider);
+    ref.invalidate(travelExpenseTotalsProvider);
   }
 
   void _showDetail(

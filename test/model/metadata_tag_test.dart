@@ -1,3 +1,4 @@
+import 'package:household_ledger/model/ledger_state.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:test/test.dart';
 
@@ -73,12 +74,13 @@ void main() {
   });
 
   group('시스템 기본 카테고리', () {
-    test('모든 코드가 1문자이며 스포츠 카테고리도 시스템 기본이다', () {
+    test('모든 코드가 1문자이며 스포츠와 숙박비 카테고리도 시스템 기본이다', () {
       final categoryCodes =
           systemMetadataTagLocalizationKeys[MetadataTagType.category]!.keys;
 
       expect(categoryCodes, everyElement(hasLength(1)));
       expect(categoryCodes, contains('S'));
+      expect(categoryCodes, contains('A'));
       expect(
         const MetadataTag(
           type: MetadataTagType.category,
@@ -87,6 +89,30 @@ void main() {
         ).isSystemDefault,
         isTrue,
       );
+      expect(
+        const MetadataTag(
+          type: MetadataTagType.category,
+          code: 'A',
+          label: '숙박비',
+        ).isSystemDefault,
+        isTrue,
+      );
+    });
+
+    test('기존 사용자 숙박비 태그를 보존하면서 시스템 숙박비를 보완한다', () {
+      final legacy = LedgerState.initial().copyWith(
+        metadataTags: const <MetadataTag>[
+          MetadataTag(type: MetadataTagType.category, code: '00', label: '숙박비'),
+        ],
+      );
+
+      final localized = legacy.localizeSystemMetadataTags(
+        const <String, String>{'systemTagCategoryAccommodation': '숙박비'},
+      );
+      final categoryTags = localized.tagsByType(MetadataTagType.category);
+
+      expect(categoryTags.any((MetadataTag tag) => tag.code == '00'), isTrue);
+      expect(categoryTags.any((MetadataTag tag) => tag.code == 'A'), isTrue);
     });
   });
 
@@ -155,6 +181,19 @@ void main() {
 
       expect(koreanNameResult, MetadataTagLabelValidation.duplicate);
       expect(japaneseNameResult, MetadataTagLabelValidation.duplicate);
+    });
+
+    test('숙박비의 한글과 일본어 이름을 시스템 예약 이름으로 보호한다', () {
+      for (final label in <String>['숙박비', '宿泊費']) {
+        expect(
+          MetadataTagLabelValidator.validate(
+            type: MetadataTagType.category,
+            label: label,
+            tags: const <MetadataTag>[],
+          ),
+          MetadataTagLabelValidation.duplicate,
+        );
+      }
     });
 
     test('기본 결제수단도 시스템 태그로 보호한다', () {

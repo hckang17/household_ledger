@@ -56,6 +56,11 @@ class LedgerState {
         // 소비구분 (category) — 코드 알파벳순
         MetadataTag(
           type: MetadataTagType.category,
+          code: 'A',
+          label: isJa ? '宿泊費' : '숙박비',
+        ),
+        MetadataTag(
+          type: MetadataTagType.category,
           code: 'C',
           label: isJa ? 'カフェ' : '카페',
         ),
