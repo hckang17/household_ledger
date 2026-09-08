@@ -1,4 +1,5 @@
 {
+  "travelExpenseOutsidePeriodWarning": "選択した日付は旅行期間外です。旅行の前後に発生した支出であれば、そのまま入力してください。",
   "travelGradientSettingsTitle": "旅行モードの背景",
   "travelGradientSettingsDescription": "旅行モードで使用する淡いグラデーションを選択してください。",
   "travelGradientBreeze": "そよ風",

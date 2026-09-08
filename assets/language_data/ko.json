@@ -1,4 +1,5 @@
 {
+  "travelExpenseOutsidePeriodWarning": "선택한 날짜는 여행 기간 밖입니다. 여행 전후에 발생한 지출이면 그대로 입력해주세요.",
   "travelGradientSettingsTitle": "여행 모드 배경",
   "travelGradientSettingsDescription": "여행 모드에서 사용할 은은한 그라데이션 색상을 선택하세요.",
   "travelGradientBreeze": "산들바람",

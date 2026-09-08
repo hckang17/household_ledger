@@ -47,4 +47,22 @@ class ExpenseEditorTravelPolicy {
   }) {
     return subcategoryCode == 't' ? currentTripId : null;
   }
+
+  /// Returns whether an expense falls outside the inclusive trip period.
+  ///
+  /// Time-of-day is intentionally ignored because trip dates are day-based.
+  bool isOutsideTripPeriod({
+    required DateTime expenseDate,
+    required DateTime tripStartDate,
+    required DateTime tripEndDate,
+  }) {
+    final date = _dateOnly(expenseDate);
+    final start = _dateOnly(tripStartDate);
+    final end = _dateOnly(tripEndDate);
+    return date.isBefore(start) || date.isAfter(end);
+  }
+
+  DateTime _dateOnly(DateTime value) {
+    return DateTime(value.year, value.month, value.day);
+  }
 }
