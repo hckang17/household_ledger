@@ -5,6 +5,7 @@ import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/model/ledger_state.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/model/push_notification_settings.dart';
+import 'package:household_ledger/model/travel_gradient_palette.dart';
 import 'package:household_ledger/model/user_profile.dart';
 import 'package:household_ledger/services/debugging_logger.dart';
 import 'package:household_ledger/services/database/expense_database_service.dart';
@@ -340,6 +341,17 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
     final current = state.asData?.value;
     if (current == null) return;
     await _commit(current.changePushNotifications(settings));
+  }
+
+  /// 여행 모드 배경 팔레트를 저장하고 즉시 적용한다.
+  Future<void> changeTravelGradientPalette(
+    TravelGradientPalette palette,
+  ) async {
+    final current = state.asData?.value;
+    if (current == null || current.settings.travelGradientPalette == palette) {
+      return;
+    }
+    await _commit(current.changeTravelGradientPalette(palette));
   }
 
   /// 사용자 프로필 정보를 변경한다.

@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/model/trip.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_dialog.dart';
 import 'package:household_ledger/presenter/extensions/currency_extension.dart';
 import 'package:household_ledger/services/imexporting_file/generating_png_service.dart';
@@ -250,6 +251,7 @@ Future<void> showExpenseDetailDialog({
   required List<MetadataTag> subcategoryTags,
   required List<MetadataTag> diningOccasionTags,
   required List<MetadataTag> paymentTags,
+  required List<Trip> trips,
   required Map<String, String> strings,
   required String currency,
 }) async {
@@ -261,7 +263,11 @@ Future<void> showExpenseDetailDialog({
     ),
     MapEntry(
       strings['subcategoryLabel'] ?? '소구분',
-      subcategoryTags.labelFor(entry.subcategoryCode),
+      expenseSubcategoryDetailLabel(
+        entry: entry,
+        subcategoryTags: subcategoryTags,
+        trips: trips,
+      ),
     ),
     if (entry.diningOccasionCode != null)
       MapEntry(
@@ -295,6 +301,28 @@ Future<void> showExpenseDetailDialog({
       );
     },
   );
+}
+
+/// 영수증 상세에 표시할 소비 소구분 문구를 생성한다.
+///
+/// 여행 지출이 유효한 여행에 연결된 경우 `여행(여행이름)` 형식을 사용한다.
+/// 연결 정보가 없거나 여행을 찾지 못하면 기존 소구분명을 유지한다.
+String expenseSubcategoryDetailLabel({
+  required ExpenseEntry entry,
+  required List<MetadataTag> subcategoryTags,
+  required List<Trip> trips,
+}) {
+  final subcategoryLabel = subcategoryTags.labelFor(entry.subcategoryCode);
+  if (entry.subcategoryCode != 't' || entry.tripId == null) {
+    return subcategoryLabel;
+  }
+
+  for (final trip in trips) {
+    if (trip.id == entry.tripId && trip.name.trim().isNotEmpty) {
+      return '$subcategoryLabel(${trip.name.trim()})';
+    }
+  }
+  return subcategoryLabel;
 }
 
 /// 고정지출 상세 정보를 영수증 스타일 다이얼로그로 표시한다.

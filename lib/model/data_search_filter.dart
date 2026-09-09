@@ -14,6 +14,7 @@ class DataSearchFilter {
     this.endDate,
     this.paymentMethodCode,
     this.categoryCode,
+    this.subcategoryCode,
     this.diningOccasionCode,
     this.descriptionQuery = '',
     this.noteQuery = '',
@@ -30,6 +31,9 @@ class DataSearchFilter {
 
   /// null = 전체
   final String? categoryCode;
+
+  /// null이면 소비 소구분으로 필터링하지 않는다.
+  final String? subcategoryCode;
 
   /// null이면 식사 유형으로 필터링하지 않는다.
   final String? diningOccasionCode;
@@ -51,6 +55,8 @@ class DataSearchFilter {
     bool clearPaymentMethod = false,
     String? categoryCode,
     bool clearCategory = false,
+    String? subcategoryCode,
+    bool clearSubcategory = false,
     String? diningOccasionCode,
     bool clearDiningOccasion = false,
     String? descriptionQuery,
@@ -68,6 +74,9 @@ class DataSearchFilter {
           ? null
           : (paymentMethodCode ?? this.paymentMethodCode),
       categoryCode: clearCategory ? null : (categoryCode ?? this.categoryCode),
+      subcategoryCode: clearSubcategory
+          ? null
+          : (subcategoryCode ?? this.subcategoryCode),
       diningOccasionCode: clearDiningOccasion
           ? null
           : (diningOccasionCode ?? this.diningOccasionCode),

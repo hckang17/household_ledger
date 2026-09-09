@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/model/push_notification_settings.dart';
+import 'package:household_ledger/presenter/widgets/settings_page/travel_gradient_palette_section.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/presenter/widgets/common/ledger_dialogs.dart';
 import 'package:household_ledger/presenter/widgets/settings_page/tag_management_section.dart';
@@ -512,6 +513,15 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
                     ),
                   ],
                 ),
+              ),
+              const SizedBox(height: 16),
+
+              TravelGradientPaletteSection(
+                strings: strings,
+                selectedPalette: ledger.settings.travelGradientPalette,
+                onChanged: (palette) => ref
+                    .read(ledgerProvider.notifier)
+                    .changeTravelGradientPalette(palette),
               ),
               const SizedBox(height: 16),
 

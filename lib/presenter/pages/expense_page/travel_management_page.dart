@@ -1,10 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/model/trip.dart';
+import 'package:household_ledger/presenter/extensions/currency_extension.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/presenter/widgets/common/travel_editor_sheet.dart';
+import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/provider/travel_provider.dart';
+import 'package:household_ledger/provider/travel_summary_provider.dart';
+import 'package:household_ledger/router/app_router.dart';
 
 /// 저장된 여행 메타데이터를 조회하고 관리하는 화면이다.
 class TravelManagementPage extends ConsumerWidget {
@@ -14,6 +18,9 @@ class TravelManagementPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final strings = ref.watch(localizedStringsProvider);
     final travelAsync = ref.watch(travelProvider);
+    final totalsAsync = ref.watch(travelExpenseTotalsProvider);
+    final currency =
+        ref.watch(ledgerProvider).asData?.value.settings.currencyUnit ?? '';
     return BootstrapPage(
       title: strings['travelManagementTitle'] ?? '여행정보 관리',
       floatingActionButton: FloatingActionButton.extended(
@@ -43,7 +50,14 @@ class TravelManagementPage extends ConsumerWidget {
               return _TripCard(
                 trip: trip,
                 isActive: trip.id == travelState.activeTripId,
+                totalExpense: totalsAsync.asData == null
+                    ? null
+                    : (totalsAsync.asData!.value[trip.id] ?? 0),
+                currency: currency,
                 strings: strings,
+                onTap: () => Navigator.of(
+                  context,
+                ).pushNamed(AppRouter.travelDetailRoute, arguments: trip.id),
                 onEdit: () =>
                     showTravelEditorSheet(context: context, trip: trip),
                 onArchiveChanged: (bool archived) => ref
@@ -62,91 +76,141 @@ class _TripCard extends StatelessWidget {
   const _TripCard({
     required this.trip,
     required this.isActive,
+    required this.totalExpense,
+    required this.currency,
     required this.strings,
+    required this.onTap,
     required this.onEdit,
     required this.onArchiveChanged,
   });
 
   final Trip trip;
   final bool isActive;
+  final int? totalExpense;
+  final String currency;
   final Map<String, String> strings;
+  final VoidCallback onTap;
   final VoidCallback onEdit;
   final ValueChanged<bool> onArchiveChanged;
 
   @override
   Widget build(BuildContext context) {
-    return BootstrapSectionCard(
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          CircleAvatar(
-            backgroundColor: trip.isArchived
-                ? Colors.grey.shade200
-                : const Color(0xFFE7F1FF),
-            child: Icon(
-              Icons.flight_takeoff_rounded,
-              color: trip.isArchived ? Colors.grey : const Color(0xFF0D6EFD),
-            ),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
-                Row(
+    final usagePercent = trip.budget != null && totalExpense != null
+        ? totalExpense! / trip.budget! * 100
+        : null;
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        onTap: onTap,
+        child: BootstrapSectionCard(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              CircleAvatar(
+                backgroundColor: trip.isArchived
+                    ? Colors.grey.shade200
+                    : const Color(0xFFE7F1FF),
+                child: Icon(
+                  Icons.flight_takeoff_rounded,
+                  color: trip.isArchived
+                      ? Colors.grey
+                      : const Color(0xFF0D6EFD),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Expanded(
-                      child: Text(
-                        trip.name,
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w700),
-                      ),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Text(
+                            trip.name,
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(fontWeight: FontWeight.w700),
+                          ),
+                        ),
+                        if (isActive)
+                          Chip(
+                            label: Text(strings['travelActiveLabel'] ?? '사용 중'),
+                            visualDensity: VisualDensity.compact,
+                          ),
+                      ],
                     ),
-                    if (isActive)
-                      Chip(
-                        label: Text(strings['travelActiveLabel'] ?? '사용 중'),
-                        visualDensity: VisualDensity.compact,
+                    Text(
+                      '${_dateText(trip.startDate)} - ${_dateText(trip.endDate)} · ${_statusLabel()}',
+                    ),
+                    if (trip.budget != null)
+                      Text(
+                        '${strings['travelBudgetSummaryLabel'] ?? '예산'}: ${trip.budget!.toCurrency()}$currency${usagePercent == null ? '' : ' · ${usagePercent.toStringAsFixed(1)}%'}',
                       ),
+                    const SizedBox(height: 2),
+                    Text(
+                      '${strings['travelTotalExpenseLabel'] ?? '총 여행 지출'}: ${totalExpense?.toCurrency() ?? '…'}$currency',
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                    if (usagePercent != null) ...<Widget>[
+                      const SizedBox(height: 7),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: LinearProgressIndicator(
+                          minHeight: 7,
+                          value: (usagePercent / 100).clamp(0.0, 1.0),
+                          color: usagePercent > 100
+                              ? const Color(0xFFDC3545)
+                              : const Color(0xFF0D6EFD),
+                          backgroundColor: const Color(0xFFE9ECEF),
+                        ),
+                      ),
+                    ],
+                    const SizedBox(height: 8),
+                    Wrap(
+                      spacing: 8,
+                      children: <Widget>[
+                        OutlinedButton.icon(
+                          onPressed: onEdit,
+                          icon: const Icon(Icons.edit_outlined, size: 18),
+                          label: Text(strings['edit'] ?? '수정'),
+                        ),
+                        TextButton.icon(
+                          onPressed: () => onArchiveChanged(!trip.isArchived),
+                          icon: Icon(
+                            trip.isArchived
+                                ? Icons.unarchive_outlined
+                                : Icons.archive_outlined,
+                            size: 18,
+                          ),
+                          label: Text(
+                            trip.isArchived
+                                ? (strings['travelRestoreButton'] ?? '복원')
+                                : (strings['travelArchiveButton'] ?? '보관'),
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
-                Text(
-                  '${_dateText(trip.startDate)} - ${_dateText(trip.endDate)}',
-                ),
-                if (trip.budget != null)
-                  Text(
-                    '${strings['travelBudgetLabel'] ?? '여행 예산'}: ${trip.budget}',
-                  ),
-                const SizedBox(height: 8),
-                Wrap(
-                  spacing: 8,
-                  children: <Widget>[
-                    OutlinedButton.icon(
-                      onPressed: onEdit,
-                      icon: const Icon(Icons.edit_outlined, size: 18),
-                      label: Text(strings['edit'] ?? '수정'),
-                    ),
-                    TextButton.icon(
-                      onPressed: () => onArchiveChanged(!trip.isArchived),
-                      icon: Icon(
-                        trip.isArchived
-                            ? Icons.unarchive_outlined
-                            : Icons.archive_outlined,
-                        size: 18,
-                      ),
-                      label: Text(
-                        trip.isArchived
-                            ? (strings['travelRestoreButton'] ?? '복원')
-                            : (strings['travelArchiveButton'] ?? '보관'),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
+              ),
+              const Icon(Icons.chevron_right_rounded),
+            ],
           ),
-        ],
+        ),
       ),
     );
+  }
+
+  String _statusLabel() {
+    if (trip.isArchived) return strings['travelArchivedLabel'] ?? '보관됨';
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    if (today.isBefore(trip.startDate)) {
+      return strings['travelStatusUpcoming'] ?? '예정';
+    }
+    if (today.isAfter(trip.endDate)) {
+      return strings['travelStatusCompleted'] ?? '완료';
+    }
+    return strings['travelStatusOngoing'] ?? '여행 중';
   }
 }
 

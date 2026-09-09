@@ -12,6 +12,7 @@ import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootst
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/provider/travel_provider.dart';
+import 'package:household_ledger/provider/travel_summary_provider.dart';
 
 /// 튜토리얼 모드에서 사용할 초기값 프리셋.
 class TutorialExpensePreset {
@@ -38,6 +39,7 @@ Future<void> showExpenseEditorSheet({
   required WidgetRef ref,
   ExpenseEntry? entry,
   DateTime? initialDate,
+  String? initialTripId,
   TutorialExpensePreset? tutorialPreset,
 }) async {
   final ledger = ref.read(ledgerProvider).asData?.value;
@@ -89,7 +91,7 @@ Future<void> showExpenseEditorSheet({
         tutorialPreset: tutorialPreset,
         trips: travelState?.trips ?? const <Trip>[],
         initialActiveTripId: entry == null && tutorialPreset == null
-            ? travelState?.activeTripId
+            ? (initialTripId ?? travelState?.activeTripId)
             : null,
       );
     },
@@ -103,6 +105,8 @@ Future<void> showExpenseEditorSheet({
     }
     ref.invalidate(monthlyExpensesProvider);
     ref.invalidate(rangeExpensesProvider);
+    ref.invalidate(travelExpensesProvider);
+    ref.invalidate(travelExpenseTotalsProvider);
   }
 }
 
@@ -233,6 +237,24 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
     return orderedCodes
         .map((String code) => tagsByCode[code]!)
         .toList(growable: false);
+  }
+
+  Trip? _selectedTrip() {
+    if (subcategoryCode != 't' || tripId == null) return null;
+    for (final trip in widget.trips) {
+      if (trip.id == tripId) return trip;
+    }
+    return null;
+  }
+
+  bool _isOutsideSelectedTripPeriod() {
+    final trip = _selectedTrip();
+    if (trip == null) return false;
+    return _travelPolicy.isOutsideTripPeriod(
+      expenseDate: selectedDate,
+      tripStartDate: trip.startDate,
+      tripEndDate: trip.endDate,
+    );
   }
 
   @override
@@ -382,6 +404,50 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
                     });
                   },
                 ),
+                if (_isOutsideSelectedTripPeriod()) ...<Widget>[
+                  const SizedBox(height: 10),
+                  Semantics(
+                    liveRegion: true,
+                    child: Container(
+                      key: const ValueKey<String>(
+                        'travel-period-outside-warning',
+                      ),
+                      width: double.infinity,
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFFF8E1),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFFFD978)),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: <Widget>[
+                          const Icon(
+                            Icons.info_outline_rounded,
+                            size: 20,
+                            color: Color(0xFF9A6700),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              widget.strings['travelExpenseOutsidePeriodWarning'] ??
+                                  '선택한 날짜는 여행 기간 밖입니다. 여행 전후에 발생한 지출이면 그대로 입력해주세요.',
+                              style: const TextStyle(
+                                color: Color(0xFF6B4F00),
+                                fontSize: 13,
+                                height: 1.4,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 12),
               ],
               DropdownButtonFormField<String>(

@@ -186,6 +186,37 @@ class ExpenseDatabaseService {
     return rows.map(_fromRow).toList(growable: false);
   }
 
+  /// 여행 목록에 표시할 여행별 지출 합계를 한 번에 조회한다.
+  Future<Map<String, int>> loadExpenseTotalsByTrip() async {
+    if (kIsWeb) {
+      final entries = await _loadAllExpensesFromPreferences();
+      final totals = <String, int>{};
+      for (final entry in entries) {
+        final tripId = entry.tripId;
+        if (tripId == null) continue;
+        totals.update(
+          tripId,
+          (int amount) => amount + entry.amount,
+          ifAbsent: () => entry.amount,
+        );
+      }
+      return Map<String, int>.unmodifiable(totals);
+    }
+
+    final db = await _getDatabase();
+    final rows = await db.rawQuery('''
+      SELECT tripId, SUM(amount) AS totalAmount
+      FROM $_tableName
+      WHERE tripId IS NOT NULL
+      GROUP BY tripId
+    ''');
+    return Map<String, int>.unmodifiable(<String, int>{
+      for (final row in rows)
+        if (row['tripId'] case final String tripId)
+          tripId: (row['totalAmount'] as num?)?.toInt() ?? 0,
+    });
+  }
+
   /// 지출내역 1건을 삽입하거나 갱신한다.
   Future<void> upsertExpense(ExpenseEntry entry) async {
     _log('upsertExpense', '지출내역 단건 저장/수정 시작');

@@ -52,4 +52,47 @@ void main() {
 
     expect(tripId, isNull);
   });
+
+  group('여행 기간 안내', () {
+    final start = DateTime(2026, 9, 3);
+    final end = DateTime(2026, 9, 5);
+
+    test('여행 시작일과 종료일은 기간 안으로 처리한다', () {
+      expect(
+        policy.isOutsideTripPeriod(
+          expenseDate: DateTime(2026, 9, 3, 23, 59),
+          tripStartDate: start,
+          tripEndDate: end,
+        ),
+        isFalse,
+      );
+      expect(
+        policy.isOutsideTripPeriod(
+          expenseDate: DateTime(2026, 9, 5),
+          tripStartDate: start,
+          tripEndDate: end,
+        ),
+        isFalse,
+      );
+    });
+
+    test('여행 시작 전과 종료 후 날짜는 기간 밖으로 처리한다', () {
+      expect(
+        policy.isOutsideTripPeriod(
+          expenseDate: DateTime(2026, 9, 2),
+          tripStartDate: start,
+          tripEndDate: end,
+        ),
+        isTrue,
+      );
+      expect(
+        policy.isOutsideTripPeriod(
+          expenseDate: DateTime(2026, 9, 8),
+          tripStartDate: start,
+          tripEndDate: end,
+        ),
+        isTrue,
+      );
+    });
+  });
 }

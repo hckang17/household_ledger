@@ -5,6 +5,7 @@ enum MetadataTagType { category, subcategory, diningOccasion, paymentMethod }
 const Map<MetadataTagType, Map<String, String>>
 systemMetadataTagLocalizationKeys = <MetadataTagType, Map<String, String>>{
   MetadataTagType.category: <String, String>{
+    'A': 'systemTagCategoryAccommodation',
     'C': 'systemTagCategoryCafe',
     'D': 'systemTagCategoryDailyGoodsClothing',
     'E': 'systemTagCategoryOther',
@@ -42,6 +43,8 @@ systemMetadataTagLocalizationKeys = <MetadataTagType, Map<String, String>>{
 const Map<MetadataTagType, Set<String>> systemMetadataTagReservedLabels =
     <MetadataTagType, Set<String>>{
       MetadataTagType.category: <String>{
+        '숙박비',
+        '宿泊費',
         '카페',
         'カフェ',
         '일용품&의류',

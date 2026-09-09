@@ -9,6 +9,7 @@ import 'package:household_ledger/presenter/pages/expense_page/expense_record_pag
 import 'package:household_ledger/presenter/pages/expense_page/fixed_expense_page.dart';
 import 'package:household_ledger/presenter/pages/expense_page/main_shell_page.dart';
 import 'package:household_ledger/presenter/pages/expense_page/travel_management_page.dart';
+import 'package:household_ledger/presenter/pages/expense_page/travel_detail_page.dart';
 import 'package:household_ledger/presenter/pages/sub_page/import_data_page.dart';
 import 'package:household_ledger/presenter/pages/expense_page/income_page.dart';
 import 'package:household_ledger/presenter/pages/sub_page/loading_page.dart';
@@ -76,6 +77,9 @@ class AppRouter {
   /// 여행정보 관리 라우트 이름을 정의한다.
   static const String travelManagementRoute = '/travel-management';
 
+  /// 여행 상세 라우트 이름을 정의한다.
+  static const String travelDetailRoute = '/travel-detail';
+
   /// 이름 기반 라우팅을 생성한다.
   Route<dynamic> onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -100,7 +104,13 @@ class AppRouter {
       case incomeRoute:
         return _buildRoute(const IncomePage(), settings);
       case analysisRoute:
-        return _buildRoute(const AnalysisPage(), settings);
+        final initialTravelId = settings.arguments is String
+            ? settings.arguments as String
+            : null;
+        return _buildRoute(
+          AnalysisPage(initialTravelId: initialTravelId),
+          settings,
+        );
       case exportDataRoute:
         return _buildRoute(const ExportDataPage(), settings);
       case importDataRoute:
@@ -115,6 +125,11 @@ class AppRouter {
         return _buildRoute(const CopyrightsPage(), settings);
       case travelManagementRoute:
         return _buildRoute(const TravelManagementPage(), settings);
+      case travelDetailRoute:
+        final tripId = settings.arguments is String
+            ? settings.arguments! as String
+            : '';
+        return _buildRoute(TravelDetailPage(tripId: tripId), settings);
       default:
         return _buildRoute(const OnboardingPage(), settings);
     }

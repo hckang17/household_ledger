@@ -12,6 +12,8 @@ import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootst
 import 'package:household_ledger/presenter/widgets/analysis_page/analysis_expense_tab.dart';
 import 'package:household_ledger/presenter/widgets/analysis_page/analysis_income_tab.dart';
 import 'package:household_ledger/presenter/widgets/analysis_page/analysis_period_control_card.dart';
+import 'package:household_ledger/presenter/widgets/analysis_page/analysis_scope_control.dart';
+import 'package:household_ledger/presenter/widgets/analysis_page/travel/travel_analysis_section.dart';
 import 'package:household_ledger/presenter/widgets/common/expense_editor_sheet.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
@@ -25,11 +27,16 @@ import 'package:showcaseview/showcaseview.dart';
 /// 기간 선택 모드를 정의한다.
 enum _PeriodMode { monthly, range }
 
+enum _AnalysisScope { period, travel }
+
 /// 지출 분석 화면이다.
 ///
 /// 도넛 차트 캐러샐(소비구분/소비소구분/소비수단), 고정지출 막대, 일별 추이를 제공한다.
 class AnalysisPage extends ConsumerStatefulWidget {
-  const AnalysisPage({super.key});
+  const AnalysisPage({super.key, this.initialTravelId});
+
+  /// 값이 있으면 여행별 분석으로 열고 해당 여행을 처음 선택한다.
+  final String? initialTravelId;
 
   @override
   ConsumerState<AnalysisPage> createState() => _AnalysisPageState();
@@ -39,6 +46,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
   late DateTime _selectedMonth;
   DateTimeRange? _selectedRange;
   _PeriodMode _periodMode = _PeriodMode.monthly;
+  late _AnalysisScope _analysisScope;
   bool _showExpense = true;
 
   final GlobalKey _periodControlKey = GlobalKey();
@@ -85,6 +93,9 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     super.initState();
     final DateTime now = DateTime.now();
     _selectedMonth = DateTime(now.year, now.month, 1);
+    _analysisScope = widget.initialTravelId == null
+        ? _AnalysisScope.period
+        : _AnalysisScope.travel;
   }
 
   // ─── 로케일 헬퍼 ────────────────────────────────────────────────
@@ -231,6 +242,44 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
       MetadataTagType.paymentMethod,
     );
 
+    if (_analysisScope == _AnalysisScope.travel) {
+      return BootstrapPage(
+        title: _text(strings, 'analysis', '지출 분석'),
+        actions: <Widget>[
+          IconButton(
+            onPressed: () =>
+                Navigator.of(context).pushNamed(AppRouter.dataManageRoute),
+            icon: const Icon(Icons.manage_search_rounded),
+            tooltip: strings['dataManageTitle'] ?? '데이터 관리',
+          ),
+        ],
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.only(bottom: 24),
+          child: Column(
+            children: <Widget>[
+              AnalysisScopeControl(
+                isTravel: true,
+                strings: strings,
+                onChanged: (bool isTravel) => setState(() {
+                  _analysisScope = isTravel
+                      ? _AnalysisScope.travel
+                      : _AnalysisScope.period;
+                }),
+              ),
+              const SizedBox(height: 16),
+              TravelAnalysisSection(
+                initialTripId: widget.initialTravelId,
+                categoryTags: categoryTags,
+                paymentTags: paymentTags,
+                currency: ledger.settings.currencyUnit,
+                strings: strings,
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     final bool usingRange =
         _periodMode == _PeriodMode.range && _selectedRange != null;
 
@@ -317,6 +366,16 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
         child: SingleChildScrollView(
           child: Column(
             children: <Widget>[
+              AnalysisScopeControl(
+                isTravel: false,
+                strings: strings,
+                onChanged: (bool isTravel) => setState(() {
+                  _analysisScope = isTravel
+                      ? _AnalysisScope.travel
+                      : _AnalysisScope.period;
+                }),
+              ),
+              const SizedBox(height: 16),
               // ── 상단 컨트롤 카드 ──
               Showcase(
                 key: _periodControlKey,

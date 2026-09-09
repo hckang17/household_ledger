@@ -7,6 +7,7 @@ import 'package:household_ledger/presenter/controllers/tutorial_showcase_control
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/model/trip.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/presenter/extensions/currency_extension.dart';
 import 'package:household_ledger/presenter/widgets/home_page/comparison_card.dart';
@@ -19,6 +20,8 @@ import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/provider/nav_tab_provider.dart';
 import 'package:household_ledger/provider/tutorial_provider.dart';
+import 'package:household_ledger/provider/travel_provider.dart';
+import 'package:household_ledger/provider/travel_summary_provider.dart';
 import 'package:household_ledger/router/app_router.dart';
 import 'package:household_ledger/services/mock_data_service.dart';
 import 'package:showcaseview/showcaseview.dart';
@@ -76,6 +79,8 @@ class _HomePageState extends ConsumerState<HomePage> {
     await ref.read(ledgerProvider.notifier).deleteExpense(entry.id);
     ref.invalidate(monthlyExpensesProvider);
     ref.invalidate(rangeExpensesProvider);
+    ref.invalidate(travelExpensesProvider);
+    ref.invalidate(travelExpenseTotalsProvider);
   }
 
   Future<void> _handleBackDuringTutorial() async {
@@ -108,6 +113,8 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget build(BuildContext context) {
     final strings = ref.watch(localizedStringsProvider);
     final ledger = ref.watch(ledgerProvider).asData?.value;
+    final trips =
+        ref.watch(travelProvider).asData?.value.trips ?? const <Trip>[];
     final compResult = ref.watch(comparisonProvider);
     final now = DateTime.now();
     final month = DateTime(now.year, now.month);
@@ -399,6 +406,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     subcategoryTags: subcategoryTags,
                     diningOccasionTags: diningOccasionTags,
                     paymentTags: paymentTags,
+                    trips: trips,
                     strings: strings,
                     currency: currency,
                   ),
