@@ -16,6 +16,17 @@ DB 서비스는 4개다.
 - 고정지출: `FixedExpenseDatabaseService` (`lib/services/database/fixed_expense_database_service.dart`)
 - 여행: `TravelDatabaseService` (`lib/services/database/travel_database_service.dart`)
 
+### 여행 삭제와 지출 전환
+
+`ExpenseDatabaseService.deleteTripAndReclassifyExpenses`는 해당 `tripId`의 전체 지출을
+`subcategoryCode = '_'`, `tripId = NULL`로 바꾸고 여행 메타데이터를 삭제한다.
+기간 제한은 없으며 금액·메모 등 나머지 지출 필드는 유지한다. 스키마 변경은 없다.
+네이티브에서는 전용 SQLite 연결에 여행 DB를 ATTACH하여 두 DB의 변경을 하나의
+트랜잭션으로 수행한다. Web에서는 지출 JSON 저장 후 여행 JSON을 저장하며, 두 번째
+저장이 실패하면 원래 지출 JSON을 복원한다. Web의 두 키 저장은 원자적이지 않으므로
+저장 중 브라우저 종료나 복원 자체의 저장 실패까지 보장하지는 않는다.
+삭제 후 Provider는 활성 여행을 해제하고 지출·여행 집계·검색 캐시를 갱신한다.
+
 ## 1) Expense DB
 
 ### 기본 정보

@@ -1,5 +1,8 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/model/trip.dart';
+import 'package:household_ledger/provider/ledger_provider.dart';
+import 'package:household_ledger/provider/data_manage_provider.dart';
+import 'package:household_ledger/provider/travel_summary_provider.dart';
 import 'package:household_ledger/services/database/travel_database_service.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -105,6 +108,38 @@ class TravelNotifier extends AsyncNotifier<TravelState> {
     ];
     _sortTrips(nextTrips);
     state = AsyncData(current.copyWith(trips: nextTrips));
+  }
+
+  /// 저장 성공 후에만 여행 목록을 변경하고 모든 지출 조회를 갱신한다.
+  Future<void> deleteTrip(String tripId) async {
+    final current = await future;
+    if (!current.trips.any((trip) => trip.id == tripId)) return;
+    await ref
+        .read(expenseDatabaseServiceProvider)
+        .deleteTripAndReclassifyExpenses(tripId);
+    final latest = state.asData?.value ?? current;
+    state = AsyncData(
+      latest.copyWith(
+        trips: latest.trips.where((trip) => trip.id != tripId).toList(),
+        clearActiveTrip: latest.activeTripId == tripId,
+      ),
+    );
+    ref.invalidate(monthlyExpensesProvider);
+    ref.invalidate(rangeExpensesProvider);
+    ref.invalidate(travelExpensesProvider);
+    ref.invalidate(travelExpenseTotalsProvider);
+    ref.invalidate(ledgerProvider);
+    ref.invalidate(dataManageProvider);
+    // 삭제된 ID는 build에서도 무효화한다. 설정 저장 실패가 이미 완료된
+    // DB 삭제를 실패로 표시하거나 메모리 여행 모드를 되살리지 않게 한다.
+    try {
+      final preferences = await SharedPreferences.getInstance();
+      if (preferences.getString(_activeTripStorageKey) == tripId) {
+        await preferences.remove(_activeTripStorageKey);
+      }
+    } catch (_) {
+      // 다음 초기화에서 존재하지 않는 활성 여행 ID를 다시 정리한다.
+    }
   }
 
   Future<void> setArchived(Trip trip, bool archived) async {

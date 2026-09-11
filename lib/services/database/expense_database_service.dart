@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/services/database/travel_database_service.dart';
 import 'package:path/path.dart' as path;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:household_ledger/services/debugging_logger.dart';
@@ -16,6 +17,91 @@ class ExpenseDatabaseService {
   static const String _logPrefix = '[ExpenseDatabaseService]';
 
   Database? _database;
+
+  /// 여행 메타데이터를 삭제하고 연결된 전체 지출을 평상시로 전환한다.
+  /// 네이티브는 연결 DB 트랜잭션으로 두 파일의 변경을 함께 커밋한다.
+  /// Web은 두 번째 저장 실패 시 원래 지출 JSON을 복원한다.
+  Future<void> deleteTripAndReclassifyExpenses(String tripId) async {
+    if (tripId.isEmpty) throw ArgumentError.value(tripId, 'tripId');
+    if (kIsWeb) {
+      final preferences = await SharedPreferences.getInstance();
+      final originalExpenses = preferences.getString(_webStorageKey);
+      final originalTrips = preferences.getString(
+        TravelDatabaseService.webStorageKey,
+      );
+      final entries = await _loadAllExpensesFromPreferences();
+      final trips = jsonDecode(originalTrips ?? '[]') as List<dynamic>;
+      final nextTrips = trips
+          .where((dynamic trip) => trip['id'] != tripId)
+          .toList();
+      final nextExpenses = entries
+          .map(
+            (entry) => entry.tripId == tripId
+                ? entry.copyWith(subcategoryCode: '_', clearTrip: true)
+                : entry,
+          )
+          .toList();
+      try {
+        if (!await preferences.setString(
+          _webStorageKey,
+          jsonEncode(nextExpenses.map((entry) => entry.toJson()).toList()),
+        )) {
+          throw StateError('Could not save reclassified expenses');
+        }
+        if (!await preferences.setString(
+          TravelDatabaseService.webStorageKey,
+          jsonEncode(nextTrips),
+        )) {
+          throw StateError('Could not delete trip');
+        }
+      } catch (_) {
+        final restored = originalExpenses == null
+            ? await preferences.remove(_webStorageKey)
+            : await preferences.setString(_webStorageKey, originalExpenses);
+        if (!restored) throw StateError('Could not restore expenses');
+        // SharedPreferences는 저장 실패 시에도 메모리 캐시를 먼저 바꾸므로
+        // 여행 JSON도 함께 복원한다.
+        final tripsRestored = originalTrips == null
+            ? await preferences.remove(TravelDatabaseService.webStorageKey)
+            : await preferences.setString(
+                TravelDatabaseService.webStorageKey,
+                originalTrips,
+              );
+        if (!tripsRestored) throw StateError('Could not restore trips');
+        rethrow;
+      }
+      return;
+    }
+
+    await _getDatabase();
+    await TravelDatabaseService.instance.initialize();
+    final databasePath = await getDatabasesPath();
+    // 전용 연결을 사용해 다른 지출 작업의 ATTACH/DETACH와 충돌하지 않는다.
+    final db = await openDatabase(
+      path.join(databasePath, _databaseName),
+      singleInstance: false,
+    );
+    try {
+      await db.execute('ATTACH DATABASE ? AS travel_delete', <Object?>[
+        path.join(databasePath, TravelDatabaseService.databaseName),
+      ]);
+      await db.transaction((txn) async {
+        await txn.update(
+          _tableName,
+          <String, Object?>{'subcategoryCode': '_', 'tripId': null},
+          where: 'tripId = ?',
+          whereArgs: <Object?>[tripId],
+        );
+        await txn.delete(
+          'travel_delete.${TravelDatabaseService.tableName}',
+          where: 'id = ?',
+          whereArgs: <Object?>[tripId],
+        );
+      });
+    } finally {
+      await db.close();
+    }
+  }
 
   void _log(String methodName, String action) {
     logger.d('[expense_database_service.dart] $methodName ( $action )');

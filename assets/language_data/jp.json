@@ -1,4 +1,10 @@
 {
+  "travelDeleteTitle": "旅行を削除",
+  "travelDeleteWarning": "「{name}」を削除しますか？\nこの旅行に紐付くすべての支出記録は、期間に関係なく「普段」に変更して保存されます。支出の金額と内容は保持され、旅行情報は削除されます。使用中の旅行の場合は旅行モードも解除されます。",
+  "travelDeleteYes": "はい",
+  "travelDeleteNo": "いいえ",
+  "travelDeleteError": "旅行を削除できませんでした。もう一度お試しください。",
+
   "travelExpenseOutsidePeriodWarning": "選択した日付は旅行期間外です。旅行の前後に発生した支出であれば、そのまま入力してください。",
   "travelGradientSettingsTitle": "旅行モードの背景",
   "travelGradientSettingsDescription": "旅行モードで使用する淡いグラデーションを選択してください。",

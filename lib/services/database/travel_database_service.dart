@@ -18,7 +18,7 @@ class TravelDatabaseService {
   static const String tableName = 'trips';
   static const String activeStartDateIndexName = 'idx_trips_active_start_date';
   static const int schemaVersion = 1;
-  static const String _webStorageKey = 'household_ledger_trips';
+  static const String webStorageKey = 'household_ledger_trips';
 
   Database? _database;
 
@@ -141,7 +141,7 @@ class TravelDatabaseService {
 
   Future<List<Trip>> _loadTripsFromPreferences() async {
     final preferences = await SharedPreferences.getInstance();
-    final raw = preferences.getString(_webStorageKey);
+    final raw = preferences.getString(webStorageKey);
     if (raw == null || raw.isEmpty) {
       return <Trip>[];
     }
@@ -156,7 +156,7 @@ class TravelDatabaseService {
   Future<void> _saveTripsToPreferences(List<Trip> trips) async {
     final preferences = await SharedPreferences.getInstance();
     await preferences.setString(
-      _webStorageKey,
+      webStorageKey,
       jsonEncode(trips.map((Trip trip) => trip.toJson()).toList()),
     );
   }
