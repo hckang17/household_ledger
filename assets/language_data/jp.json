@@ -1,7 +1,16 @@
 {
+  "appBackgroundSaveError": "背景を保存できませんでした。もう一度お試しください。",
+  "recordTravelExpense": "旅行の支出を記録",
+  "appBackgroundSolid": "標準の単色",
+  "travelDeleteTitle": "旅行を削除",
+  "travelDeleteWarning": "「{name}」を削除しますか？\nこの旅行に紐付くすべての支出記録は、期間に関係なく「普段」に変更して保存されます。支出の金額と内容は保持され、旅行情報は削除されます。使用中の旅行の場合は旅行モードも解除されます。",
+  "travelDeleteYes": "はい",
+  "travelDeleteNo": "いいえ",
+  "travelDeleteError": "旅行を削除できませんでした。もう一度お試しください。",
+
   "travelExpenseOutsidePeriodWarning": "選択した日付は旅行期間外です。旅行の前後に発生した支出であれば、そのまま入力してください。",
-  "travelGradientSettingsTitle": "旅行モードの背景",
-  "travelGradientSettingsDescription": "旅行モードで使用する淡いグラデーションを選択してください。",
+  "travelGradientSettingsTitle": "アプリの背景",
+  "travelGradientSettingsDescription": "旅行モードに関係なく、アプリ全体で使用する背景を選んでください。",
   "travelGradientBreeze": "そよ風",
   "travelGradientOcean": "澄んだ海",
   "travelGradientSunset": "夕焼け",
@@ -587,5 +596,6 @@
   "travelDailyChartTitle": "旅行中の日別支出",
   "travelDailyChartDescription": "旅行前後に支払った金額はこのチャートから除外されます。",
   "sideBarTravelGroup": "旅行",
-  "sideBarTravelManagement": "旅行情報管理"
+  "sideBarTravelManagement": "旅行情報管理",
+  "unsupportedBackupVersionMessage": "このバックアップファイルは現在のアプリより新しいバージョンで作成されています。アプリを更新してからもう一度お試しください。"
 }

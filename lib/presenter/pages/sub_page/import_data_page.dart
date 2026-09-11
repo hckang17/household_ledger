@@ -11,6 +11,7 @@ import 'package:household_ledger/presenter/widgets/common/ledger_dialogs.dart';
 import 'package:household_ledger/presenter/widgets/common/loading_overlay.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
+import 'package:household_ledger/provider/travel_provider.dart';
 import 'package:household_ledger/main.dart';
 import 'package:household_ledger/services/imexporting_file/data_im_export_service.dart';
 
@@ -127,8 +128,13 @@ class _ImportDataPageState extends ConsumerState<ImportDataPage> {
             expenses: result.expenses,
             fixedExpenses: result.fixedExpenses,
             incomes: result.incomes,
+            trips: result.trips,
             importedState: result.ledgerState!,
+            tutorialCompleted: result.tutorialCompleted,
+            tutorialVersion: result.tutorialVersion,
           );
+
+      ref.invalidate(travelProvider);
 
       if (!mounted) {
         return;

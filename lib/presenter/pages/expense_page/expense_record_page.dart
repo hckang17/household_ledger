@@ -1,3 +1,4 @@
+import 'package:household_ledger/presenter/widgets/common/expense_record_action.dart';
 // """ MVVM 계층: View / Main Feature Page """
 // """ 역할: 날짜별 소비 기록 조회·등록·수정·삭제 화면 구성 """
 
@@ -310,14 +311,14 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
             strings['tutExpenseFabDesc'] ??
             '오늘의 소비를 기록해보세요!\n날짜를 선택한 후 + 버튼을 탭하면 해당 날짜로 입력창이 열려요.',
         tooltipPosition: TooltipPosition.top,
-        child: FloatingActionButton.extended(
+        child: ExpenseRecordAction(
+          strings: strings,
+          floating: true,
           onPressed: () => showExpenseEditorSheet(
             context: context,
             ref: ref,
             initialDate: _selectedDay,
           ),
-          label: Text(_text(strings, 'addExpense')),
-          icon: const Icon(Icons.add),
         ),
       );
 

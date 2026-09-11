@@ -5,14 +5,18 @@ import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/model/ledger_state.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/model/push_notification_settings.dart';
+import 'package:household_ledger/model/trip.dart';
 import 'package:household_ledger/model/travel_gradient_palette.dart';
 import 'package:household_ledger/model/user_profile.dart';
 import 'package:household_ledger/services/debugging_logger.dart';
 import 'package:household_ledger/services/database/expense_database_service.dart';
 import 'package:household_ledger/services/database/fixed_expense_database_service.dart';
 import 'package:household_ledger/services/database/income_database_service.dart';
+import 'package:household_ledger/services/database/travel_database_service.dart';
 import 'package:household_ledger/services/local_storage_service.dart';
 import 'package:household_ledger/services/localization_service.dart';
+import 'package:household_ledger/services/tutorial_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void _logLedgerProvider(String methodName, String action) {
   logger.d('[ledger_provider.dart] $methodName ( $action )');
@@ -62,6 +66,12 @@ final fixedExpenseDatabaseServiceProvider =
       );
       return FixedExpenseDatabaseService();
     });
+
+final travelDatabaseServiceProvider = Provider<TravelDatabaseService>((
+  Ref ref,
+) {
+  return TravelDatabaseService.instance;
+});
 
 /// 앱 전체 상태를 관리한다.
 final ledgerProvider = AsyncNotifierProvider<LedgerNotifier, LedgerState>(
@@ -343,15 +353,29 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
     await _commit(current.changePushNotifications(settings));
   }
 
-  /// 여행 모드 배경 팔레트를 저장하고 즉시 적용한다.
+  /// 기존 팔레트 변경 진입점도 앱 전체 배경 설정으로 연결한다.
   Future<void> changeTravelGradientPalette(
     TravelGradientPalette palette,
   ) async {
     final current = state.asData?.value;
-    if (current == null || current.settings.travelGradientPalette == palette) {
+    if (current == null) {
       return;
     }
-    await _commit(current.changeTravelGradientPalette(palette));
+    await changeAppBackground(palette);
+  }
+
+  /// null은 기본 단색, 팔레트는 앱 전체 그라데이션을 선택한다.
+  Future<void> changeAppBackground(TravelGradientPalette? palette) async {
+    final current = state.asData?.value;
+    if (current == null) return;
+    final next = current.copyWith(
+      settings: current.settings.copyWith(
+        useGradientBackground: palette != null,
+        travelGradientPalette: palette,
+      ),
+    );
+    await _localStorageService.saveState(next);
+    state = AsyncData(next);
   }
 
   /// 사용자 프로필 정보를 변경한다.
@@ -585,46 +609,91 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
     required List<ExpenseEntry> expenses,
     required List<FixedExpense> fixedExpenses,
     required List<IncomeEntry> incomes,
+    required List<Trip> trips,
     required LedgerState importedState,
+    bool? tutorialCompleted,
+    int? tutorialVersion,
   }) async {
-    _logLedgerProvider('importAllData', '데이터 전체 가져오기 시작');
+    _logLedgerProvider('importAllData', 'import start');
 
-    await _expenseDatabaseService.deleteAllExpenses();
-    await _fixedExpenseDatabaseService.deleteAllFixedExpenses();
-    await _incomeDatabaseService.deleteAllIncomes();
-
-    await _expenseDatabaseService.upsertExpenses(expenses);
-    final migratedDiningCount = await _expenseDatabaseService
-        .migrateLegacyDiningDescriptions();
-    _logLedgerProvider(
-      'importAllData',
-      '가져온 외식 기록 자동 마이그레이션 완료($migratedDiningCount건)',
+    final travelDatabase = ref.read(travelDatabaseServiceProvider);
+    final previousExpenses = await _expenseDatabaseService.loadAllExpenses();
+    final previousFixedExpenses = await _fixedExpenseDatabaseService
+        .loadAllFixedExpenses();
+    final previousIncomes = await _incomeDatabaseService.loadAllIncomes();
+    final previousTrips = await travelDatabase.loadAllTrips();
+    final previousState = state.asData?.value;
+    final tutorialService = TutorialService();
+    final previousTutorial = await tutorialService.exportValues();
+    final preferences = await SharedPreferences.getInstance();
+    final previousActiveTripId = preferences.getString(
+      TravelDatabaseService.activeTripStorageKey,
     );
-    await _fixedExpenseDatabaseService.upsertFixedExpenses(fixedExpenses);
-    await _incomeDatabaseService.upsertIncomes(incomes);
 
-    final nowMonth = DateTime.now();
-    final currentMonthExpenses = await _expenseDatabaseService
-        .loadExpensesByMonth(nowMonth);
+    try {
+      await travelDatabase.replaceAllTrips(trips);
+      await _expenseDatabaseService.deleteAllExpenses();
+      await _fixedExpenseDatabaseService.deleteAllFixedExpenses();
+      await _incomeDatabaseService.deleteAllIncomes();
 
-    final prevQuery = computePrevSamePeriodQuery(nowMonth);
-    final prevPeriodExpenses = await _expenseDatabaseService
-        .loadExpensesByRange(
-          start: prevQuery.start,
-          endExclusive: prevQuery.endExclusive,
+      await _expenseDatabaseService.upsertExpenses(expenses);
+      await _expenseDatabaseService.migrateLegacyDiningDescriptions();
+      await _fixedExpenseDatabaseService.upsertFixedExpenses(fixedExpenses);
+      await _incomeDatabaseService.upsertIncomes(incomes);
+
+      final nowMonth = DateTime.now();
+      final currentMonthExpenses = await _expenseDatabaseService
+          .loadExpensesByMonth(nowMonth);
+      final prevQuery = computePrevSamePeriodQuery(nowMonth);
+      final prevPeriodExpenses = await _expenseDatabaseService
+          .loadExpensesByRange(
+            start: prevQuery.start,
+            endExclusive: prevQuery.endExclusive,
+          );
+      final strings = await LocalizationService().loadStrings(
+        importedState.settings.localeCode,
+      );
+      final next = importedState
+          .copyWith(
+            expenses: currentMonthExpenses,
+            fixedExpenses: fixedExpenses,
+            prevPeriodExpenses: prevPeriodExpenses,
+          )
+          .localizeSystemMetadataTags(strings);
+      if (tutorialCompleted != null) {
+        await tutorialService.restoreFromCsv(
+          completed: tutorialCompleted,
+          version: tutorialVersion ?? 1,
         );
-    final strings = await LocalizationService().loadStrings(
-      importedState.settings.localeCode,
-    );
-    final next = importedState
-        .copyWith(
-          expenses: currentMonthExpenses,
-          fixedExpenses: fixedExpenses,
-          prevPeriodExpenses: prevPeriodExpenses,
-        )
-        .localizeSystemMetadataTags(strings);
-    await _commit(next);
-    _logLedgerProvider('importAllData', '데이터 전체 가져오기 완료');
+      }
+      await preferences.remove(TravelDatabaseService.activeTripStorageKey);
+      await _commit(next);
+    } catch (_) {
+      await travelDatabase.replaceAllTrips(previousTrips);
+      await _expenseDatabaseService.deleteAllExpenses();
+      await _expenseDatabaseService.upsertExpenses(previousExpenses);
+      await _fixedExpenseDatabaseService.deleteAllFixedExpenses();
+      await _fixedExpenseDatabaseService.upsertFixedExpenses(
+        previousFixedExpenses,
+      );
+      await _incomeDatabaseService.deleteAllIncomes();
+      await _incomeDatabaseService.upsertIncomes(previousIncomes);
+      await tutorialService.restoreFromCsv(
+        completed: previousTutorial['tutorial_completed'] == 'true',
+        version: int.tryParse(previousTutorial['tutorial_version'] ?? '1') ?? 1,
+      );
+      if (previousActiveTripId == null) {
+        await preferences.remove(TravelDatabaseService.activeTripStorageKey);
+      } else {
+        await preferences.setString(
+          TravelDatabaseService.activeTripStorageKey,
+          previousActiveTripId,
+        );
+      }
+      if (previousState != null) await _commit(previousState);
+      rethrow;
+    }
+    _logLedgerProvider('importAllData', 'import complete');
   }
 
   /// 상태를 저장 포함 방식으로 교체한다.

@@ -168,6 +168,7 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
       final expenseService = ref.read(expenseDatabaseServiceProvider);
       final fixedService = ref.read(fixedExpenseDatabaseServiceProvider);
       final incomeService = ref.read(incomeDatabaseServiceProvider);
+      final travelService = ref.read(travelDatabaseServiceProvider);
 
       List<ExpenseEntry> allExpenses;
       List<FixedExpense> allFixed;
@@ -206,6 +207,17 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
           );
       }
 
+      final allTrips = await travelService.loadAllTrips();
+      final referencedTripIds = allExpenses
+          .map((ExpenseEntry expense) => expense.tripId)
+          .whereType<String>()
+          .toSet();
+      final exportedTrips = _exportRange == _ExportRange.all
+          ? allTrips
+          : allTrips
+                .where((trip) => referencedTripIds.contains(trip.id))
+                .toList(growable: false);
+
       final now = DateTime.now();
       final timestamp =
           '${now.year}${_twoDigit(now.month)}${_twoDigit(now.day)}'
@@ -215,6 +227,7 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
         expenses: allExpenses,
         fixedExpenses: allFixed,
         incomes: allIncomes,
+        trips: exportedTrips,
         ledgerState: ledger,
         email: email,
         passkey: passkey,
