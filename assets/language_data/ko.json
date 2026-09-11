@@ -606,5 +606,11 @@
   "travelDailyChartDescription": "여행 전후에 결제한 금액은 이 차트에서 제외됩니다.",
   "sideBarTravelGroup": "여행",
   "sideBarTravelManagement": "여행정보 관리",
+  "fixedExpenseCarryoverTitle": "지난달 고정지출 가져오기",
+  "fixedExpenseCarryoverMessage": "지난달 고정지출 데이터를 가져올까요?",
+  "fixedExpenseCarryoverDontShowAgain": "이번 달은 더 이상 표시하지 않기",
+  "fixedExpenseCarryoverCompleteTitle": "고정지출 복사 완료",
+  "fixedExpenseCarryoverCompleteMessage": "지난달 고정지출을 가져왔습니다. 반드시 금액을 이번 달 데이터로 수정해 주세요!",
+  "fixedExpenseCarryoverError": "지난달 고정지출을 가져오지 못했습니다. 다시 시도해 주세요.",
   "unsupportedBackupVersionMessage": "이 백업 파일은 현재 앱 버전보다 새 버전에서 만들어졌습니다. 앱을 업데이트한 뒤 다시 시도해 주세요."
 }

@@ -9,6 +9,7 @@ import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/presenter/extensions/metadata_tag_icon_extension.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/provider/nav_tab_provider.dart';
+import 'package:household_ledger/provider/fixed_expense_carryover_provider.dart';
 import 'package:household_ledger/provider/tutorial_provider.dart';
 import 'package:household_ledger/router/app_router.dart';
 import 'package:household_ledger/presenter/extensions/currency_extension.dart';
@@ -32,6 +33,8 @@ class FixedExpensePage extends ConsumerStatefulWidget {
 
 class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
   late DateTime _focusedMonth;
+  bool _carryoverPromptInProgress = false;
+  bool _carryoverAttemptedThisVisit = false;
 
   final GlobalKey _totalKey = GlobalKey();
   final GlobalKey _fabKey = GlobalKey();
@@ -47,12 +50,14 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
   void _prevMonth() {
     setState(() {
       _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month - 1, 1);
+      _carryoverAttemptedThisVisit = false;
     });
   }
 
   void _nextMonth() {
     setState(() {
       _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month + 1, 1);
+      _carryoverAttemptedThisVisit = false;
     });
   }
 
@@ -65,7 +70,10 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
       allowFuture: true,
     );
     if (picked == null) return;
-    setState(() => _focusedMonth = DateTime(picked.year, picked.month, 1));
+    setState(() {
+      _focusedMonth = DateTime(picked.year, picked.month, 1);
+      _carryoverAttemptedThisVisit = false;
+    });
   }
 
   String _text(Map<String, String> strings, String tag) {
@@ -86,6 +94,105 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
     return template
         .replaceAll('{year}', _focusedMonth.year.toString())
         .replaceAll('{month}', _focusedMonth.month.toString().padLeft(2, '0'));
+  }
+
+  Future<void> _maybeOfferCarryover(
+    DateTime targetMonth,
+    Map<String, String> strings,
+  ) async {
+    if (_carryoverPromptInProgress ||
+        _carryoverAttemptedThisVisit ||
+        ref.read(tutorialProvider).isActive ||
+        !mounted) {
+      return;
+    }
+    _carryoverAttemptedThisVisit = true;
+    _carryoverPromptInProgress = true;
+    try {
+      final controller = ref.read(fixedExpenseCarryoverControllerProvider);
+      final previousCount = await controller.findOfferCount(targetMonth);
+      if (previousCount == 0 || !mounted) return;
+
+      var suppressForMonth = false;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext dialogContext) => StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return AlertDialog(
+              title: Text(_text(strings, 'fixedExpenseCarryoverTitle')),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Text(_text(strings, 'fixedExpenseCarryoverMessage')),
+                  const SizedBox(height: 12),
+                  CheckboxListTile(
+                    contentPadding: EdgeInsets.zero,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    value: suppressForMonth,
+                    title: Text(
+                      _text(strings, 'fixedExpenseCarryoverDontShowAgain'),
+                    ),
+                    onChanged: (bool? value) {
+                      setDialogState(() => suppressForMonth = value ?? false);
+                    },
+                  ),
+                ],
+              ),
+              actions: <Widget>[
+                TextButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  child: Text(_text(strings, 'cancel')),
+                ),
+                FilledButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  child: Text(_text(strings, 'confirmOk')),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+      if (confirmed != true) {
+        if (suppressForMonth) {
+          await controller.suppressForMonth(targetMonth);
+        }
+        return;
+      }
+      if (!mounted) return;
+
+      final copied = await controller.copyPreviousMonth(targetMonth);
+      if (!mounted || copied.isEmpty) return;
+      ref.invalidate(monthlyFixedExpensesProvider(targetMonth));
+      ref.invalidate(ledgerProvider);
+
+      await showDialog<void>(
+        context: context,
+        builder: (BuildContext dialogContext) => AlertDialog(
+          icon: const Icon(
+            Icons.check_circle_outline_rounded,
+            color: Color(0xFF198754),
+          ),
+          title: Text(_text(strings, 'fixedExpenseCarryoverCompleteTitle')),
+          content: Text(_text(strings, 'fixedExpenseCarryoverCompleteMessage')),
+          actions: <Widget>[
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: Text(_text(strings, 'confirmOk')),
+            ),
+          ],
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_text(strings, 'fixedExpenseCarryoverError'))),
+        );
+      }
+    } finally {
+      _carryoverPromptInProgress = false;
+    }
   }
 
   Future<void> _showDetail({
@@ -168,10 +275,25 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
     );
 
     ref.listen(currentNavTabProvider, (_, tab) {
+      if (tab != 4) {
+        _carryoverAttemptedThisVisit = false;
+      }
       if (tab == 4 &&
           ref.read(tutorialProvider).phase == TutorialPhase.fixedExpense) {
         _showcase.reset();
         _maybeStartShowcase();
+      }
+      if (tab == 4) {
+        final items = ref
+            .read(monthlyFixedExpensesProvider(_focusedMonth))
+            .asData
+            ?.value;
+        if (items?.isEmpty ?? false) {
+          final targetMonth = _focusedMonth;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _maybeOfferCarryover(targetMonth, strings);
+          });
+        }
       }
     });
 
@@ -185,6 +307,16 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
     final fixedExpensesAsync = ref.watch(
       monthlyFixedExpensesProvider(_focusedMonth),
     );
+    ref.listen(monthlyFixedExpensesProvider(_focusedMonth), (_, next) {
+      next.whenData((List<FixedExpense> items) {
+        if (items.isEmpty && ref.read(currentNavTabProvider) == 4) {
+          final targetMonth = _focusedMonth;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _maybeOfferCarryover(targetMonth, strings);
+          });
+        }
+      });
+    });
 
     Widget buildInner(BuildContext showcaseCtx) {
       _showcase.bind(showcaseCtx);

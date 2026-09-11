@@ -597,5 +597,11 @@
   "travelDailyChartDescription": "旅行前後に支払った金額はこのチャートから除外されます。",
   "sideBarTravelGroup": "旅行",
   "sideBarTravelManagement": "旅行情報管理",
+  "fixedExpenseCarryoverTitle": "先月の固定支出を取り込む",
+  "fixedExpenseCarryoverMessage": "先月の固定支出データを取り込みますか？",
+  "fixedExpenseCarryoverDontShowAgain": "今月は今後表示しない",
+  "fixedExpenseCarryoverCompleteTitle": "固定支出のコピー完了",
+  "fixedExpenseCarryoverCompleteMessage": "先月の固定支出を取り込みました。金額を必ず今月のデータに修正してください！",
+  "fixedExpenseCarryoverError": "先月の固定支出を取り込めませんでした。もう一度お試しください。",
   "unsupportedBackupVersionMessage": "このバックアップファイルは現在のアプリより新しいバージョンで作成されています。アプリを更新してからもう一度お試しください。"
 }
