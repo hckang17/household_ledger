@@ -89,6 +89,8 @@ class _ImportDataPageState extends ConsumerState<ImportDataPage> {
       message: _text(strings, 'importConfirmMessage'),
       confirmLabel: _text(strings, 'importButton'),
       cancelLabel: _text(strings, 'cancel'),
+      isDestructive: false,
+      icon: Icons.restore_rounded,
     );
     if (!confirmed) {
       return;

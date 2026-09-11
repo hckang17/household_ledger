@@ -8,6 +8,7 @@ import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/presenter/extensions/metadata_tag_icon_extension.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_dialog.dart';
 import 'package:household_ledger/provider/nav_tab_provider.dart';
 import 'package:household_ledger/provider/fixed_expense_carryover_provider.dart';
 import 'package:household_ledger/provider/tutorial_provider.dart';
@@ -119,20 +120,49 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
         barrierDismissible: false,
         builder: (BuildContext dialogContext) => StatefulBuilder(
           builder: (BuildContext context, StateSetter setDialogState) {
-            return AlertDialog(
-              title: Text(_text(strings, 'fixedExpenseCarryoverTitle')),
+            return BootstrapDialog(
+              title: _text(strings, 'fixedExpenseCarryoverTitle'),
+              icon: Icons.event_repeat_rounded,
               content: Column(
                 mainAxisSize: MainAxisSize.min,
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: <Widget>[
-                  Text(_text(strings, 'fixedExpenseCarryoverMessage')),
-                  const SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF6F9FF),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFDCE6F5)),
+                    ),
+                    child: Row(
+                      children: <Widget>[
+                        const Icon(
+                          Icons.content_copy_rounded,
+                          size: 20,
+                          color: Color(0xFF0D6EFD),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _text(strings, 'fixedExpenseCarryoverMessage'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
                   CheckboxListTile(
-                    contentPadding: EdgeInsets.zero,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                    dense: true,
                     controlAffinity: ListTileControlAffinity.leading,
                     value: suppressForMonth,
                     title: Text(
                       _text(strings, 'fixedExpenseCarryoverDontShowAgain'),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: const Color(0xFF52606D),
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     onChanged: (bool? value) {
                       setDialogState(() => suppressForMonth = value ?? false);
@@ -141,12 +171,26 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                 ],
               ),
               actions: <Widget>[
-                TextButton(
+                OutlinedButton(
                   onPressed: () => Navigator.of(dialogContext).pop(false),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF495057),
+                    side: const BorderSide(color: Color(0xFFD7DEE8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
                   child: Text(_text(strings, 'cancel')),
                 ),
+                const SizedBox(width: 8),
                 FilledButton(
                   onPressed: () => Navigator.of(dialogContext).pop(true),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF0D6EFD),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
                   child: Text(_text(strings, 'confirmOk')),
                 ),
               ],
@@ -169,16 +213,28 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
 
       await showDialog<void>(
         context: context,
-        builder: (BuildContext dialogContext) => AlertDialog(
-          icon: const Icon(
-            Icons.check_circle_outline_rounded,
-            color: Color(0xFF198754),
+        builder: (BuildContext dialogContext) => BootstrapDialog(
+          icon: Icons.check_rounded,
+          iconColor: const Color(0xFF198754),
+          title: _text(strings, 'fixedExpenseCarryoverCompleteTitle'),
+          content: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEAF7EF),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text(_text(strings, 'fixedExpenseCarryoverCompleteMessage')),
           ),
-          title: Text(_text(strings, 'fixedExpenseCarryoverCompleteTitle')),
-          content: Text(_text(strings, 'fixedExpenseCarryoverCompleteMessage')),
           actions: <Widget>[
             FilledButton(
               onPressed: () => Navigator.of(dialogContext).pop(),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF198754),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
               child: Text(_text(strings, 'confirmOk')),
             ),
           ],

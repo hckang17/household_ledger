@@ -19,13 +19,22 @@ Future<bool> showLedgerConfirmDialog({
   required String message,
   required String confirmLabel,
   required String cancelLabel,
+  bool isDestructive = true,
+  IconData? icon,
 }) async {
   final result = await showDialog<bool>(
     context: context,
     builder: (BuildContext dialogContext) {
       return BootstrapDialog(
         title: title,
-        icon: Icons.warning_amber_rounded,
+        icon:
+            icon ??
+            (isDestructive
+                ? Icons.warning_amber_rounded
+                : Icons.help_outline_rounded),
+        iconColor: isDestructive
+            ? const Color(0xFFDC3545)
+            : const Color(0xFF0D6EFD),
         content: Text(
           message,
           style: Theme.of(dialogContext).textTheme.bodyMedium,
@@ -33,13 +42,28 @@ Future<bool> showLedgerConfirmDialog({
         actions: <Widget>[
           OutlinedButton(
             onPressed: () => Navigator.of(dialogContext).pop(false),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: const Color(0xFF495057),
+              side: const BorderSide(color: Color(0xFFD7DEE8)),
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
+            ),
             child: Text(cancelLabel),
           ),
           const SizedBox(width: 8),
           FilledButton(
             onPressed: () => Navigator.of(dialogContext).pop(true),
             style: FilledButton.styleFrom(
-              backgroundColor: const Color(0xFFDC3545),
+              backgroundColor: isDestructive
+                  ? const Color(0xFFDC3545)
+                  : const Color(0xFF0D6EFD),
+              foregroundColor: Colors.white,
+              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(14),
+              ),
             ),
             child: Text(confirmLabel),
           ),
