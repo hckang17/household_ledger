@@ -33,6 +33,7 @@ class LocalizationService {
     'incomeManage': '수입 관리',
     'expenseManage': '지출 관리',
     'quickExpense': '지출 기록하기',
+    'recordTravelExpense': '여행지출 기록하기',
     'analysis': '지출 분석하기',
     'settings': '설정',
     'expenseTopTitle': '지출 관리',

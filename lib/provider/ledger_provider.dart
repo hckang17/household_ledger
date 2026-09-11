@@ -343,15 +343,29 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
     await _commit(current.changePushNotifications(settings));
   }
 
-  /// 여행 모드 배경 팔레트를 저장하고 즉시 적용한다.
+  /// 기존 팔레트 변경 진입점도 앱 전체 배경 설정으로 연결한다.
   Future<void> changeTravelGradientPalette(
     TravelGradientPalette palette,
   ) async {
     final current = state.asData?.value;
-    if (current == null || current.settings.travelGradientPalette == palette) {
+    if (current == null) {
       return;
     }
-    await _commit(current.changeTravelGradientPalette(palette));
+    await changeAppBackground(palette);
+  }
+
+  /// null은 기본 단색, 팔레트는 앱 전체 그라데이션을 선택한다.
+  Future<void> changeAppBackground(TravelGradientPalette? palette) async {
+    final current = state.asData?.value;
+    if (current == null) return;
+    final next = current.copyWith(
+      settings: current.settings.copyWith(
+        useGradientBackground: palette != null,
+        travelGradientPalette: palette,
+      ),
+    );
+    await _localStorageService.saveState(next);
+    state = AsyncData(next);
   }
 
   /// 사용자 프로필 정보를 변경한다.

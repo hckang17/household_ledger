@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:household_ledger/model/travel_gradient_palette.dart';
-import 'package:household_ledger/presenter/widgets/settings_page/travel_gradient_palette_section.dart';
+import 'package:household_ledger/presenter/widgets/settings_page/app_background_section.dart';
 
 void main() {
   testWidgets('palette preview cards report the selected palette', (
@@ -13,7 +13,7 @@ void main() {
       MaterialApp(
         home: Scaffold(
           body: SingleChildScrollView(
-            child: TravelGradientPaletteSection(
+            child: AppBackgroundSection(
               strings: const <String, String>{
                 'travelGradientSettingsTitle': 'Travel background',
                 'travelGradientSettingsDescription': 'Choose a palette',
@@ -21,9 +21,10 @@ void main() {
                 'travelGradientOcean': 'Ocean',
                 'travelGradientSunset': 'Sunset',
                 'travelGradientForest': 'Forest',
+                'appBackgroundSolid': 'Solid',
               },
               selectedPalette: TravelGradientPalette.breeze,
-              onChanged: (TravelGradientPalette palette) {
+              onChanged: (TravelGradientPalette? palette) {
                 changedPalette = palette;
               },
             ),
@@ -42,5 +43,8 @@ void main() {
     await tester.pump();
 
     expect(changedPalette, TravelGradientPalette.sunset);
+    await tester.tap(find.text('Solid'));
+    await tester.pump();
+    expect(changedPalette, isNull);
   });
 }

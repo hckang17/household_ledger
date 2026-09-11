@@ -13,6 +13,7 @@ class AppSettings {
     required this.onboardingCompleted,
     this.pushNotifications = const PushNotificationSettings(),
     this.travelGradientPalette = TravelGradientPalette.breeze,
+    this.useGradientBackground = false,
   });
 
   /// 현재 언어 코드를 보관한다.
@@ -30,8 +31,11 @@ class AppSettings {
   /// 로컬 알림 수신 설정을 보관한다.
   final PushNotificationSettings pushNotifications;
 
-  /// 여행 모드에서 사용하는 앱 배경 그라데이션 팔레트다.
+  /// 앱 전체 배경에서 사용할 팔레트. 기존 저장 키를 호환 유지한다.
   final TravelGradientPalette travelGradientPalette;
+
+  /// 여행 모드와 무관하게 그라데이션 배경을 사용할지 여부다.
+  final bool useGradientBackground;
 
   /// 기기 언어 설정을 감지해 기본 앱 설정을 생성한다.
   ///
@@ -65,6 +69,7 @@ class AppSettings {
     bool? onboardingCompleted,
     PushNotificationSettings? pushNotifications,
     TravelGradientPalette? travelGradientPalette,
+    bool? useGradientBackground,
   }) {
     return AppSettings(
       localeCode: localeCode ?? this.localeCode,
@@ -74,6 +79,8 @@ class AppSettings {
       pushNotifications: pushNotifications ?? this.pushNotifications,
       travelGradientPalette:
           travelGradientPalette ?? this.travelGradientPalette,
+      useGradientBackground:
+          useGradientBackground ?? this.useGradientBackground,
     );
   }
 
@@ -86,6 +93,7 @@ class AppSettings {
       'onboardingCompleted': onboardingCompleted,
       'pushNotifications': pushNotifications.toJson(),
       'travelGradientPalette': travelGradientPalette.code,
+      'useGradientBackground': useGradientBackground,
     };
   }
 
@@ -104,6 +112,13 @@ class AppSettings {
       travelGradientPalette: TravelGradientPalette.fromCode(
         json['travelGradientPalette'] as String?,
       ),
+      // 이전 버전에 저장한 팔레트는 독립적인 배경 설정으로 한 번 승계한다.
+      // 새 키가 있는 경우 단색(false) 선택도 재시작 후 그대로 유지한다.
+      useGradientBackground:
+          json['useGradientBackground'] as bool? ??
+          TravelGradientPalette.values.any(
+            (p) => p.code == json['travelGradientPalette'],
+          ),
     );
   }
 }

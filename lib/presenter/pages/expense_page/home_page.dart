@@ -1,3 +1,4 @@
+import 'package:household_ledger/presenter/widgets/common/expense_record_action.dart';
 // """ MVVM 계층: View / Main Feature Page """
 // """ 역할: 예산 현황, 전월 비교, 빠른 소비 입력을 제공하는 홈 화면 """
 
@@ -333,9 +334,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                   strings['tutHomeQuickExpenseDesc'] ??
                   '홈 화면에서 바로 소비내역을 입력할 수 있어요.\n버튼을 탭하면 입력 시트가 열립니다.',
               tooltipPosition: TooltipPosition.bottom,
-              child: BootstrapActionButton(
-                label: strings['quickExpense'] ?? '',
-                icon: Icons.add_circle_outline_rounded,
+              child: ExpenseRecordAction(
+                strings: strings,
                 onPressed: () => showExpenseEditorSheet(
                   context: context,
                   ref: ref,
@@ -351,8 +351,6 @@ class _HomePageState extends ConsumerState<HomePage> {
                         )
                       : null,
                 ),
-                backgroundColor: const Color(0xFFFFC107),
-                foregroundColor: const Color(0xFF102A43),
               ),
             ),
 

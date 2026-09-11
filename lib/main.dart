@@ -6,9 +6,13 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
+import 'package:household_ledger/provider/app_background_provider.dart';
+import 'package:household_ledger/services/local_storage_service.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
-import 'package:household_ledger/presenter/widgets/common/travel_mode_background.dart';
+import 'package:household_ledger/presenter/widgets/common/app_background.dart';
 import 'package:household_ledger/router/app_router.dart';
+import 'package:household_ledger/router/app_page_transitions.dart';
 import 'package:household_ledger/services/database/travel_database_service.dart';
 import 'package:household_ledger/services/localization_service.dart';
 import 'package:household_ledger/services/push_message/push_message_service.dart';
@@ -40,9 +44,19 @@ Future<void> main() async {
   );
 
   await initializeDateFormatting();
+  final preferences = await SharedPreferences.getInstance();
   await TravelDatabaseService.instance.initialize();
   runApp(
-    const AppRestartWidget(child: ProviderScope(child: HouseholdLedgerApp())),
+    AppRestartWidget(
+      child: ProviderScope(
+        overrides: [
+          startupSettingsProvider.overrideWith(
+            (ref) => LocalStorageService.readStartupSettings(preferences),
+          ),
+        ],
+        child: const HouseholdLedgerApp(),
+      ),
+    ),
   );
 }
 
@@ -191,7 +205,7 @@ class _HouseholdLedgerAppState extends ConsumerState<HouseholdLedgerApp> {
       supportedLocales: const <Locale>[Locale('ko'), Locale('ja')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       builder: (BuildContext context, Widget? child) {
-        return TravelModeBackground(child: child ?? const SizedBox.shrink());
+        return AppBackground(child: child ?? const SizedBox.shrink());
       },
       theme: ThemeData(
         useMaterial3: true,
@@ -200,6 +214,7 @@ class _HouseholdLedgerAppState extends ConsumerState<HouseholdLedgerApp> {
           brightness: Brightness.light,
         ),
         scaffoldBackgroundColor: Colors.transparent,
+        pageTransitionsTheme: appPageTransitionsTheme,
         appBarTheme: const AppBarTheme(
           centerTitle: false,
           backgroundColor: Colors.transparent,

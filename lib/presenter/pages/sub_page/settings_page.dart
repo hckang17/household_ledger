@@ -6,7 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/model/push_notification_settings.dart';
-import 'package:household_ledger/presenter/widgets/settings_page/travel_gradient_palette_section.dart';
+import 'package:household_ledger/presenter/widgets/settings_page/app_background_section.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/presenter/widgets/common/ledger_dialogs.dart';
 import 'package:household_ledger/presenter/widgets/settings_page/tag_management_section.dart';
@@ -516,12 +516,25 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
               ),
               const SizedBox(height: 16),
 
-              TravelGradientPaletteSection(
+              AppBackgroundSection(
                 strings: strings,
-                selectedPalette: ledger.settings.travelGradientPalette,
-                onChanged: (palette) => ref
-                    .read(ledgerProvider.notifier)
-                    .changeTravelGradientPalette(palette),
+                selectedPalette: ledger.settings.useGradientBackground
+                    ? ledger.settings.travelGradientPalette
+                    : null,
+                onChanged: (palette) async {
+                  try {
+                    await ref
+                        .read(ledgerProvider.notifier)
+                        .changeAppBackground(palette);
+                  } catch (_) {
+                    if (!context.mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(strings['appBackgroundSaveError'] ?? ''),
+                      ),
+                    );
+                  }
+                },
               ),
               const SizedBox(height: 16),
 
