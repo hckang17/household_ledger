@@ -16,6 +16,7 @@ class ExpenseEntryTile extends StatelessWidget {
     super.key,
     required this.entry,
     required this.categoryLabel,
+    required this.categoryIcon,
     required this.currency,
     required this.editTooltip,
     required this.deleteTooltip,
@@ -29,6 +30,8 @@ class ExpenseEntryTile extends StatelessWidget {
 
   /// 소비 구분 레이블 (카테고리 태그의 label 값)
   final String categoryLabel;
+
+  final IconData categoryIcon;
 
   /// 통화 단위 문자열 (예: ₩, ¥)
   final String currency;
@@ -58,12 +61,20 @@ class ExpenseEntryTile extends StatelessWidget {
           children: <Widget>[
             Expanded(
               flex: 3,
-              child: Text(
-                categoryLabel,
-                overflow: TextOverflow.ellipsis,
-                style: Theme.of(
-                  context,
-                ).textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w700),
+              child: Row(
+                children: <Widget>[
+                  Icon(categoryIcon, size: 18, color: const Color(0xFF1F5F99)),
+                  const SizedBox(width: 6),
+                  Expanded(
+                    child: Text(
+                      categoryLabel,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             const SizedBox(width: 8),

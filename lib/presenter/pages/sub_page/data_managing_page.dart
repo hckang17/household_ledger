@@ -10,6 +10,7 @@ import 'package:household_ledger/presenter/controllers/tutorial_showcase_control
 import 'package:household_ledger/model/data_search_filter.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/presenter/widgets/common/metadata_tag_icon_label.dart';
 import 'package:household_ledger/model/trip.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/presenter/extensions/currency_extension.dart';
@@ -602,7 +603,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 ...categoryTags.map(
                   (MetadataTag t) => DropdownMenuItem<String>(
                     value: t.code,
-                    child: Text(t.label),
+                    child: MetadataTagIconLabel(tag: t),
                   ),
                 ),
               ],

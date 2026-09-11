@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/presenter/extensions/metadata_tag_icon_extension.dart';
 import 'package:household_ledger/presenter/widgets/common/expense_entry_tile.dart';
 
 /// 이번 달 지출 중 최근 5건을 날짜별로 묶어 표시하는 위젯이다.
@@ -96,6 +97,7 @@ class RecentExpensesList extends StatelessWidget {
               child: ExpenseEntryTile(
                 entry: entry,
                 categoryLabel: categoryTags.labelFor(entry.categoryCode),
+                categoryIcon: categoryTags.iconFor(entry.categoryCode),
                 currency: currency,
                 editTooltip: strings['edit'] ?? '수정',
                 deleteTooltip: strings['delete'] ?? '삭제',

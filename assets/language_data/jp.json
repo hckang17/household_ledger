@@ -10,7 +10,7 @@
 
   "travelExpenseOutsidePeriodWarning": "選択した日付は旅行期間外です。旅行の前後に発生した支出であれば、そのまま入力してください。",
   "travelGradientSettingsTitle": "アプリの背景",
-  "travelGradientSettingsDescription": "旅行モードに関係なく、アプリ全体で使用する背景を選んでください。",
+  "travelGradientSettingsDescription": "アプリ全体で使用する背景を選んでください。",
   "travelGradientBreeze": "そよ風",
   "travelGradientOcean": "澄んだ海",
   "travelGradientSunset": "夕焼け",

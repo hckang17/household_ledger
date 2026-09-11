@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/presenter/extensions/metadata_tag_icon_extension.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/provider/nav_tab_provider.dart';
 import 'package:household_ledger/provider/tutorial_provider.dart';
@@ -292,11 +293,27 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                             children: <Widget>[
                               Expanded(
                                 flex: 3,
-                                child: Text(
-                                  categoryLabel,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(fontWeight: FontWeight.w700),
+                                child: Row(
+                                  children: <Widget>[
+                                    Icon(
+                                      categoryTags.iconFor(item.categoryCode),
+                                      size: 18,
+                                      color: const Color(0xFF1F5F99),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        categoryLabel,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               const SizedBox(width: 8),

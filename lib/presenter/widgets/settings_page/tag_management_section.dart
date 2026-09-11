@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/presenter/widgets/common/metadata_tag_icon_label.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 
 /// 태그(소비구분/소비소구분/소비수단) 목록을 접기/펼치며 관리하는 섹션 카드다.
@@ -84,11 +85,17 @@ class _TagManagementSectionState extends State<TagManagementSection> {
                         child: Row(
                           children: <Widget>[
                             Expanded(
-                              child: Text(
-                                tag.label,
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(fontWeight: FontWeight.w600),
-                              ),
+                              child: tag.type == MetadataTagType.category
+                                  ? MetadataTagIconLabel(tag: tag)
+                                  : Text(
+                                      tag.label,
+                                      style: Theme.of(context)
+                                          .textTheme
+                                          .bodyMedium
+                                          ?.copyWith(
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                    ),
                             ),
                             IconButton(
                               visualDensity: VisualDensity.compact,

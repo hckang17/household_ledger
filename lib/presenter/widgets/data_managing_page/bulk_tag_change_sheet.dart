@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/presenter/widgets/common/metadata_tag_icon_label.dart';
 import 'package:household_ledger/model/trip.dart';
 import 'package:household_ledger/presenter/widgets/data_managing_page/bulk_expense_classification_fields.dart';
 
@@ -103,7 +104,7 @@ Future<BulkTagChangeSelection?> showBulkTagChangeSheet({
                     ...categoryTags.map(
                       (MetadataTag tag) => DropdownMenuItem<String>(
                         value: tag.code,
-                        child: Text(tag.label),
+                        child: MetadataTagIconLabel(tag: tag),
                       ),
                     ),
                   ],

@@ -3,6 +3,42 @@ import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:test/test.dart';
 
 void main() {
+  test('시스템 소비구분은 안정적인 아이콘 코드를 포함한다', () {
+    final tags = localizedSystemMetadataTags(const <String, String>{});
+    final categories = tags.where(
+      (MetadataTag tag) => tag.type == MetadataTagType.category,
+    );
+
+    expect(categories, isNotEmpty);
+    expect(
+      categories.map((MetadataTag tag) => tag.iconCode),
+      everyElement(isNotNull),
+    );
+    expect(
+      categories.firstWhere((MetadataTag tag) => tag.code == 'F').iconCode,
+      'restaurant',
+    );
+  });
+
+  test('아이콘 코드는 JSON으로 왕복하고 구버전 데이터는 기본값을 보완한다', () {
+    const tag = MetadataTag(
+      type: MetadataTagType.category,
+      code: 'F',
+      label: '외식비',
+      iconCode: 'restaurant',
+    );
+
+    expect(MetadataTag.fromJson(tag.toJson()).iconCode, 'restaurant');
+    expect(
+      MetadataTag.fromJson(const <String, dynamic>{
+        'type': 'category',
+        'code': 'F',
+        'label': '외식비',
+      }).effectiveIconCode,
+      'restaurant',
+    );
+  });
+
   group('MetadataTagCodeGenerator', () {
     test('새 사용자 카테고리에 첫 2문자 코드를 할당한다', () {
       final code = MetadataTagCodeGenerator.nextUserCode(
