@@ -1,4 +1,5 @@
 {
+  "datetime": "日付",
   "appBackgroundSaveError": "背景を保存できませんでした。もう一度お試しください。",
   "recordTravelExpense": "旅行の支出を記録",
   "appBackgroundSolid": "標準の単色",
@@ -535,7 +536,7 @@
   "travelModeTitle": "旅行モード",
   "travelModeOffDescription": "旅行を選択すると、新しい支出に自動で適用されます。",
   "travelSelectTitle": "記録する旅行を選択",
-  "travelEmptyMessage": "保存された旅行がありません。新しい旅行を追加してください。",
+  "travelEmptyMessage": "旅行モードに指定できる旅行グループがありません。新しく追加するか、アーカイブから読み取ってください。",
   "travelAddButton": "新しい旅行を追加",
   "travelManagementTitle": "旅行情報管理",
   "travelAddTitle": "新しい旅行",

@@ -285,7 +285,9 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
               TextField(
                 controller: dateController,
                 readOnly: true,
-                decoration: const InputDecoration(labelText: 'DateTime'),
+                decoration: InputDecoration(
+                  labelText: widget.strings['datetime'],
+                ),
                 onTap: () async {
                   FocusScope.of(context).unfocus();
                   final pickedDate = await showDatePicker(
