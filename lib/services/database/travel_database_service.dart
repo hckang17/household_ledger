@@ -9,16 +9,17 @@ import 'package:sqflite/sqflite.dart';
 
 /// 여행 메타데이터를 SQLite(Web은 SharedPreferences)에 저장한다.
 class TravelDatabaseService {
-  TravelDatabaseService._();
+  TravelDatabaseService();
 
   /// 앱 전체에서 같은 데이터베이스 연결을 재사용한다.
-  static final TravelDatabaseService instance = TravelDatabaseService._();
+  static final TravelDatabaseService instance = TravelDatabaseService();
 
   static const String databaseName = 'household_travel.db';
   static const String tableName = 'trips';
   static const String activeStartDateIndexName = 'idx_trips_active_start_date';
   static const int schemaVersion = 1;
   static const String webStorageKey = 'household_ledger_trips';
+  static const String activeTripStorageKey = 'household_ledger_active_trip_id';
 
   Database? _database;
 
@@ -109,6 +110,26 @@ class TravelDatabaseService {
       _toRow(trip),
       conflictAlgorithm: ConflictAlgorithm.replace,
     );
+  }
+
+  /// Replaces the complete trip collection used by a full data restore.
+  Future<void> replaceAllTrips(List<Trip> trips) async {
+    if (kIsWeb) {
+      await _saveTripsToPreferences(trips);
+      return;
+    }
+
+    final db = await _getDatabase();
+    await db.transaction((Transaction transaction) async {
+      await transaction.delete(tableName);
+      for (final trip in trips) {
+        await transaction.insert(
+          tableName,
+          _toRow(trip),
+          conflictAlgorithm: ConflictAlgorithm.replace,
+        );
+      }
+    });
   }
 
   Map<String, Object?> _toRow(Trip trip) {

@@ -11,6 +11,7 @@ import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/model/ledger_state.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/model/trip.dart';
 import 'package:household_ledger/model/user_profile.dart';
 import 'package:household_ledger/model/travel_gradient_palette.dart';
 import 'package:household_ledger/services/tutorial_service.dart';
@@ -26,7 +27,10 @@ class ImportResult {
     this.expenses = const <ExpenseEntry>[],
     this.fixedExpenses = const <FixedExpense>[],
     this.incomes = const <IncomeEntry>[],
+    this.trips = const <Trip>[],
     this.ledgerState,
+    this.tutorialCompleted,
+    this.tutorialVersion,
   });
 
   /// 성공 여부를 보관한다.
@@ -44,8 +48,14 @@ class ImportResult {
   /// 복원된 소득내역을 보관한다.
   final List<IncomeEntry> incomes;
 
+  /// 복원된 여행 목록. v2 이하 파일에서는 비어 있다.
+  final List<Trip> trips;
+
   /// 복원된 앱 상태(설정, 태그 포함)를 보관한다.
   final LedgerState? ledgerState;
+
+  final bool? tutorialCompleted;
+  final int? tutorialVersion;
 }
 
 /// 가계부 데이터를 CSV로 직렬화/역직렬화하는 서비스다.
@@ -56,7 +66,8 @@ class DataImExportService {
   static const String _sectionIncomes = '[INCOMES]';
   static const String _sectionSettings = '[SETTINGS]';
   static const String _sectionTags = '[TAGS]';
-  static const String _csvVersion = '2.0';
+  static const String _sectionTrips = '[TRIPS]';
+  static const String _csvVersion = '3.0';
   static const String _salt = 'household_ledger_v1_salt';
 
   String _generateSignature(String email, String passkey) {
@@ -89,6 +100,7 @@ class DataImExportService {
     required List<ExpenseEntry> expenses,
     required List<FixedExpense> fixedExpenses,
     required List<IncomeEntry> incomes,
+    required List<Trip> trips,
     required LedgerState ledgerState,
     required String email,
     required String passkey,
@@ -96,6 +108,14 @@ class DataImExportService {
     bool tutorialCompleted = false,
     int tutorialVersion = 1,
   }) {
+    final tripIds = trips.map((Trip trip) => trip.id).toSet();
+    if (tripIds.length != trips.length ||
+        expenses.any(
+          (ExpenseEntry expense) =>
+              expense.tripId != null && !tripIds.contains(expense.tripId),
+        )) {
+      throw const FormatException('Invalid trip reference');
+    }
     final buffer = StringBuffer();
     final signature = _generateSignature(email, passkey);
 
@@ -108,7 +128,7 @@ class DataImExportService {
 
     buffer.writeln(_sectionExpenses);
     buffer.writeln(
-      'id,spentAt,categoryCode,subcategoryCode,diningOccasionCode,paymentMethodCode,description,amount,note',
+      'id,spentAt,categoryCode,subcategoryCode,diningOccasionCode,tripId,paymentMethodCode,description,amount,note',
     );
     for (final e in expenses) {
       buffer.writeln(
@@ -118,10 +138,32 @@ class DataImExportService {
           e.categoryCode,
           e.subcategoryCode,
           e.diningOccasionCode ?? '',
+          e.tripId ?? '',
           e.paymentMethodCode,
           e.description,
           e.amount.toString(),
           e.note,
+        ]),
+      );
+    }
+    buffer.writeln();
+
+    buffer.writeln(_sectionTrips);
+    buffer.writeln(
+      'id,name,startDate,endDate,budget,note,createdAt,updatedAt,archivedAt',
+    );
+    for (final trip in trips) {
+      buffer.writeln(
+        _csvRow(<String>[
+          trip.id,
+          trip.name,
+          trip.startDate.toIso8601String(),
+          trip.endDate.toIso8601String(),
+          trip.budget?.toString() ?? '',
+          trip.note,
+          trip.createdAt.toIso8601String(),
+          trip.updatedAt.toIso8601String(),
+          trip.archivedAt?.toIso8601String() ?? '',
         ]),
       );
     }
@@ -162,6 +204,9 @@ class DataImExportService {
 
     buffer.writeln(_sectionSettings);
     buffer.writeln('key,value');
+    buffer.writeln(
+      _csvRow(['appSettingsJson', jsonEncode(ledgerState.settings.toJson())]),
+    );
     buffer.writeln(_csvRow(['localeCode', ledgerState.settings.localeCode]));
     buffer.writeln(
       _csvRow(['currencyUnit', ledgerState.settings.currencyUnit]),
@@ -173,6 +218,12 @@ class DataImExportService {
       _csvRow([
         'travelGradientPalette',
         ledgerState.settings.travelGradientPalette.code,
+      ]),
+    );
+    buffer.writeln(
+      _csvRow([
+        'useGradientBackground',
+        ledgerState.settings.useGradientBackground.toString(),
       ]),
     );
     buffer.writeln(_csvRow(['userName', ledgerState.userProfile.name]));
@@ -209,6 +260,7 @@ class DataImExportService {
     required List<ExpenseEntry> expenses,
     required List<FixedExpense> fixedExpenses,
     required List<IncomeEntry> incomes,
+    required List<Trip> trips,
     required LedgerState ledgerState,
     required String email,
     required String passkey,
@@ -227,6 +279,7 @@ class DataImExportService {
       expenses: expenses,
       fixedExpenses: fixedExpenses,
       incomes: incomes,
+      trips: trips,
       ledgerState: ledgerState,
       email: email,
       passkey: passkey,
@@ -291,6 +344,14 @@ class DataImExportService {
 
       final metaMap = _parseKeyValue(sections[_sectionMetadata] ?? <String>[]);
       final storedSignature = metaMap['signature'] ?? '';
+      final version = metaMap['version'] ?? '1.0';
+      final majorVersion = int.tryParse(version.split('.').first) ?? 1;
+      if (majorVersion > 3) {
+        return const ImportResult(
+          success: false,
+          errorKey: 'unsupportedBackupVersionMessage',
+        );
+      }
 
       if (!verifySignature(email, passkey, storedSignature)) {
         return const ImportResult(
@@ -299,25 +360,79 @@ class DataImExportService {
         );
       }
 
-      final expenses = _parseExpenses(sections[_sectionExpenses] ?? <String>[]);
+      if (majorVersion >= 3 &&
+          <String>{
+            _sectionExpenses,
+            _sectionTrips,
+            _sectionFixedExpenses,
+            _sectionIncomes,
+            _sectionSettings,
+            _sectionTags,
+          }.any((String section) => !sections.containsKey(section))) {
+        throw const FormatException('Missing required section');
+      }
+
+      final expenses = _parseExpenses(
+        sections[_sectionExpenses] ?? <String>[],
+        strict: majorVersion >= 3,
+      );
       final fixedExpenses = _parseFixedExpenses(
         sections[_sectionFixedExpenses] ?? <String>[],
+        strict: majorVersion >= 3,
       );
-      final incomes = _parseIncomes(sections[_sectionIncomes] ?? <String>[]);
+      final incomes = _parseIncomes(
+        sections[_sectionIncomes] ?? <String>[],
+        strict: majorVersion >= 3,
+      );
       final settingsMap = _parseKeyValue(
         sections[_sectionSettings] ?? <String>[],
       );
-      final tags = _parseTags(sections[_sectionTags] ?? <String>[]);
-
-      final settings = AppSettings(
-        localeCode: settingsMap['localeCode'] ?? 'ko',
-        currencyUnit: settingsMap['currencyUnit'] ?? '₩',
-        monthlyBudget: int.tryParse(settingsMap['monthlyBudget'] ?? '') ?? 0,
-        onboardingCompleted: true,
-        travelGradientPalette: TravelGradientPalette.fromCode(
-          settingsMap['travelGradientPalette'],
-        ),
+      final tags = _parseTags(
+        sections[_sectionTags] ?? <String>[],
+        strict: majorVersion >= 3,
       );
+      final trips = majorVersion >= 3
+          ? _parseTrips(sections[_sectionTrips] ?? <String>[])
+          : <Trip>[];
+
+      if (majorVersion >= 3) {
+        final tripIds = trips.map((trip) => trip.id).toSet();
+        final expenseIds = expenses.map((expense) => expense.id).toSet();
+        final fixedExpenseIds = fixedExpenses
+            .map((expense) => expense.id)
+            .toSet();
+        if (tripIds.length != trips.length ||
+            expenseIds.length != expenses.length ||
+            fixedExpenseIds.length != fixedExpenses.length ||
+            expenses.any(
+              (expense) =>
+                  expense.tripId != null &&
+                  (expense.subcategoryCode != 't' ||
+                      !tripIds.contains(expense.tripId)),
+            )) {
+          throw const FormatException('Invalid trip reference');
+        }
+      }
+
+      final settingsJson = settingsMap['appSettingsJson'];
+      final settings = settingsJson == null
+          ? AppSettings(
+              localeCode: settingsMap['localeCode'] ?? 'ko',
+              currencyUnit: settingsMap['currencyUnit'] ?? '₩',
+              monthlyBudget:
+                  int.tryParse(settingsMap['monthlyBudget'] ?? '') ?? 0,
+              onboardingCompleted: true,
+              travelGradientPalette: TravelGradientPalette.fromCode(
+                settingsMap['travelGradientPalette'],
+              ),
+              useGradientBackground:
+                  settingsMap.containsKey('useGradientBackground')
+                  ? settingsMap['useGradientBackground'] == 'true'
+                  : settingsMap.containsKey('travelGradientPalette'),
+            )
+          : AppSettings.fromJson(
+              jsonDecode(settingsJson) as Map<String, dynamic>,
+            ).copyWith(onboardingCompleted: true);
       final profile = UserProfile(
         name: settingsMap['userName'] ?? '',
         email: settingsMap['userEmail'] ?? metaMap['email'] ?? '',
@@ -368,13 +483,6 @@ class DataImExportService {
         ]);
       }
 
-      if (settingsMap.containsKey('tutorial_completed')) {
-        await TutorialService().restoreFromCsv(
-          completed: settingsMap['tutorial_completed'] == 'true',
-          version: int.tryParse(settingsMap['tutorial_version'] ?? '1') ?? 1,
-        );
-      }
-
       final ledgerState = LedgerState.initial().copyWith(
         settings: settings,
         userProfile: profile,
@@ -386,7 +494,14 @@ class DataImExportService {
         expenses: expenses,
         fixedExpenses: fixedExpenses,
         incomes: incomes,
+        trips: trips,
         ledgerState: ledgerState,
+        tutorialCompleted: settingsMap.containsKey('tutorial_completed')
+            ? settingsMap['tutorial_completed'] == 'true'
+            : null,
+        tutorialVersion: settingsMap.containsKey('tutorial_completed')
+            ? int.tryParse(settingsMap['tutorial_version'] ?? '1') ?? 1
+            : null,
       );
     } catch (_) {
       return const ImportResult(
@@ -400,7 +515,7 @@ class DataImExportService {
     final result = <String, List<String>>{};
     String? current;
 
-    for (var line in content.split('\n')) {
+    for (var line in _splitCsvRecords(content)) {
       line = line.trimRight();
       if (line.startsWith('[') && line.endsWith(']')) {
         current = line;
@@ -410,6 +525,37 @@ class DataImExportService {
       }
     }
     return result;
+  }
+
+  List<String> _splitCsvRecords(String content) {
+    final records = <String>[];
+    final buffer = StringBuffer();
+    var inQuotes = false;
+    for (var index = 0; index < content.length; index++) {
+      final char = content[index];
+      if (char == '"') {
+        buffer.write(char);
+        if (inQuotes &&
+            index + 1 < content.length &&
+            content[index + 1] == '"') {
+          buffer.write(content[++index]);
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if ((char == '\n' || char == '\r') && !inQuotes) {
+        if (char == '\r' &&
+            index + 1 < content.length &&
+            content[index + 1] == '\n') {
+          index++;
+        }
+        records.add(buffer.toString());
+        buffer.clear();
+      } else {
+        buffer.write(char);
+      }
+    }
+    if (buffer.isNotEmpty) records.add(buffer.toString());
+    return records;
   }
 
   Map<String, String> _parseKeyValue(List<String> rows) {
@@ -423,7 +569,7 @@ class DataImExportService {
     return result;
   }
 
-  List<ExpenseEntry> _parseExpenses(List<String> rows) {
+  List<ExpenseEntry> _parseExpenses(List<String> rows, {required bool strict}) {
     if (rows.isEmpty) {
       return <ExpenseEntry>[];
     }
@@ -441,16 +587,23 @@ class DataImExportService {
     for (final row in rows.skip(1)) {
       final f = _parseCsvRow(row);
       if (f.length < 8) {
+        if (strict) throw const FormatException('Invalid expense');
         continue;
       }
       try {
+        final subcategoryCode = field(f, 'subcategoryCode');
+        final rawTripId = strict ? field(f, 'tripId') : '';
+        if (rawTripId.isNotEmpty && subcategoryCode != 't') {
+          throw const FormatException('Trip expense must use subcategory t');
+        }
         result.add(
           ExpenseEntry.create(
             id: field(f, 'id'),
             spentAt: DateTime.parse(field(f, 'spentAt')),
             categoryCode: field(f, 'categoryCode'),
-            subcategoryCode: field(f, 'subcategoryCode'),
+            subcategoryCode: subcategoryCode,
             diningOccasionCode: field(f, 'diningOccasionCode'),
+            tripId: rawTripId,
             paymentMethodCode: field(f, 'paymentMethodCode'),
             description: field(f, 'description'),
             amount: int.parse(field(f, 'amount')),
@@ -458,13 +611,64 @@ class DataImExportService {
           ),
         );
       } catch (_) {
-        continue;
+        if (strict) rethrow;
       }
     }
     return result;
   }
 
-  List<FixedExpense> _parseFixedExpenses(List<String> rows) {
+  List<Trip> _parseTrips(List<String> rows) {
+    if (rows.isEmpty) throw const FormatException('Missing trips section');
+    final header = _parseCsvRow(rows.first);
+    final indexes = <String, int>{
+      for (var i = 0; i < header.length; i++) header[i]: i,
+    };
+    String field(List<String> fields, String name) {
+      final index = indexes[name];
+      if (index == null || index >= fields.length) {
+        throw FormatException('Missing trip field: $name');
+      }
+      return fields[index];
+    }
+
+    return rows
+        .skip(1)
+        .map((row) {
+          final fields = _parseCsvRow(row);
+          final budgetText = field(fields, 'budget');
+          final archivedText = field(fields, 'archivedAt');
+          final id = field(fields, 'id');
+          final name = field(fields, 'name');
+          final startDate = DateTime.parse(field(fields, 'startDate'));
+          final endDate = DateTime.parse(field(fields, 'endDate'));
+          final budget = budgetText.isEmpty ? null : int.parse(budgetText);
+          if (id.trim().isEmpty ||
+              name.trim().isEmpty ||
+              endDate.isBefore(startDate) ||
+              (budget != null && budget <= 0)) {
+            throw const FormatException('Invalid trip');
+          }
+          return Trip.create(
+            id: id,
+            name: name,
+            startDate: startDate,
+            endDate: endDate,
+            budget: budget,
+            note: field(fields, 'note'),
+            createdAt: DateTime.parse(field(fields, 'createdAt')),
+            updatedAt: DateTime.parse(field(fields, 'updatedAt')),
+            archivedAt: archivedText.isEmpty
+                ? null
+                : DateTime.parse(archivedText),
+          );
+        })
+        .toList(growable: false);
+  }
+
+  List<FixedExpense> _parseFixedExpenses(
+    List<String> rows, {
+    required bool strict,
+  }) {
     if (rows.isEmpty) {
       return <FixedExpense>[];
     }
@@ -472,6 +676,7 @@ class DataImExportService {
     for (final row in rows.skip(1)) {
       final f = _parseCsvRow(row);
       if (f.length < 7) {
+        if (strict) throw const FormatException('Invalid fixed expense');
         continue;
       }
       try {
@@ -487,13 +692,13 @@ class DataImExportService {
           ),
         );
       } catch (_) {
-        continue;
+        if (strict) rethrow;
       }
     }
     return result;
   }
 
-  List<IncomeEntry> _parseIncomes(List<String> rows) {
+  List<IncomeEntry> _parseIncomes(List<String> rows, {required bool strict}) {
     if (rows.isEmpty) {
       return <IncomeEntry>[];
     }
@@ -501,6 +706,7 @@ class DataImExportService {
     for (final row in rows.skip(1)) {
       final f = _parseCsvRow(row);
       if (f.length < 4) {
+        if (strict) throw const FormatException('Invalid income');
         continue;
       }
       try {
@@ -513,13 +719,13 @@ class DataImExportService {
           ),
         );
       } catch (_) {
-        continue;
+        if (strict) rethrow;
       }
     }
     return result;
   }
 
-  List<MetadataTag> _parseTags(List<String> rows) {
+  List<MetadataTag> _parseTags(List<String> rows, {required bool strict}) {
     if (rows.isEmpty) {
       return <MetadataTag>[];
     }
@@ -527,16 +733,16 @@ class DataImExportService {
     for (final row in rows.skip(1)) {
       final f = _parseCsvRow(row);
       if (f.length < 3) {
+        if (strict) throw const FormatException('Invalid tag');
         continue;
       }
       try {
         final type = MetadataTagType.values.firstWhere(
           (MetadataTagType t) => t.name == f[0],
-          orElse: () => MetadataTagType.category,
         );
         result.add(MetadataTag(type: type, code: f[1], label: f[2]));
       } catch (_) {
-        continue;
+        if (strict) rethrow;
       }
     }
     return result;

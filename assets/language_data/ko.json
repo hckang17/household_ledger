@@ -605,5 +605,6 @@
   "travelDailyChartTitle": "여행 중 일자별 지출",
   "travelDailyChartDescription": "여행 전후에 결제한 금액은 이 차트에서 제외됩니다.",
   "sideBarTravelGroup": "여행",
-  "sideBarTravelManagement": "여행정보 관리"
+  "sideBarTravelManagement": "여행정보 관리",
+  "unsupportedBackupVersionMessage": "이 백업 파일은 현재 앱 버전보다 새 버전에서 만들어졌습니다. 앱을 업데이트한 뒤 다시 시도해 주세요."
 }

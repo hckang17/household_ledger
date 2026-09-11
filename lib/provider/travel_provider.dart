@@ -38,20 +38,12 @@ class TravelState {
   }
 }
 
-final travelDatabaseServiceProvider = Provider<TravelDatabaseService>((
-  Ref ref,
-) {
-  return TravelDatabaseService.instance;
-});
-
 final travelProvider = AsyncNotifierProvider<TravelNotifier, TravelState>(
   TravelNotifier.new,
 );
 
 /// 여행 메타데이터와 여행 모드 ON/OFF 상태를 관리한다.
 class TravelNotifier extends AsyncNotifier<TravelState> {
-  static const String _activeTripStorageKey = 'household_ledger_active_trip_id';
-
   TravelDatabaseService get _database {
     return ref.read(travelDatabaseServiceProvider);
   }
@@ -61,12 +53,14 @@ class TravelNotifier extends AsyncNotifier<TravelState> {
     await _database.initialize();
     final trips = await _database.loadAllTrips();
     final preferences = await SharedPreferences.getInstance();
-    final storedActiveId = preferences.getString(_activeTripStorageKey);
+    final storedActiveId = preferences.getString(
+      TravelDatabaseService.activeTripStorageKey,
+    );
     final isValid = trips.any(
       (Trip trip) => trip.id == storedActiveId && !trip.isArchived,
     );
     if (!isValid && storedActiveId != null) {
-      await preferences.remove(_activeTripStorageKey);
+      await preferences.remove(TravelDatabaseService.activeTripStorageKey);
     }
     return TravelState(
       trips: trips,
@@ -83,7 +77,10 @@ class TravelNotifier extends AsyncNotifier<TravelState> {
       return;
     }
     final preferences = await SharedPreferences.getInstance();
-    await preferences.setString(_activeTripStorageKey, tripId);
+    await preferences.setString(
+      TravelDatabaseService.activeTripStorageKey,
+      tripId,
+    );
     state = AsyncData(current.copyWith(activeTripId: tripId));
   }
 
@@ -91,7 +88,7 @@ class TravelNotifier extends AsyncNotifier<TravelState> {
     final current = state.asData?.value;
     if (current == null) return;
     final preferences = await SharedPreferences.getInstance();
-    await preferences.remove(_activeTripStorageKey);
+    await preferences.remove(TravelDatabaseService.activeTripStorageKey);
     state = AsyncData(current.copyWith(clearActiveTrip: true));
   }
 
@@ -134,8 +131,9 @@ class TravelNotifier extends AsyncNotifier<TravelState> {
     // DB 삭제를 실패로 표시하거나 메모리 여행 모드를 되살리지 않게 한다.
     try {
       final preferences = await SharedPreferences.getInstance();
-      if (preferences.getString(_activeTripStorageKey) == tripId) {
-        await preferences.remove(_activeTripStorageKey);
+      if (preferences.getString(TravelDatabaseService.activeTripStorageKey) ==
+          tripId) {
+        await preferences.remove(TravelDatabaseService.activeTripStorageKey);
       }
     } catch (_) {
       // 다음 초기화에서 존재하지 않는 활성 여행 ID를 다시 정리한다.
@@ -156,7 +154,7 @@ class TravelNotifier extends AsyncNotifier<TravelState> {
     final shouldTurnOff = archived && current.activeTripId == trip.id;
     if (shouldTurnOff) {
       final preferences = await SharedPreferences.getInstance();
-      await preferences.remove(_activeTripStorageKey);
+      await preferences.remove(TravelDatabaseService.activeTripStorageKey);
     }
     final nextTrips = <Trip>[
       ...current.trips.where((Trip item) => item.id != trip.id),

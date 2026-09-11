@@ -596,5 +596,6 @@
   "travelDailyChartTitle": "旅行中の日別支出",
   "travelDailyChartDescription": "旅行前後に支払った金額はこのチャートから除外されます。",
   "sideBarTravelGroup": "旅行",
-  "sideBarTravelManagement": "旅行情報管理"
+  "sideBarTravelManagement": "旅行情報管理",
+  "unsupportedBackupVersionMessage": "このバックアップファイルは現在のアプリより新しいバージョンで作成されています。アプリを更新してからもう一度お試しください。"
 }
