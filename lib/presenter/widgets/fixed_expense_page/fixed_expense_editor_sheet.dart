@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/presenter/widgets/common/metadata_tag_icon_label.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
@@ -67,7 +68,7 @@ Future<void> showFixedExpenseEditorSheet({
                           .map(
                             (MetadataTag tag) => DropdownMenuItem<String>(
                               value: tag.code,
-                              child: Text(tag.label),
+                              child: MetadataTagIconLabel(tag: tag),
                             ),
                           )
                           .toList(),

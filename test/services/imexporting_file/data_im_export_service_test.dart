@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:household_ledger/model/app_settings.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/ledger_state.dart';
+import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/model/push_notification_settings.dart';
 import 'package:household_ledger/model/travel_gradient_palette.dart';
 import 'package:household_ledger/model/trip.dart';
@@ -74,6 +75,14 @@ void main() {
       );
       expect(result.ledgerState!.settings.pushNotifications.enabled, isTrue);
       expect(result.ledgerState!.settings.pushNotifications.salaryDay, 25);
+      expect(
+        result.ledgerState!.metadataTags
+            .firstWhere(
+              (tag) => tag.type == MetadataTagType.category && tag.code == 'F',
+            )
+            .effectiveIconCode,
+        'restaurant',
+      );
     },
   );
 

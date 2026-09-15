@@ -248,6 +248,8 @@ class _SettingsPageState extends ConsumerState<SettingsPage> {
       ).replaceAll('{count}', '$count'),
       confirmLabel: _text(strings, 'diningMigrationAction'),
       cancelLabel: _text(strings, 'cancel'),
+      isDestructive: false,
+      icon: Icons.auto_fix_high_rounded,
     );
     if (!confirmed || !mounted) return;
 

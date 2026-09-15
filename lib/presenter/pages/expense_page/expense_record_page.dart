@@ -8,6 +8,7 @@ import 'package:household_ledger/presenter/controllers/tutorial_showcase_control
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/presenter/extensions/metadata_tag_icon_extension.dart';
 import 'package:household_ledger/model/trip.dart';
 import 'package:household_ledger/presenter/extensions/currency_extension.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
@@ -409,6 +410,9 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
                                   child: ExpenseEntryTile(
                                     entry: entry,
                                     categoryLabel: categoryTags.labelFor(
+                                      entry.categoryCode,
+                                    ),
+                                    categoryIcon: categoryTags.iconFor(
                                       entry.categoryCode,
                                     ),
                                     currency: currency,

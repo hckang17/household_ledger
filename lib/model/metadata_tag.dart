@@ -1,6 +1,24 @@
 /// 메타데이터 태그의 종류를 정의한다.
 enum MetadataTagType { category, subcategory, diningOccasion, paymentMethod }
 
+/// 저장소와 백업에 기록하는 시스템 소비구분 아이콘 코드다.
+///
+/// Flutter의 `IconData` 숫자를 직접 저장하지 않아 프레임워크 버전이 바뀌어도
+/// 데이터 계약을 유지할 수 있다.
+const Map<String, String> systemCategoryIconCodes = <String, String>{
+  'A': 'hotel',
+  'C': 'local_cafe',
+  'D': 'shopping_bag',
+  'E': 'category',
+  'F': 'restaurant',
+  'G': 'local_grocery_store',
+  'H': 'palette',
+  'L': 'home',
+  'S': 'sports_soccer',
+  'T': 'directions_transit',
+  'X': 'celebration',
+};
+
 /// 앱이 항상 제공하며 사용자가 수정하거나 삭제할 수 없는 태그의 언어팩 키다.
 const Map<MetadataTagType, Map<String, String>>
 systemMetadataTagLocalizationKeys = <MetadataTagType, Map<String, String>>{
@@ -165,6 +183,9 @@ List<MetadataTag> localizedSystemMetadataTags(Map<String, String> strings) {
           type: typeEntry.key,
           code: tagEntry.key,
           label: strings[tagEntry.value] ?? tagEntry.key,
+          iconCode: typeEntry.key == MetadataTagType.category
+              ? systemCategoryIconCodes[tagEntry.key]
+              : null,
         ),
   ];
 }
@@ -235,6 +256,7 @@ class MetadataTag {
     required this.type,
     required this.code,
     required this.label,
+    this.iconCode,
   });
 
   /// 태그의 분류 종류를 보관한다.
@@ -246,6 +268,16 @@ class MetadataTag {
   /// 태그의 화면 표시명을 보관한다.
   final String label;
 
+  /// 화면 아이콘을 찾는 안정적인 문자열 코드다.
+  final String? iconCode;
+
+  /// 구버전 데이터에는 아이콘이 없으므로 시스템 코드 또는 일반 아이콘으로 보완한다.
+  String? get effectiveIconCode =>
+      iconCode ??
+      (type == MetadataTagType.category
+          ? systemCategoryIconCodes[code] ?? 'label'
+          : null);
+
   /// 시스템에서 기본 제공하여 수정과 삭제가 제한되는 태그인지 반환한다.
   bool get isSystemDefault =>
       systemMetadataTagLocalizationKeys[type]?.containsKey(code) ?? false;
@@ -255,17 +287,28 @@ class MetadataTag {
       systemMetadataTagLocalizationKeys[type]?[code];
 
   /// 현재 태그의 수정본을 생성한다.
-  MetadataTag copyWith({MetadataTagType? type, String? code, String? label}) {
+  MetadataTag copyWith({
+    MetadataTagType? type,
+    String? code,
+    String? label,
+    String? iconCode,
+  }) {
     return MetadataTag(
       type: type ?? this.type,
       code: code ?? this.code,
       label: label ?? this.label,
+      iconCode: iconCode ?? this.iconCode,
     );
   }
 
   /// 태그를 JSON 구조로 변환한다.
   Map<String, dynamic> toJson() {
-    return <String, dynamic>{'type': type.code, 'code': code, 'label': label};
+    return <String, dynamic>{
+      'type': type.code,
+      'code': code,
+      'label': label,
+      'iconCode': ?effectiveIconCode,
+    };
   }
 
   /// JSON 구조에서 태그를 복원한다.
@@ -274,6 +317,7 @@ class MetadataTag {
       type: MetadataTagTypeX.fromCode(json['type'] as String),
       code: json['code'] as String,
       label: json['label'] as String,
+      iconCode: json['iconCode'] as String?,
     );
   }
 }

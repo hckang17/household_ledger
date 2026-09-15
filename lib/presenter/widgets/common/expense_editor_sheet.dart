@@ -7,6 +7,7 @@ import 'package:household_ledger/features/expense/calculators/expense_editor_din
 import 'package:household_ledger/features/expense/calculators/expense_editor_travel_policy.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/presenter/widgets/common/metadata_tag_icon_label.dart';
 import 'package:household_ledger/model/trip.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
@@ -284,7 +285,9 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
               TextField(
                 controller: dateController,
                 readOnly: true,
-                decoration: const InputDecoration(labelText: 'DateTime'),
+                decoration: InputDecoration(
+                  labelText: widget.strings['datetime'],
+                ),
                 onTap: () async {
                   FocusScope.of(context).unfocus();
                   final pickedDate = await showDatePicker(
@@ -320,7 +323,7 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
                 items: widget.categoryTags.map((MetadataTag tag) {
                   return DropdownMenuItem<String>(
                     value: tag.code,
-                    child: Text(tag.label),
+                    child: MetadataTagIconLabel(tag: tag),
                   );
                 }).toList(),
                 onChanged: (String? value) {

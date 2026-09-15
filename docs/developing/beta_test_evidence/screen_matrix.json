@@ -1,0 +1,1022 @@
+[
+  {
+    "config": "small",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/",
+    "errors": [],
+    "screenshot": "small_onboarding.png"
+  },
+  {
+    "config": "small",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/setup",
+    "errors": [],
+    "screenshot": "small_setup.png"
+  },
+  {
+    "config": "small",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/home",
+    "errors": [],
+    "screenshot": "small_home.png"
+  },
+  {
+    "config": "small",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/income",
+    "errors": [],
+    "screenshot": "small_income.png"
+  },
+  {
+    "config": "small",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/expense-record",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 122 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/pages/expense_page/expense_record_page.dart:337:16\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#d05ad OVERFLOWING:\n  needs compositing\n  parentData: <none> (can use size)\n  constraints: BoxConstraints(w=280.0, h=502.0)\n  size: Size(280.0, 502.0)\n  direction: vertical\n  mainAxisAlignment: start\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ],
+    "screenshot": "small_expense-record.png"
+  },
+  {
+    "config": "small",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/fixed-expense",
+    "errors": [],
+    "screenshot": "small_fixed-expense.png"
+  },
+  {
+    "config": "small",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/analysis",
+    "errors": [],
+    "screenshot": "small_analysis.png"
+  },
+  {
+    "config": "small",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/travel-management",
+    "errors": [],
+    "screenshot": "small_travel-management.png"
+  },
+  {
+    "config": "small",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/travel-detail",
+    "errors": [],
+    "screenshot": "small_travel-detail.png"
+  },
+  {
+    "config": "small",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/data-manage",
+    "errors": [],
+    "screenshot": "small_data-manage.png"
+  },
+  {
+    "config": "small",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/settings",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY FLUTTER FRAMEWORK ╞══════════════════════\nThe following assertion was thrown:\nListTile background color or ink splashes may be invisible.\nThe ListTile is wrapped in a DecoratedBox that has a background\ncolor. Because ListTile paints its background and ink splashes on\nthe nearest Material ancestor, this DecoratedBox will hide those\neffects.\nTo fix this, wrap the ListTile in its own Material widget, or\nremove the background color from the intermediate DecoratedBox.\n\nListTile:\n  ListTile(selectedColor: Color(alpha: 1.0000, red: 0.3451, green: 0.3686, blue: 0.4431, colorSpace: ColorSpace.sRGB), contentPadding: EdgeInsets.zero, onTap: Closure: () => void)\nDecoratedBox: DecoratedBox(bg:\n    BoxDecoration(color: Color(alpha: 1.0000, red: 1.0000, green: 1.0000, blue: 1.0000, colorSpace: ColorSpace.sRGB), borderRadius: BorderRadius.circular(24.0),\n      boxShadow: [BoxShadow(Color(alpha: 0.0706, red: 0.0000, green:\n        0.0000, blue: 0.0000, colorSpace: ColorSpace.sRGB), Offset(0.0,\n        12.0), 20.0, 0.0, BlurStyle.normal)]\n      )\n  )\n═════════════════════════════════════════════════════════════════\n"
+    ],
+    "screenshot": "small_settings.png"
+  },
+  {
+    "config": "small",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/my-page",
+    "errors": [],
+    "screenshot": "small_my-page.png"
+  },
+  {
+    "config": "small",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/export-data",
+    "errors": [],
+    "screenshot": "small_export-data.png"
+  },
+  {
+    "config": "small",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/import-data",
+    "errors": [],
+    "screenshot": "small_import-data.png"
+  },
+  {
+    "config": "small",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/generating-report",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY FLUTTER FRAMEWORK ╞══════════════════════\nThe following assertion was thrown:\nListTile background color or ink splashes may be invisible.\nThe ListTile is wrapped in a DecoratedBox that has a background\ncolor. Because ListTile paints its background and ink splashes on\nthe nearest Material ancestor, this DecoratedBox will hide those\neffects.\nTo fix this, wrap the ListTile in its own Material widget, or\nremove the background color from the intermediate DecoratedBox.\n\nListTile:\n  ListTile(selectedColor: Color(alpha: 1.0000, red: 0.3451, green: 0.3686, blue: 0.4431, colorSpace: ColorSpace.sRGB), contentPadding: EdgeInsets.zero, onTap: Closure: () => void from Function '_handleValueChange@2094134056':.)\nDecoratedBox: DecoratedBox(bg:\n    BoxDecoration(color: Color(alpha: 1.0000, red: 1.0000, green: 1.0000, blue: 1.0000, colorSpace: ColorSpace.sRGB), borderRadius: BorderRadius.circular(24.0),\n      boxShadow: [BoxShadow(Color(alpha: 0.0706, red: 0.0000, green:\n        0.0000, blue: 0.0000, colorSpace: ColorSpace.sRGB), Offset(0.0,\n        12.0), 20.0, 0.0, BlurStyle.normal)]\n      )\n  )\n═════════════════════════════════════════════════════════════════\n"
+    ],
+    "screenshot": "small_generating-report.png"
+  },
+  {
+    "config": "small",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/copyrights",
+    "errors": [],
+    "screenshot": "small_copyrights.png"
+  },
+  {
+    "config": "phone",
+    "width": 393.0,
+    "height": 852.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/",
+    "errors": [],
+    "screenshot": "phone_onboarding.png"
+  },
+  {
+    "config": "phone",
+    "width": 393.0,
+    "height": 852.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/setup",
+    "errors": [],
+    "screenshot": "phone_setup.png"
+  },
+  {
+    "config": "phone",
+    "width": 393.0,
+    "height": 852.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/home",
+    "errors": [],
+    "screenshot": "phone_home.png"
+  },
+  {
+    "config": "phone",
+    "width": 393.0,
+    "height": 852.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/income",
+    "errors": [],
+    "screenshot": "phone_income.png"
+  },
+  {
+    "config": "phone",
+    "width": 393.0,
+    "height": 852.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/expense-record",
+    "errors": [],
+    "screenshot": "phone_expense-record.png"
+  },
+  {
+    "config": "phone",
+    "width": 393.0,
+    "height": 852.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/fixed-expense",
+    "errors": [],
+    "screenshot": "phone_fixed-expense.png"
+  },
+  {
+    "config": "phone",
+    "width": 393.0,
+    "height": 852.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/analysis",
+    "errors": [],
+    "screenshot": "phone_analysis.png"
+  },
+  {
+    "config": "phone",
+    "width": 393.0,
+    "height": 852.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/travel-management",
+    "errors": [],
+    "screenshot": "phone_travel-management.png"
+  },
+  {
+    "config": "phone",
+    "width": 393.0,
+    "height": 852.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/travel-detail",
+    "errors": [],
+    "screenshot": "phone_travel-detail.png"
+  },
+  {
+    "config": "phone",
+    "width": 393.0,
+    "height": 852.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/data-manage",
+    "errors": [],
+    "screenshot": "phone_data-manage.png"
+  },
+  {
+    "config": "phone",
+    "width": 393.0,
+    "height": 852.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/settings",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY FLUTTER FRAMEWORK ╞══════════════════════\nThe following assertion was thrown:\nListTile background color or ink splashes may be invisible.\nThe ListTile is wrapped in a DecoratedBox that has a background\ncolor. Because ListTile paints its background and ink splashes on\nthe nearest Material ancestor, this DecoratedBox will hide those\neffects.\nTo fix this, wrap the ListTile in its own Material widget, or\nremove the background color from the intermediate DecoratedBox.\n\nListTile:\n  ListTile(selectedColor: Color(alpha: 1.0000, red: 0.3451, green: 0.3686, blue: 0.4431, colorSpace: ColorSpace.sRGB), contentPadding: EdgeInsets.zero, onTap: Closure: () => void)\nDecoratedBox: DecoratedBox(bg:\n    BoxDecoration(color: Color(alpha: 1.0000, red: 1.0000, green: 1.0000, blue: 1.0000, colorSpace: ColorSpace.sRGB), borderRadius: BorderRadius.circular(24.0),\n      boxShadow: [BoxShadow(Color(alpha: 0.0706, red: 0.0000, green:\n        0.0000, blue: 0.0000, colorSpace: ColorSpace.sRGB), Offset(0.0,\n        12.0), 20.0, 0.0, BlurStyle.normal)]\n      )\n  )\n═════════════════════════════════════════════════════════════════\n"
+    ],
+    "screenshot": "phone_settings.png"
+  },
+  {
+    "config": "phone",
+    "width": 393.0,
+    "height": 852.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/my-page",
+    "errors": [],
+    "screenshot": "phone_my-page.png"
+  },
+  {
+    "config": "phone",
+    "width": 393.0,
+    "height": 852.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/export-data",
+    "errors": [],
+    "screenshot": "phone_export-data.png"
+  },
+  {
+    "config": "phone",
+    "width": 393.0,
+    "height": 852.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/import-data",
+    "errors": [],
+    "screenshot": "phone_import-data.png"
+  },
+  {
+    "config": "phone",
+    "width": 393.0,
+    "height": 852.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/generating-report",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY FLUTTER FRAMEWORK ╞══════════════════════\nThe following assertion was thrown:\nListTile background color or ink splashes may be invisible.\nThe ListTile is wrapped in a DecoratedBox that has a background\ncolor. Because ListTile paints its background and ink splashes on\nthe nearest Material ancestor, this DecoratedBox will hide those\neffects.\nTo fix this, wrap the ListTile in its own Material widget, or\nremove the background color from the intermediate DecoratedBox.\n\nListTile:\n  ListTile(selectedColor: Color(alpha: 1.0000, red: 0.3451, green: 0.3686, blue: 0.4431, colorSpace: ColorSpace.sRGB), contentPadding: EdgeInsets.zero, onTap: Closure: () => void from Function '_handleValueChange@2094134056':.)\nDecoratedBox: DecoratedBox(bg:\n    BoxDecoration(color: Color(alpha: 1.0000, red: 1.0000, green: 1.0000, blue: 1.0000, colorSpace: ColorSpace.sRGB), borderRadius: BorderRadius.circular(24.0),\n      boxShadow: [BoxShadow(Color(alpha: 0.0706, red: 0.0000, green:\n        0.0000, blue: 0.0000, colorSpace: ColorSpace.sRGB), Offset(0.0,\n        12.0), 20.0, 0.0, BlurStyle.normal)]\n      )\n  )\n═════════════════════════════════════════════════════════════════\n"
+    ],
+    "screenshot": "phone_generating-report.png"
+  },
+  {
+    "config": "phone",
+    "width": 393.0,
+    "height": 852.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/copyrights",
+    "errors": [],
+    "screenshot": "phone_copyrights.png"
+  },
+  {
+    "config": "tablet",
+    "width": 800.0,
+    "height": 1280.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/",
+    "errors": [],
+    "screenshot": "tablet_onboarding.png"
+  },
+  {
+    "config": "tablet",
+    "width": 800.0,
+    "height": 1280.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/setup",
+    "errors": [],
+    "screenshot": "tablet_setup.png"
+  },
+  {
+    "config": "tablet",
+    "width": 800.0,
+    "height": 1280.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/home",
+    "errors": [],
+    "screenshot": "tablet_home.png"
+  },
+  {
+    "config": "tablet",
+    "width": 800.0,
+    "height": 1280.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/income",
+    "errors": [],
+    "screenshot": "tablet_income.png"
+  },
+  {
+    "config": "tablet",
+    "width": 800.0,
+    "height": 1280.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/expense-record",
+    "errors": [],
+    "screenshot": "tablet_expense-record.png"
+  },
+  {
+    "config": "tablet",
+    "width": 800.0,
+    "height": 1280.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/fixed-expense",
+    "errors": [],
+    "screenshot": "tablet_fixed-expense.png"
+  },
+  {
+    "config": "tablet",
+    "width": 800.0,
+    "height": 1280.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/analysis",
+    "errors": [],
+    "screenshot": "tablet_analysis.png"
+  },
+  {
+    "config": "tablet",
+    "width": 800.0,
+    "height": 1280.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/travel-management",
+    "errors": [],
+    "screenshot": "tablet_travel-management.png"
+  },
+  {
+    "config": "tablet",
+    "width": 800.0,
+    "height": 1280.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/travel-detail",
+    "errors": [],
+    "screenshot": "tablet_travel-detail.png"
+  },
+  {
+    "config": "tablet",
+    "width": 800.0,
+    "height": 1280.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/data-manage",
+    "errors": [],
+    "screenshot": "tablet_data-manage.png"
+  },
+  {
+    "config": "tablet",
+    "width": 800.0,
+    "height": 1280.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/settings",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY FLUTTER FRAMEWORK ╞══════════════════════\nThe following assertion was thrown:\nListTile background color or ink splashes may be invisible.\nThe ListTile is wrapped in a DecoratedBox that has a background\ncolor. Because ListTile paints its background and ink splashes on\nthe nearest Material ancestor, this DecoratedBox will hide those\neffects.\nTo fix this, wrap the ListTile in its own Material widget, or\nremove the background color from the intermediate DecoratedBox.\n\nListTile:\n  ListTile(selectedColor: Color(alpha: 1.0000, red: 0.3451, green: 0.3686, blue: 0.4431, colorSpace: ColorSpace.sRGB), contentPadding: EdgeInsets.zero, onTap: Closure: () => void)\nDecoratedBox: DecoratedBox(bg:\n    BoxDecoration(color: Color(alpha: 1.0000, red: 1.0000, green: 1.0000, blue: 1.0000, colorSpace: ColorSpace.sRGB), borderRadius: BorderRadius.circular(24.0),\n      boxShadow: [BoxShadow(Color(alpha: 0.0706, red: 0.0000, green:\n        0.0000, blue: 0.0000, colorSpace: ColorSpace.sRGB), Offset(0.0,\n        12.0), 20.0, 0.0, BlurStyle.normal)]\n      )\n  )\n═════════════════════════════════════════════════════════════════\n"
+    ],
+    "screenshot": "tablet_settings.png"
+  },
+  {
+    "config": "tablet",
+    "width": 800.0,
+    "height": 1280.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/my-page",
+    "errors": [],
+    "screenshot": "tablet_my-page.png"
+  },
+  {
+    "config": "tablet",
+    "width": 800.0,
+    "height": 1280.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/export-data",
+    "errors": [],
+    "screenshot": "tablet_export-data.png"
+  },
+  {
+    "config": "tablet",
+    "width": 800.0,
+    "height": 1280.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/import-data",
+    "errors": [],
+    "screenshot": "tablet_import-data.png"
+  },
+  {
+    "config": "tablet",
+    "width": 800.0,
+    "height": 1280.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/generating-report",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY FLUTTER FRAMEWORK ╞══════════════════════\nThe following assertion was thrown:\nListTile background color or ink splashes may be invisible.\nThe ListTile is wrapped in a DecoratedBox that has a background\ncolor. Because ListTile paints its background and ink splashes on\nthe nearest Material ancestor, this DecoratedBox will hide those\neffects.\nTo fix this, wrap the ListTile in its own Material widget, or\nremove the background color from the intermediate DecoratedBox.\n\nListTile:\n  ListTile(selectedColor: Color(alpha: 1.0000, red: 0.3451, green: 0.3686, blue: 0.4431, colorSpace: ColorSpace.sRGB), contentPadding: EdgeInsets.zero, onTap: Closure: () => void from Function '_handleValueChange@2094134056':.)\nDecoratedBox: DecoratedBox(bg:\n    BoxDecoration(color: Color(alpha: 1.0000, red: 1.0000, green: 1.0000, blue: 1.0000, colorSpace: ColorSpace.sRGB), borderRadius: BorderRadius.circular(24.0),\n      boxShadow: [BoxShadow(Color(alpha: 0.0706, red: 0.0000, green:\n        0.0000, blue: 0.0000, colorSpace: ColorSpace.sRGB), Offset(0.0,\n        12.0), 20.0, 0.0, BlurStyle.normal)]\n      )\n  )\n═════════════════════════════════════════════════════════════════\n"
+    ],
+    "screenshot": "tablet_generating-report.png"
+  },
+  {
+    "config": "tablet",
+    "width": 800.0,
+    "height": 1280.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/copyrights",
+    "errors": [],
+    "screenshot": "tablet_copyrights.png"
+  },
+  {
+    "config": "landscape",
+    "width": 640.0,
+    "height": 360.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/",
+    "errors": [],
+    "screenshot": "landscape_onboarding.png"
+  },
+  {
+    "config": "landscape",
+    "width": 640.0,
+    "height": 360.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/setup",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 70 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/pages/sub_page/setup_page.dart:162:22\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#f29e7 relayoutBoundary=up6 OVERFLOWING:\n  needs compositing\n  parentData: offset=Offset(16.0, 16.0) (can use size)\n  constraints: BoxConstraints(w=568.0, 0.0<=h<=262.0)\n  size: Size(568.0, 262.0)\n  direction: vertical\n  mainAxisAlignment: start\n  mainAxisSize: min\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ],
+    "screenshot": "landscape_setup.png"
+  },
+  {
+    "config": "landscape",
+    "width": 640.0,
+    "height": 360.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/home",
+    "errors": [],
+    "screenshot": "landscape_home.png"
+  },
+  {
+    "config": "landscape",
+    "width": 640.0,
+    "height": 360.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/income",
+    "errors": [],
+    "screenshot": "landscape_income.png"
+  },
+  {
+    "config": "landscape",
+    "width": 640.0,
+    "height": 360.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/expense-record",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 284 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/pages/expense_page/expense_record_page.dart:337:16\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#12a3c OVERFLOWING:\n  needs compositing\n  parentData: <none> (can use size)\n  constraints: BoxConstraints(w=600.0, h=294.0)\n  size: Size(600.0, 294.0)\n  direction: vertical\n  mainAxisAlignment: start\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ],
+    "screenshot": "landscape_expense-record.png"
+  },
+  {
+    "config": "landscape",
+    "width": 640.0,
+    "height": 360.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/fixed-expense",
+    "errors": [],
+    "screenshot": "landscape_fixed-expense.png"
+  },
+  {
+    "config": "landscape",
+    "width": 640.0,
+    "height": 360.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/analysis",
+    "errors": [],
+    "screenshot": "landscape_analysis.png"
+  },
+  {
+    "config": "landscape",
+    "width": 640.0,
+    "height": 360.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/travel-management",
+    "errors": [],
+    "screenshot": "landscape_travel-management.png"
+  },
+  {
+    "config": "landscape",
+    "width": 640.0,
+    "height": 360.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/travel-detail",
+    "errors": [],
+    "screenshot": "landscape_travel-detail.png"
+  },
+  {
+    "config": "landscape",
+    "width": 640.0,
+    "height": 360.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/data-manage",
+    "errors": [],
+    "screenshot": "landscape_data-manage.png"
+  },
+  {
+    "config": "landscape",
+    "width": 640.0,
+    "height": 360.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/settings",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY FLUTTER FRAMEWORK ╞══════════════════════\nThe following assertion was thrown:\nListTile background color or ink splashes may be invisible.\nThe ListTile is wrapped in a DecoratedBox that has a background\ncolor. Because ListTile paints its background and ink splashes on\nthe nearest Material ancestor, this DecoratedBox will hide those\neffects.\nTo fix this, wrap the ListTile in its own Material widget, or\nremove the background color from the intermediate DecoratedBox.\n\nListTile:\n  ListTile(selectedColor: Color(alpha: 1.0000, red: 0.3451, green: 0.3686, blue: 0.4431, colorSpace: ColorSpace.sRGB), contentPadding: EdgeInsets.zero, onTap: Closure: () => void)\nDecoratedBox: DecoratedBox(bg:\n    BoxDecoration(color: Color(alpha: 1.0000, red: 1.0000, green: 1.0000, blue: 1.0000, colorSpace: ColorSpace.sRGB), borderRadius: BorderRadius.circular(24.0),\n      boxShadow: [BoxShadow(Color(alpha: 0.0706, red: 0.0000, green:\n        0.0000, blue: 0.0000, colorSpace: ColorSpace.sRGB), Offset(0.0,\n        12.0), 20.0, 0.0, BlurStyle.normal)]\n      )\n  )\n═════════════════════════════════════════════════════════════════\n"
+    ],
+    "screenshot": "landscape_settings.png"
+  },
+  {
+    "config": "landscape",
+    "width": 640.0,
+    "height": 360.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/my-page",
+    "errors": [],
+    "screenshot": "landscape_my-page.png"
+  },
+  {
+    "config": "landscape",
+    "width": 640.0,
+    "height": 360.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/export-data",
+    "errors": [],
+    "screenshot": "landscape_export-data.png"
+  },
+  {
+    "config": "landscape",
+    "width": 640.0,
+    "height": 360.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/import-data",
+    "errors": [],
+    "screenshot": "landscape_import-data.png"
+  },
+  {
+    "config": "landscape",
+    "width": 640.0,
+    "height": 360.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/generating-report",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY FLUTTER FRAMEWORK ╞══════════════════════\nThe following assertion was thrown:\nListTile background color or ink splashes may be invisible.\nThe ListTile is wrapped in a DecoratedBox that has a background\ncolor. Because ListTile paints its background and ink splashes on\nthe nearest Material ancestor, this DecoratedBox will hide those\neffects.\nTo fix this, wrap the ListTile in its own Material widget, or\nremove the background color from the intermediate DecoratedBox.\n\nListTile:\n  ListTile(selectedColor: Color(alpha: 1.0000, red: 0.3451, green: 0.3686, blue: 0.4431, colorSpace: ColorSpace.sRGB), contentPadding: EdgeInsets.zero, onTap: Closure: () => void from Function '_handleValueChange@2094134056':.)\nDecoratedBox: DecoratedBox(bg:\n    BoxDecoration(color: Color(alpha: 1.0000, red: 1.0000, green: 1.0000, blue: 1.0000, colorSpace: ColorSpace.sRGB), borderRadius: BorderRadius.circular(24.0),\n      boxShadow: [BoxShadow(Color(alpha: 0.0706, red: 0.0000, green:\n        0.0000, blue: 0.0000, colorSpace: ColorSpace.sRGB), Offset(0.0,\n        12.0), 20.0, 0.0, BlurStyle.normal)]\n      )\n  )\n═════════════════════════════════════════════════════════════════\n"
+    ],
+    "screenshot": "landscape_generating-report.png"
+  },
+  {
+    "config": "landscape",
+    "width": 640.0,
+    "height": 360.0,
+    "textScale": 1.0,
+    "locale": "ko",
+    "route": "/copyrights",
+    "errors": [],
+    "screenshot": "landscape_copyrights.png"
+  },
+  {
+    "config": "largefont",
+    "width": 360.0,
+    "height": 640.0,
+    "textScale": 1.8,
+    "locale": "ko",
+    "route": "/",
+    "errors": [],
+    "screenshot": "largefont_onboarding.png"
+  },
+  {
+    "config": "largefont",
+    "width": 360.0,
+    "height": 640.0,
+    "textScale": 1.8,
+    "locale": "ko",
+    "route": "/setup",
+    "errors": [],
+    "screenshot": "largefont_setup.png"
+  },
+  {
+    "config": "largefont",
+    "width": 360.0,
+    "height": 640.0,
+    "textScale": 1.8,
+    "locale": "ko",
+    "route": "/home",
+    "errors": [],
+    "screenshot": "largefont_home.png"
+  },
+  {
+    "config": "largefont",
+    "width": 360.0,
+    "height": 640.0,
+    "textScale": 1.8,
+    "locale": "ko",
+    "route": "/income",
+    "errors": [],
+    "screenshot": "largefont_income.png"
+  },
+  {
+    "config": "largefont",
+    "width": 360.0,
+    "height": 640.0,
+    "textScale": 1.8,
+    "locale": "ko",
+    "route": "/expense-record",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 4.7 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/widgets/expense_record_page/expense_calendar_section.dart:206:38\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#228eb OVERFLOWING:\n  parentData: offset=Offset(2.0, 4.0) (can use size)\n  constraints: BoxConstraints(w=35.4, h=32.0)\n  size: Size(35.4, 32.0)\n  direction: vertical\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 4.7 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/widgets/expense_record_page/expense_calendar_section.dart:206:38\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#cbfed OVERFLOWING:\n  parentData: offset=Offset(2.0, 4.0) (can use size)\n  constraints: BoxConstraints(w=35.4, h=32.0)\n  size: Size(35.4, 32.0)\n  direction: vertical\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 4.7 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/widgets/expense_record_page/expense_calendar_section.dart:206:38\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#48616 OVERFLOWING:\n  parentData: offset=Offset(2.0, 4.0) (can use size)\n  constraints: BoxConstraints(w=35.4, h=32.0)\n  size: Size(35.4, 32.0)\n  direction: vertical\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 4.7 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/widgets/expense_record_page/expense_calendar_section.dart:206:38\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#9b8a3 OVERFLOWING:\n  parentData: offset=Offset(2.0, 4.0) (can use size)\n  constraints: BoxConstraints(w=35.4, h=32.0)\n  size: Size(35.4, 32.0)\n  direction: vertical\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 4.7 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/widgets/expense_record_page/expense_calendar_section.dart:206:38\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#c483e OVERFLOWING:\n  parentData: offset=Offset(2.0, 4.0) (can use size)\n  constraints: BoxConstraints(w=35.4, h=32.0)\n  size: Size(35.4, 32.0)\n  direction: vertical\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 4.7 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/widgets/expense_record_page/expense_calendar_section.dart:206:38\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#bfcc7 OVERFLOWING:\n  parentData: offset=Offset(2.0, 4.0) (can use size)\n  constraints: BoxConstraints(w=35.4, h=32.0)\n  size: Size(35.4, 32.0)\n  direction: vertical\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 4.7 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/widgets/expense_record_page/expense_calendar_section.dart:206:38\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#c5123 OVERFLOWING:\n  parentData: offset=Offset(2.0, 4.0) (can use size)\n  constraints: BoxConstraints(w=35.4, h=32.0)\n  size: Size(35.4, 32.0)\n  direction: vertical\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 4.7 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/widgets/expense_record_page/expense_calendar_section.dart:206:38\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#3d7f6 OVERFLOWING:\n  parentData: offset=Offset(2.0, 4.0) (can use size)\n  constraints: BoxConstraints(w=35.4, h=32.0)\n  size: Size(35.4, 32.0)\n  direction: vertical\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 3.5 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/widgets/expense_record_page/expense_calendar_section.dart:206:38\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#25f61 OVERFLOWING:\n  parentData: offset=Offset(2.0, 4.0) (can use size)\n  constraints: BoxConstraints(w=35.4, h=32.0)\n  size: Size(35.4, 32.0)\n  direction: vertical\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 3.5 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/widgets/expense_record_page/expense_calendar_section.dart:206:38\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#b3a67 OVERFLOWING:\n  parentData: offset=Offset(2.0, 4.0) (can use size)\n  constraints: BoxConstraints(w=35.4, h=32.0)\n  size: Size(35.4, 32.0)\n  direction: vertical\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 3.5 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/widgets/expense_record_page/expense_calendar_section.dart:206:38\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#1c84d OVERFLOWING:\n  parentData: offset=Offset(2.0, 4.0) (can use size)\n  constraints: BoxConstraints(w=35.4, h=32.0)\n  size: Size(35.4, 32.0)\n  direction: vertical\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 3.5 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/widgets/expense_record_page/expense_calendar_section.dart:206:38\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#a6c5e OVERFLOWING:\n  parentData: offset=Offset(2.0, 4.0) (can use size)\n  constraints: BoxConstraints(w=35.4, h=32.0)\n  size: Size(35.4, 32.0)\n  direction: vertical\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 3.5 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/widgets/expense_record_page/expense_calendar_section.dart:206:38\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#0c969 OVERFLOWING:\n  parentData: offset=Offset(2.0, 4.0) (can use size)\n  constraints: BoxConstraints(w=35.4, h=32.0)\n  size: Size(35.4, 32.0)\n  direction: vertical\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 3.5 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/widgets/expense_record_page/expense_calendar_section.dart:206:38\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#43687 OVERFLOWING:\n  parentData: offset=Offset(2.0, 4.0) (can use size)\n  constraints: BoxConstraints(w=35.4, h=32.0)\n  size: Size(35.4, 32.0)\n  direction: vertical\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 3.5 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/widgets/expense_record_page/expense_calendar_section.dart:206:38\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#cd717 OVERFLOWING:\n  parentData: offset=Offset(2.0, 4.0) (can use size)\n  constraints: BoxConstraints(w=35.4, h=32.0)\n  size: Size(35.4, 32.0)\n  direction: vertical\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 3.5 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/widgets/expense_record_page/expense_calendar_section.dart:206:38\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#5af5a OVERFLOWING:\n  parentData: offset=Offset(2.0, 4.0) (can use size)\n  constraints: BoxConstraints(w=35.4, h=32.0)\n  size: Size(35.4, 32.0)\n  direction: vertical\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 3.5 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/widgets/expense_record_page/expense_calendar_section.dart:206:38\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#bfb74 OVERFLOWING:\n  parentData: offset=Offset(2.0, 4.0) (can use size)\n  constraints: BoxConstraints(w=35.4, h=32.0)\n  size: Size(35.4, 32.0)\n  direction: vertical\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 3.5 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/widgets/expense_record_page/expense_calendar_section.dart:206:38\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#a1b80 OVERFLOWING:\n  parentData: offset=Offset(2.0, 4.0) (can use size)\n  constraints: BoxConstraints(w=35.4, h=32.0)\n  size: Size(35.4, 32.0)\n  direction: vertical\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 3.5 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/widgets/expense_record_page/expense_calendar_section.dart:206:38\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#5a876 OVERFLOWING:\n  parentData: offset=Offset(2.0, 4.0) (can use size)\n  constraints: BoxConstraints(w=35.4, h=32.0)\n  size: Size(35.4, 32.0)\n  direction: vertical\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 3.5 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/widgets/expense_record_page/expense_calendar_section.dart:206:38\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#84063 OVERFLOWING:\n  parentData: offset=Offset(2.0, 4.0) (can use size)\n  constraints: BoxConstraints(w=35.4, h=32.0)\n  size: Size(35.4, 32.0)\n  direction: vertical\n  mainAxisAlignment: spaceBetween\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 264 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/pages/expense_page/expense_record_page.dart:337:16\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#d7d27 OVERFLOWING:\n  needs compositing\n  parentData: <none> (can use size)\n  constraints: BoxConstraints(w=320.0, h=574.0)\n  size: Size(320.0, 574.0)\n  direction: vertical\n  mainAxisAlignment: start\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ],
+    "screenshot": "largefont_expense-record.png"
+  },
+  {
+    "config": "largefont",
+    "width": 360.0,
+    "height": 640.0,
+    "textScale": 1.8,
+    "locale": "ko",
+    "route": "/fixed-expense",
+    "errors": [],
+    "screenshot": "largefont_fixed-expense.png"
+  },
+  {
+    "config": "largefont",
+    "width": 360.0,
+    "height": 640.0,
+    "textScale": 1.8,
+    "locale": "ko",
+    "route": "/analysis",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 43 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/household_ledger/lib/presenter/widgets/analysis_page/analysis_period_control_card.dart:191:53\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#2920c relayoutBoundary=up9 OVERFLOWING:\n  parentData: offset=Offset(97.3, 4.5); flex=1; fit=FlexFit.tight\n    (can use size)\n  constraints: BoxConstraints(w=190.7, 0.0<=h<=Infinity)\n  size: Size(190.7, 40.0)\n  direction: horizontal\n  mainAxisAlignment: center\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 43 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/household_ledger/lib/presenter/widgets/analysis_page/analysis_period_control_card.dart:191:53\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#be6ae relayoutBoundary=up9 OVERFLOWING:\n  parentData: offset=Offset(97.3, 4.5); flex=1; fit=FlexFit.tight\n    (can use size)\n  constraints: BoxConstraints(w=190.7, 0.0<=h<=Infinity)\n  size: Size(190.7, 40.0)\n  direction: horizontal\n  mainAxisAlignment: center\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ],
+    "screenshot": "largefont_analysis.png"
+  },
+  {
+    "config": "largefont",
+    "width": 360.0,
+    "height": 640.0,
+    "textScale": 1.8,
+    "locale": "ko",
+    "route": "/travel-management",
+    "errors": [],
+    "screenshot": "largefont_travel-management.png"
+  },
+  {
+    "config": "largefont",
+    "width": 360.0,
+    "height": 640.0,
+    "textScale": 1.8,
+    "locale": "ko",
+    "route": "/travel-detail",
+    "errors": [],
+    "screenshot": "largefont_travel-detail.png"
+  },
+  {
+    "config": "largefont",
+    "width": 360.0,
+    "height": 640.0,
+    "textScale": 1.8,
+    "locale": "ko",
+    "route": "/data-manage",
+    "errors": [],
+    "screenshot": "largefont_data-manage.png"
+  },
+  {
+    "config": "largefont",
+    "width": 360.0,
+    "height": 640.0,
+    "textScale": 1.8,
+    "locale": "ko",
+    "route": "/settings",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY FLUTTER FRAMEWORK ╞══════════════════════\nThe following assertion was thrown:\nListTile background color or ink splashes may be invisible.\nThe ListTile is wrapped in a DecoratedBox that has a background\ncolor. Because ListTile paints its background and ink splashes on\nthe nearest Material ancestor, this DecoratedBox will hide those\neffects.\nTo fix this, wrap the ListTile in its own Material widget, or\nremove the background color from the intermediate DecoratedBox.\n\nListTile:\n  ListTile(selectedColor: Color(alpha: 1.0000, red: 0.3451, green: 0.3686, blue: 0.4431, colorSpace: ColorSpace.sRGB), contentPadding: EdgeInsets.zero, onTap: Closure: () => void)\nDecoratedBox: DecoratedBox(bg:\n    BoxDecoration(color: Color(alpha: 1.0000, red: 1.0000, green: 1.0000, blue: 1.0000, colorSpace: ColorSpace.sRGB), borderRadius: BorderRadius.circular(24.0),\n      boxShadow: [BoxShadow(Color(alpha: 0.0706, red: 0.0000, green:\n        0.0000, blue: 0.0000, colorSpace: ColorSpace.sRGB), Offset(0.0,\n        12.0), 20.0, 0.0, BlurStyle.normal)]\n      )\n  )\n═════════════════════════════════════════════════════════════════\n"
+    ],
+    "screenshot": "largefont_settings.png"
+  },
+  {
+    "config": "largefont",
+    "width": 360.0,
+    "height": 640.0,
+    "textScale": 1.8,
+    "locale": "ko",
+    "route": "/my-page",
+    "errors": [],
+    "screenshot": "largefont_my-page.png"
+  },
+  {
+    "config": "largefont",
+    "width": 360.0,
+    "height": 640.0,
+    "textScale": 1.8,
+    "locale": "ko",
+    "route": "/export-data",
+    "errors": [],
+    "screenshot": "largefont_export-data.png"
+  },
+  {
+    "config": "largefont",
+    "width": 360.0,
+    "height": 640.0,
+    "textScale": 1.8,
+    "locale": "ko",
+    "route": "/import-data",
+    "errors": [],
+    "screenshot": "largefont_import-data.png"
+  },
+  {
+    "config": "largefont",
+    "width": 360.0,
+    "height": 640.0,
+    "textScale": 1.8,
+    "locale": "ko",
+    "route": "/generating-report",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY FLUTTER FRAMEWORK ╞══════════════════════\nThe following assertion was thrown:\nListTile background color or ink splashes may be invisible.\nThe ListTile is wrapped in a DecoratedBox that has a background\ncolor. Because ListTile paints its background and ink splashes on\nthe nearest Material ancestor, this DecoratedBox will hide those\neffects.\nTo fix this, wrap the ListTile in its own Material widget, or\nremove the background color from the intermediate DecoratedBox.\n\nListTile:\n  ListTile(selectedColor: Color(alpha: 1.0000, red: 0.3451, green: 0.3686, blue: 0.4431, colorSpace: ColorSpace.sRGB), contentPadding: EdgeInsets.zero, onTap: Closure: () => void from Function '_handleValueChange@2094134056':.)\nDecoratedBox: DecoratedBox(bg:\n    BoxDecoration(color: Color(alpha: 1.0000, red: 1.0000, green: 1.0000, blue: 1.0000, colorSpace: ColorSpace.sRGB), borderRadius: BorderRadius.circular(24.0),\n      boxShadow: [BoxShadow(Color(alpha: 0.0706, red: 0.0000, green:\n        0.0000, blue: 0.0000, colorSpace: ColorSpace.sRGB), Offset(0.0,\n        12.0), 20.0, 0.0, BlurStyle.normal)]\n      )\n  )\n═════════════════════════════════════════════════════════════════\n"
+    ],
+    "screenshot": "largefont_generating-report.png"
+  },
+  {
+    "config": "largefont",
+    "width": 360.0,
+    "height": 640.0,
+    "textScale": 1.8,
+    "locale": "ko",
+    "route": "/copyrights",
+    "errors": [],
+    "screenshot": "largefont_copyrights.png"
+  },
+  {
+    "config": "japanese",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.3,
+    "locale": "jp",
+    "route": "/",
+    "errors": [],
+    "screenshot": "japanese_onboarding.png"
+  },
+  {
+    "config": "japanese",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.3,
+    "locale": "jp",
+    "route": "/setup",
+    "errors": [],
+    "screenshot": "japanese_setup.png"
+  },
+  {
+    "config": "japanese",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.3,
+    "locale": "jp",
+    "route": "/home",
+    "errors": [],
+    "screenshot": "japanese_home.png"
+  },
+  {
+    "config": "japanese",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.3,
+    "locale": "jp",
+    "route": "/income",
+    "errors": [],
+    "screenshot": "japanese_income.png"
+  },
+  {
+    "config": "japanese",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.3,
+    "locale": "jp",
+    "route": "/expense-record",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 192 pixels on the bottom.\n\nThe relevant error-causing widget was:\n  Column\n  Column:file:///C:/household_ledger/lib/presenter/pages/expense_page/expense_record_page.dart:337:16\n\nThe overflowing RenderFlex has an orientation of Axis.vertical.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#796fa OVERFLOWING:\n  needs compositing\n  parentData: <none> (can use size)\n  constraints: BoxConstraints(w=280.0, h=502.0)\n  size: Size(280.0, 502.0)\n  direction: vertical\n  mainAxisAlignment: start\n  mainAxisSize: max\n  crossAxisAlignment: center\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ],
+    "screenshot": "japanese_expense-record.png"
+  },
+  {
+    "config": "japanese",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.3,
+    "locale": "jp",
+    "route": "/fixed-expense",
+    "errors": [],
+    "screenshot": "japanese_fixed-expense.png"
+  },
+  {
+    "config": "japanese",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.3,
+    "locale": "jp",
+    "route": "/analysis",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 28 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/household_ledger/lib/presenter/widgets/analysis_page/analysis_period_control_card.dart:191:53\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#c8ed3 relayoutBoundary=up9 OVERFLOWING:\n  parentData: offset=Offset(84.3, 0.0); flex=1; fit=FlexFit.tight\n    (can use size)\n  constraints: BoxConstraints(w=163.7, 0.0<=h<=Infinity)\n  size: Size(163.7, 40.0)\n  direction: horizontal\n  mainAxisAlignment: center\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n",
+      "══╡ EXCEPTION CAUGHT BY RENDERING LIBRARY ╞══════════════════════\nThe following assertion was thrown during layout:\nA RenderFlex overflowed by 28 pixels on the right.\n\nThe relevant error-causing widget was:\n  Row\n  Row:file:///C:/household_ledger/lib/presenter/widgets/analysis_page/analysis_period_control_card.dart:191:53\n\nThe overflowing RenderFlex has an orientation of Axis.horizontal.\nThe edge of the RenderFlex that is overflowing has been marked in\nthe rendering with a yellow and black striped pattern. This is\nusually caused by the contents being too big for the RenderFlex.\nConsider applying a flex factor (e.g. using an Expanded widget)\nto force the children of the RenderFlex to fit within the\navailable space instead of being sized to their natural size.\nThis is considered an error condition because it indicates that\nthere is content that cannot be seen. If the content is\nlegitimately bigger than the available space, consider clipping\nit with a ClipRect widget before putting it in the flex, or using\na scrollable container rather than a Flex, like a ListView.\nThe specific RenderFlex in question is: RenderFlex#d4665 relayoutBoundary=up9 OVERFLOWING:\n  parentData: offset=Offset(84.3, 0.0); flex=1; fit=FlexFit.tight\n    (can use size)\n  constraints: BoxConstraints(w=163.7, 0.0<=h<=Infinity)\n  size: Size(163.7, 40.0)\n  direction: horizontal\n  mainAxisAlignment: center\n  mainAxisSize: max\n  crossAxisAlignment: center\n  textDirection: ltr\n  verticalDirection: down\n  spacing: 0.0\n◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤◢◤\n═════════════════════════════════════════════════════════════════\n"
+    ],
+    "screenshot": "japanese_analysis.png"
+  },
+  {
+    "config": "japanese",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.3,
+    "locale": "jp",
+    "route": "/travel-management",
+    "errors": [],
+    "screenshot": "japanese_travel-management.png"
+  },
+  {
+    "config": "japanese",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.3,
+    "locale": "jp",
+    "route": "/travel-detail",
+    "errors": [],
+    "screenshot": "japanese_travel-detail.png"
+  },
+  {
+    "config": "japanese",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.3,
+    "locale": "jp",
+    "route": "/data-manage",
+    "errors": [],
+    "screenshot": "japanese_data-manage.png"
+  },
+  {
+    "config": "japanese",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.3,
+    "locale": "jp",
+    "route": "/settings",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY FLUTTER FRAMEWORK ╞══════════════════════\nThe following assertion was thrown:\nListTile background color or ink splashes may be invisible.\nThe ListTile is wrapped in a DecoratedBox that has a background\ncolor. Because ListTile paints its background and ink splashes on\nthe nearest Material ancestor, this DecoratedBox will hide those\neffects.\nTo fix this, wrap the ListTile in its own Material widget, or\nremove the background color from the intermediate DecoratedBox.\n\nListTile:\n  ListTile(selectedColor: Color(alpha: 1.0000, red: 0.3451, green: 0.3686, blue: 0.4431, colorSpace: ColorSpace.sRGB), contentPadding: EdgeInsets.zero, onTap: Closure: () => void)\nDecoratedBox: DecoratedBox(bg:\n    BoxDecoration(color: Color(alpha: 1.0000, red: 1.0000, green: 1.0000, blue: 1.0000, colorSpace: ColorSpace.sRGB), borderRadius: BorderRadius.circular(24.0),\n      boxShadow: [BoxShadow(Color(alpha: 0.0706, red: 0.0000, green:\n        0.0000, blue: 0.0000, colorSpace: ColorSpace.sRGB), Offset(0.0,\n        12.0), 20.0, 0.0, BlurStyle.normal)]\n      )\n  )\n═════════════════════════════════════════════════════════════════\n"
+    ],
+    "screenshot": "japanese_settings.png"
+  },
+  {
+    "config": "japanese",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.3,
+    "locale": "jp",
+    "route": "/my-page",
+    "errors": [],
+    "screenshot": "japanese_my-page.png"
+  },
+  {
+    "config": "japanese",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.3,
+    "locale": "jp",
+    "route": "/export-data",
+    "errors": [],
+    "screenshot": "japanese_export-data.png"
+  },
+  {
+    "config": "japanese",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.3,
+    "locale": "jp",
+    "route": "/import-data",
+    "errors": [],
+    "screenshot": "japanese_import-data.png"
+  },
+  {
+    "config": "japanese",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.3,
+    "locale": "jp",
+    "route": "/generating-report",
+    "errors": [
+      "══╡ EXCEPTION CAUGHT BY FLUTTER FRAMEWORK ╞══════════════════════\nThe following assertion was thrown:\nListTile background color or ink splashes may be invisible.\nThe ListTile is wrapped in a DecoratedBox that has a background\ncolor. Because ListTile paints its background and ink splashes on\nthe nearest Material ancestor, this DecoratedBox will hide those\neffects.\nTo fix this, wrap the ListTile in its own Material widget, or\nremove the background color from the intermediate DecoratedBox.\n\nListTile:\n  ListTile(selectedColor: Color(alpha: 1.0000, red: 0.3451, green: 0.3686, blue: 0.4431, colorSpace: ColorSpace.sRGB), contentPadding: EdgeInsets.zero, onTap: Closure: () => void from Function '_handleValueChange@2094134056':.)\nDecoratedBox: DecoratedBox(bg:\n    BoxDecoration(color: Color(alpha: 1.0000, red: 1.0000, green: 1.0000, blue: 1.0000, colorSpace: ColorSpace.sRGB), borderRadius: BorderRadius.circular(24.0),\n      boxShadow: [BoxShadow(Color(alpha: 0.0706, red: 0.0000, green:\n        0.0000, blue: 0.0000, colorSpace: ColorSpace.sRGB), Offset(0.0,\n        12.0), 20.0, 0.0, BlurStyle.normal)]\n      )\n  )\n═════════════════════════════════════════════════════════════════\n"
+    ],
+    "screenshot": "japanese_generating-report.png"
+  },
+  {
+    "config": "japanese",
+    "width": 320.0,
+    "height": 568.0,
+    "textScale": 1.3,
+    "locale": "jp",
+    "route": "/copyrights",
+    "errors": [],
+    "screenshot": "japanese_copyrights.png"
+  }
+]

@@ -6,8 +6,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/presenter/extensions/metadata_tag_icon_extension.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_dialog.dart';
 import 'package:household_ledger/provider/nav_tab_provider.dart';
+import 'package:household_ledger/provider/fixed_expense_carryover_provider.dart';
 import 'package:household_ledger/provider/tutorial_provider.dart';
 import 'package:household_ledger/router/app_router.dart';
 import 'package:household_ledger/presenter/extensions/currency_extension.dart';
@@ -31,6 +34,8 @@ class FixedExpensePage extends ConsumerStatefulWidget {
 
 class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
   late DateTime _focusedMonth;
+  bool _carryoverPromptInProgress = false;
+  bool _carryoverAttemptedThisVisit = false;
 
   final GlobalKey _totalKey = GlobalKey();
   final GlobalKey _fabKey = GlobalKey();
@@ -46,12 +51,14 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
   void _prevMonth() {
     setState(() {
       _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month - 1, 1);
+      _carryoverAttemptedThisVisit = false;
     });
   }
 
   void _nextMonth() {
     setState(() {
       _focusedMonth = DateTime(_focusedMonth.year, _focusedMonth.month + 1, 1);
+      _carryoverAttemptedThisVisit = false;
     });
   }
 
@@ -64,7 +71,10 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
       allowFuture: true,
     );
     if (picked == null) return;
-    setState(() => _focusedMonth = DateTime(picked.year, picked.month, 1));
+    setState(() {
+      _focusedMonth = DateTime(picked.year, picked.month, 1);
+      _carryoverAttemptedThisVisit = false;
+    });
   }
 
   String _text(Map<String, String> strings, String tag) {
@@ -85,6 +95,160 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
     return template
         .replaceAll('{year}', _focusedMonth.year.toString())
         .replaceAll('{month}', _focusedMonth.month.toString().padLeft(2, '0'));
+  }
+
+  Future<void> _maybeOfferCarryover(
+    DateTime targetMonth,
+    Map<String, String> strings,
+  ) async {
+    if (_carryoverPromptInProgress ||
+        _carryoverAttemptedThisVisit ||
+        ref.read(tutorialProvider).isActive ||
+        !mounted) {
+      return;
+    }
+    _carryoverAttemptedThisVisit = true;
+    _carryoverPromptInProgress = true;
+    try {
+      final controller = ref.read(fixedExpenseCarryoverControllerProvider);
+      final previousCount = await controller.findOfferCount(targetMonth);
+      if (previousCount == 0 || !mounted) return;
+
+      var suppressForMonth = false;
+      final confirmed = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (BuildContext dialogContext) => StatefulBuilder(
+          builder: (BuildContext context, StateSetter setDialogState) {
+            return BootstrapDialog(
+              title: _text(strings, 'fixedExpenseCarryoverTitle'),
+              icon: Icons.event_repeat_rounded,
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: <Widget>[
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(14),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF6F9FF),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: const Color(0xFFDCE6F5)),
+                    ),
+                    child: Row(
+                      children: <Widget>[
+                        const Icon(
+                          Icons.content_copy_rounded,
+                          size: 20,
+                          color: Color(0xFF0D6EFD),
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            _text(strings, 'fixedExpenseCarryoverMessage'),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  CheckboxListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+                    dense: true,
+                    controlAffinity: ListTileControlAffinity.leading,
+                    value: suppressForMonth,
+                    title: Text(
+                      _text(strings, 'fixedExpenseCarryoverDontShowAgain'),
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        color: const Color(0xFF52606D),
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    onChanged: (bool? value) {
+                      setDialogState(() => suppressForMonth = value ?? false);
+                    },
+                  ),
+                ],
+              ),
+              actions: <Widget>[
+                OutlinedButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(false),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFF495057),
+                    side: const BorderSide(color: Color(0xFFD7DEE8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: Text(_text(strings, 'cancel')),
+                ),
+                const SizedBox(width: 8),
+                FilledButton(
+                  onPressed: () => Navigator.of(dialogContext).pop(true),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: const Color(0xFF0D6EFD),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: Text(_text(strings, 'confirmOk')),
+                ),
+              ],
+            );
+          },
+        ),
+      );
+      if (confirmed != true) {
+        if (suppressForMonth) {
+          await controller.suppressForMonth(targetMonth);
+        }
+        return;
+      }
+      if (!mounted) return;
+
+      final copied = await controller.copyPreviousMonth(targetMonth);
+      if (!mounted || copied.isEmpty) return;
+      ref.invalidate(monthlyFixedExpensesProvider(targetMonth));
+      ref.invalidate(ledgerProvider);
+
+      await showDialog<void>(
+        context: context,
+        builder: (BuildContext dialogContext) => BootstrapDialog(
+          icon: Icons.check_rounded,
+          iconColor: const Color(0xFF198754),
+          title: _text(strings, 'fixedExpenseCarryoverCompleteTitle'),
+          content: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: const Color(0xFFEAF7EF),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Text(_text(strings, 'fixedExpenseCarryoverCompleteMessage')),
+          ),
+          actions: <Widget>[
+            FilledButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              style: FilledButton.styleFrom(
+                backgroundColor: const Color(0xFF198754),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
+              ),
+              child: Text(_text(strings, 'confirmOk')),
+            ),
+          ],
+        ),
+      );
+    } catch (_) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(_text(strings, 'fixedExpenseCarryoverError'))),
+        );
+      }
+    } finally {
+      _carryoverPromptInProgress = false;
+    }
   }
 
   Future<void> _showDetail({
@@ -167,10 +331,25 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
     );
 
     ref.listen(currentNavTabProvider, (_, tab) {
+      if (tab != 4) {
+        _carryoverAttemptedThisVisit = false;
+      }
       if (tab == 4 &&
           ref.read(tutorialProvider).phase == TutorialPhase.fixedExpense) {
         _showcase.reset();
         _maybeStartShowcase();
+      }
+      if (tab == 4) {
+        final items = ref
+            .read(monthlyFixedExpensesProvider(_focusedMonth))
+            .asData
+            ?.value;
+        if (items?.isEmpty ?? false) {
+          final targetMonth = _focusedMonth;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _maybeOfferCarryover(targetMonth, strings);
+          });
+        }
       }
     });
 
@@ -184,6 +363,16 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
     final fixedExpensesAsync = ref.watch(
       monthlyFixedExpensesProvider(_focusedMonth),
     );
+    ref.listen(monthlyFixedExpensesProvider(_focusedMonth), (_, next) {
+      next.whenData((List<FixedExpense> items) {
+        if (items.isEmpty && ref.read(currentNavTabProvider) == 4) {
+          final targetMonth = _focusedMonth;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            _maybeOfferCarryover(targetMonth, strings);
+          });
+        }
+      });
+    });
 
     Widget buildInner(BuildContext showcaseCtx) {
       _showcase.bind(showcaseCtx);
@@ -292,11 +481,27 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                             children: <Widget>[
                               Expanded(
                                 flex: 3,
-                                child: Text(
-                                  categoryLabel,
-                                  overflow: TextOverflow.ellipsis,
-                                  style: Theme.of(context).textTheme.bodySmall
-                                      ?.copyWith(fontWeight: FontWeight.w700),
+                                child: Row(
+                                  children: <Widget>[
+                                    Icon(
+                                      categoryTags.iconFor(item.categoryCode),
+                                      size: 18,
+                                      color: const Color(0xFF1F5F99),
+                                    ),
+                                    const SizedBox(width: 6),
+                                    Expanded(
+                                      child: Text(
+                                        categoryLabel,
+                                        overflow: TextOverflow.ellipsis,
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .bodySmall
+                                            ?.copyWith(
+                                              fontWeight: FontWeight.w700,
+                                            ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
                               const SizedBox(width: 8),

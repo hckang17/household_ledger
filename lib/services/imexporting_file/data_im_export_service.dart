@@ -244,9 +244,16 @@ class DataImExportService {
     buffer.writeln();
 
     buffer.writeln(_sectionTags);
-    buffer.writeln('type,code,label');
+    buffer.writeln('type,code,label,iconCode');
     for (final tag in ledgerState.metadataTags) {
-      buffer.writeln(_csvRow([tag.type.name, tag.code, tag.label]));
+      buffer.writeln(
+        _csvRow([
+          tag.type.name,
+          tag.code,
+          tag.label,
+          tag.effectiveIconCode ?? '',
+        ]),
+      );
     }
 
     return buffer.toString();
@@ -730,6 +737,8 @@ class DataImExportService {
       return <MetadataTag>[];
     }
     final result = <MetadataTag>[];
+    final header = _parseCsvRow(rows.first);
+    final iconIndex = header.indexOf('iconCode');
     for (final row in rows.skip(1)) {
       final f = _parseCsvRow(row);
       if (f.length < 3) {
@@ -740,7 +749,19 @@ class DataImExportService {
         final type = MetadataTagType.values.firstWhere(
           (MetadataTagType t) => t.name == f[0],
         );
-        result.add(MetadataTag(type: type, code: f[1], label: f[2]));
+        result.add(
+          MetadataTag(
+            type: type,
+            code: f[1],
+            label: f[2],
+            iconCode:
+                iconIndex >= 0 &&
+                    iconIndex < f.length &&
+                    f[iconIndex].isNotEmpty
+                ? f[iconIndex]
+                : null,
+          ),
+        );
       } catch (_) {
         if (strict) rethrow;
       }

@@ -1,0 +1,869 @@
+00:00 +0: loading C:/household_ledger/test/features/analysis/calculators/analysis_series_calculator_test.dart
+00:00 +0: C:/household_ledger/test/features/analysis/calculators/food_analysis_calculator_test.dart: FoodAnalysisCalculator 음식 합계와 엥겔지수 및 방문 통계를 계산한다
+00:00 +1: C:/household_ledger/test/features/analysis/calculators/analysis_series_calculator_test.dart: 카테고리 금액과 고정지출을 비율순으로 집계한다
+00:00 +2: C:/household_ledger/test/features/analysis/calculators/food_analysis_calculator_test.dart: FoodAnalysisCalculator 식사 유형별 횟수와 최다 유형을 태그 순서 기준으로 계산한다
+00:00 +3: C:/household_ledger/test/features/analysis/calculators/analysis_series_calculator_test.dart: 기간 시작일 기준으로 일별 금액을 합산한다
+00:00 +4: C:/household_ledger/test/features/analysis/calculators/food_analysis_calculator_test.dart: FoodAnalysisCalculator 현재 데이터가 없으면 0 결과와 감소 비교를 안전하게 반환한다
+00:00 +5: C:/household_ledger/test/features/analysis/calculators/food_analysis_calculator_test.dart: FoodAnalysisCalculator 비교 기간 데이터가 없으면 unavailable을 반환한다
+00:00 +6: C:/household_ledger/test/features/comparison/calculators/expense_comparison_calculator_test.dart: 전체 금액과 카테고리 증감액을 절댓값 순서로 계산한다
+00:00 +7: C:/household_ledger/test/features/comparison/calculators/expense_comparison_calculator_test.dart: 이전 기간 데이터가 없으면 비교 결과를 만들지 않는다
+00:00 +8: C:/household_ledger/test/features/expense/calculators/expense_calendar_calculator_test.dart: 선택한 월의 날짜별 지출만 집계한다
+00:01 +9: C:/household_ledger/test/features/expense/calculators/expense_editor_dining_policy_test.dart: 저녁 시간에 점심 데이터를 수정해도 점심을 유지하고 먼저 표시한다
+00:01 +10: C:/household_ledger/test/features/expense/calculators/expense_editor_dining_policy_test.dart: 식사 유형이 비어 있는 수정 데이터에는 자동 추천을 적용하지 않는다
+00:01 +11: C:/household_ledger/test/features/expense/calculators/expense_editor_dining_policy_test.dart: 신규 외식 입력에는 시간대 추천값을 적용한다
+00:01 +12: C:/household_ledger/test/features/expense/calculators/expense_editor_dining_policy_test.dart: 밤 9시 이후 신규 외식 입력에는 야식을 추천한다
+00:01 +13: C:/household_ledger/test/features/expense/calculators/expense_editor_travel_policy_test.dart: 신규 지출은 활성 여행의 여행 ID와 여행 소구분을 적용한다
+00:01 +14: C:/household_ledger/test/features/expense/calculators/expense_editor_travel_policy_test.dart: 기존 지출 수정은 다른 활성 여행보다 저장된 값을 우선한다
+00:01 +15: C:/household_ledger/test/features/expense/calculators/expense_editor_travel_policy_test.dart: 기존 일반 지출 수정에는 활성 여행을 적용하지 않는다
+00:01 +16: C:/household_ledger/test/features/expense/calculators/expense_editor_travel_policy_test.dart: 소구분을 여행이 아닌 값으로 바꾸면 여행 연결을 해제한다
+00:01 +17: C:/household_ledger/test/features/expense/calculators/expense_editor_travel_policy_test.dart: 여행 기간 안내 여행 시작일과 종료일은 기간 안으로 처리한다
+00:01 +18: C:/household_ledger/test/features/expense/calculators/expense_editor_travel_policy_test.dart: 여행 기간 안내 여행 시작 전과 종료 후 날짜는 기간 밖으로 처리한다
+00:01 +19: C:/household_ledger/test/features/reporting/calculators/report_summary_calculator_test.dart: 리포트 합계와 분류별 집계를 계산한다
+00:01 +20: C:/household_ledger/test/features/reporting/calculators/report_summary_calculator_test.dart: 데이터가 없으면 모든 합계를 0으로 반환한다
+00:02 +21: C:/household_ledger/test/features/travel/calculators/travel_summary_calculator_test.dart: 연결된 전체 비용과 여행 전중후 및 일별 합계를 계산한다
+00:02 +22: C:/household_ledger/test/features/travel/calculators/travel_summary_calculator_test.dart: 여행 시작일과 종료일을 기간 중으로 분류한다
+00:02 +23: C:/household_ledger/test/features/travel/calculators/travel_summary_calculator_test.dart: 예산과 지출이 없어도 안전한 0 결과를 반환한다
+00:02 +24: C:/household_ledger/test/features/travel/calculators/travel_summary_calculator_test.dart: 예산 초과 시 남은 예산을 음수로 반환한다
+00:02 +25: C:/household_ledger/test/model/app_settings_test.dart: 새 설치는 단색, 구버전 팔레트는 그라데이션으로 승계한다
+00:02 +26: C:/household_ledger/test/model/app_settings_test.dart: 명시적인 단색 선택은 저장된 팔레트가 있어도 재시작 후 유지된다
+00:02 +27: C:/household_ledger/test/model/app_settings_test.dart: AppSettings travel gradient palette older saved data uses the breeze palette
+00:02 +28: C:/household_ledger/test/model/app_settings_test.dart: AppSettings travel gradient palette selected palette survives a JSON round trip
+00:02 +29: C:/household_ledger/test/model/app_settings_test.dart: AppSettings travel gradient palette unknown palette codes safely use the default
+00:02 +30: C:/household_ledger/test/model/expense_entry_trip_test.dart: 여행 소구분 지출은 여행 ID를 저장하고 JSON으로 왕복한다
+00:02 +31: C:/household_ledger/test/model/expense_entry_trip_test.dart: 여행이 아닌 소구분에는 여행 ID를 저장하지 않는다
+00:02 +32: C:/household_ledger/test/model/expense_entry_trip_test.dart: 기존 여행 지출 수정 시 저장된 여행 ID를 유지하고 명시적으로 해제한다
+00:03 +33: C:/household_ledger/test/model/metadata_tag_test.dart: 시스템 소비구분은 안정적인 아이콘 코드를 포함한다
+00:03 +34: C:/household_ledger/test/model/metadata_tag_test.dart: 아이콘 코드는 JSON으로 왕복하고 구버전 데이터는 기본값을 보완한다
+00:03 +35: C:/household_ledger/test/model/metadata_tag_test.dart: MetadataTagCodeGenerator 새 사용자 카테고리에 첫 2문자 코드를 할당한다
+00:03 +36: C:/household_ledger/test/model/metadata_tag_test.dart: MetadataTagCodeGenerator 이미 사용 중인 사용자 카테고리 코드를 건너뛴다
+00:03 +37: C:/household_ledger/test/model/metadata_tag_test.dart: MetadataTagCodeGenerator 다른 태그 종류에서 같은 코드를 사용해도 충돌하지 않는다
+00:03 +38: C:/household_ledger/test/model/metadata_tag_test.dart: MetadataTagCodeGenerator 가능한 모든 2문자 코드가 사용 중이면 null을 반환한다
+00:03 +39: C:/household_ledger/test/model/metadata_tag_test.dart: 시스템 기본 카테고리 모든 코드가 1문자이며 스포츠와 숙박비 카테고리도 시스템 기본이다
+00:03 +40: C:/household_ledger/test/model/metadata_tag_test.dart: 시스템 기본 카테고리 기존 사용자 숙박비 태그를 보존하면서 시스템 숙박비를 보완한다
+00:03 +41: C:/household_ledger/test/model/metadata_tag_test.dart: MetadataTagLabelValidator 공백만 입력한 이름을 허용하지 않는다
+00:03 +42: C:/household_ledger/test/model/metadata_tag_test.dart: MetadataTagLabelValidator 같은 태그 종류에서는 공백과 대소문자를 무시하고 중복을 막는다
+00:03 +43: C:/household_ledger/test/model/metadata_tag_test.dart: MetadataTagLabelValidator 다른 태그 종류의 같은 이름은 허용한다
+00:03 +44: C:/household_ledger/test/model/metadata_tag_test.dart: MetadataTagLabelValidator 수정 중인 태그가 기존 이름을 유지하는 것은 허용한다
+00:03 +45: C:/household_ledger/test/model/metadata_tag_test.dart: MetadataTagLabelValidator 현재 언어와 다른 언어의 시스템 태그 이름도 중복으로 처리한다
+00:03 +46: C:/household_ledger/test/model/metadata_tag_test.dart: MetadataTagLabelValidator 숙박비의 한글과 일본어 이름을 시스템 예약 이름으로 보호한다
+00:03 +47: C:/household_ledger/test/model/metadata_tag_test.dart: MetadataTagLabelValidator 기본 결제수단도 시스템 태그로 보호한다
+00:03 +48: C:/household_ledger/test/model/push_notification_settings_test.dart: PushNotificationSettings 기존 저장 데이터에는 안전한 기본값을 적용한다
+00:03 +49: C:/household_ledger/test/model/push_notification_settings_test.dart: PushNotificationSettings 전체 설정과 카테고리 설정을 JSON으로 왕복한다
+00:03 +50: C:/household_ledger/test/model/push_notification_settings_test.dart: PushNotificationSettings 급여일은 모든 달에 존재하는 1일부터 28일 사이로 제한한다
+00:03 +51: C:/household_ledger/test/model/trip_test.dart: 여행정보를 JSON으로 왕복하고 날짜를 일 단위로 정규화한다
+00:03 +52: C:/household_ledger/test/model/trip_test.dart: 여행을 보관하고 다시 복원할 수 있다
+00:04 +53: C:/household_ledger/test/model/user_profile_test.dart: UserProfile 생년월일을 기준으로 만 나이를 계산한다
+00:04 +54: C:/household_ledger/test/model/user_profile_test.dart: UserProfile 기존 age 데이터는 생년월일 등록 전까지 유지한다
+00:04 +55: C:/household_ledger/test/model/user_profile_test.dart: UserProfile 이메일과 생년월일을 JSON으로 왕복한다
+00:11 +56: C:/household_ledger/test/presenter/pages/sub_page/data_managing_subcategory_test.dart: 소비 소구분 검색과 여행 연결 일괄 변경 UI를 표시한다
+00:12 +57: C:/household_ledger/test/presenter/pages/sub_page/data_managing_subcategory_test.dart: 소비 소구분 검색과 여행 연결 일괄 변경 UI를 표시한다
+00:12 +58: C:/household_ledger/test/presenter/pages/sub_page/data_managing_subcategory_test.dart: 소비 소구분 검색과 여행 연결 일괄 변경 UI를 표시한다
+00:12 +59: C:/household_ledger/test/presenter/widgets/common/app_background_transition_test.dart: 사이드바 이동·뒤로가기 중간 프레임 배경: TargetPlatform.android gradient=true
+00:12 +60: C:/household_ledger/test/presenter/widgets/common/app_background_transition_test.dart: 사이드바 이동·뒤로가기 중간 프레임 배경: TargetPlatform.android gradient=true
+00:12 +61: C:/household_ledger/test/presenter/widgets/common/app_background_transition_test.dart: 사이드바 이동·뒤로가기 중간 프레임 배경: TargetPlatform.android gradient=true
+00:13 +62: C:/household_ledger/test/presenter/widgets/common/app_background_transition_test.dart: 사이드바 이동·뒤로가기 중간 프레임 배경: TargetPlatform.android gradient=true
+00:13 +63: C:/household_ledger/test/presenter/widgets/common/app_background_transition_test.dart: 사이드바 이동·뒤로가기 중간 프레임 배경: TargetPlatform.android gradient=true
+00:13 +64: C:/household_ledger/test/presenter/widgets/common/app_background_transition_test.dart: 사이드바 이동·뒤로가기 중간 프레임 배경: TargetPlatform.android gradient=true
+00:14 +65: C:/household_ledger/test/presenter/widgets/common/app_background_transition_test.dart: 사이드바 이동·뒤로가기 중간 프레임 배경: TargetPlatform.android gradient=true
+00:14 +66: C:/household_ledger/test/presenter/widgets/common/app_background_transition_test.dart: 사이드바 이동·뒤로가기 중간 프레임 배경: TargetPlatform.android gradient=false
+00:14 +67: C:/household_ledger/test/presenter/widgets/common/expense_editor_travel_period_warning_test.dart: 여행 기간 밖의 지출은 안내하면서 저장을 허용한다
+00:16 +68: C:/household_ledger/test/presenter/widgets/common/expense_editor_travel_period_warning_test.dart: 여행 기간 밖의 지출은 안내하면서 저장을 허용한다
+00:16 +69: C:/household_ledger/test/presenter/widgets/common/expense_record_action_test.dart: 여행 모드 ON/OFF 기록 버튼: floating=true jp=false
+00:16 +70: C:/household_ledger/test/presenter/widgets/common/travel_editor_sheet_test.dart: 새 여행 Modal Sheet가 하단 SafeArea 안에서 여행정보를 저장한다
+00:16 +71: C:/household_ledger/test/presenter/widgets/common/travel_editor_sheet_test.dart: 새 여행 Modal Sheet가 하단 SafeArea 안에서 여행정보를 저장한다
+00:16 +72: C:/household_ledger/test/presenter/widgets/common/travel_editor_sheet_test.dart: 새 여행 Modal Sheet가 하단 SafeArea 안에서 여행정보를 저장한다
+00:16 +73: C:/household_ledger/test/presenter/widgets/common/travel_editor_sheet_test.dart: 새 여행 Modal Sheet가 하단 SafeArea 안에서 여행정보를 저장한다
+00:16 +74: C:/household_ledger/test/presenter/widgets/common/travel_editor_sheet_test.dart: 새 여행 Modal Sheet가 하단 SafeArea 안에서 여행정보를 저장한다
+00:17 +75: C:/household_ledger/test/presenter/widgets/common/travel_editor_sheet_test.dart: 새 여행 Modal Sheet가 하단 SafeArea 안에서 여행정보를 저장한다
+00:17 +76: C:/household_ledger/test/presenter/widgets/common/travel_editor_sheet_test.dart: 새 여행 Modal Sheet가 하단 SafeArea 안에서 여행정보를 저장한다
+00:17 +77: C:/household_ledger/test/presenter/widgets/data_managing_page/bulk_expense_classification_fields_test.dart: 여행 소구분을 선택하면 활성 여행을 기본 연결한다
+00:18 +78: C:/household_ledger/test/presenter/widgets/settings_page/app_background_section_test.dart: palette preview cards report the selected palette
+00:18 +79: C:/household_ledger/test/presenter/widgets/settings_page/app_background_section_test.dart: palette preview cards report the selected palette
+00:18 +80: C:/household_ledger/test/presenter/widgets/travel_detail_page/travel_summary_cards_test.dart: 작은 화면과 긴 일본어 문구에서도 여행 요약을 표시한다
+00:19 +81: C:/household_ledger/test/presenter/widgets/travel_management_page/travel_delete_button_test.dart: ko 작은 화면에서 취소·확인·실패와 중복 제출 방지
+00:19 +81: C:/household_ledger/test/provider/app_background_settings_test.dart: 배경 저장 후 시작 설정을 다시 읽으면 선택이 보존된다
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   _logLedgerProvider (package:household_ledger/provider/ledger_provider.dart:22:10)
+│ #1   LedgerNotifier._localStorageService (package:household_ledger/provider/ledger_provider.dart:186:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ledger_provider.dart] _localStorageService ( LocalStorageService 조회 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   _logLedgerProvider (package:household_ledger/provider/ledger_provider.dart:22:10)
+│ #1   localStorageServiceProvider.<anonymous closure> (package:household_ledger/provider/ledger_provider.dart:31:3)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ledger_provider.dart] localStorageServiceProvider ( LocalStorageService 인스턴스 생성 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   LocalStorageService._log (package:household_ledger/services/local_storage_service.dart:35:12)
+│ #1   LocalStorageService.saveState (package:household_ledger/services/local_storage_service.dart:66:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [local_storage_service.dart] saveState ( 앱 상태 저장 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   LocalStorageService.saveState (package:household_ledger/services/local_storage_service.dart:67:12)
+│ #1   LedgerNotifier.changeAppBackground (package:household_ledger/provider/ledger_provider.dart:377:32)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [LocalStorageService] saveState() started. key=household_ledger_state
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   LocalStorageService.saveState (package:household_ledger/services/local_storage_service.dart:77:12)
+│ #1   <asynchronous suspension>
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [LocalStorageService] saveState() completed. onboardingCompleted=false, monthlyBudget=0, fixedExpenses=0, metadataTags=22.
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   LocalStorageService._log (package:household_ledger/services/local_storage_service.dart:35:12)
+│ #1   LocalStorageService.saveState (package:household_ledger/services/local_storage_service.dart:83:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [local_storage_service.dart] saveState ( 앱 상태 저장 완료 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   _logLedgerProvider (package:household_ledger/provider/ledger_provider.dart:22:10)
+│ #1   LedgerNotifier._localStorageService (package:household_ledger/provider/ledger_provider.dart:186:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ledger_provider.dart] _localStorageService ( LocalStorageService 조회 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   LocalStorageService._log (package:household_ledger/services/local_storage_service.dart:35:12)
+│ #1   LocalStorageService.saveState (package:household_ledger/services/local_storage_service.dart:66:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [local_storage_service.dart] saveState ( 앱 상태 저장 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   LocalStorageService.saveState (package:household_ledger/services/local_storage_service.dart:67:12)
+│ #1   LedgerNotifier.changeAppBackground (package:household_ledger/provider/ledger_provider.dart:377:32)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [LocalStorageService] saveState() started. key=household_ledger_state
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   LocalStorageService.saveState (package:household_ledger/services/local_storage_service.dart:77:12)
+│ #1   <asynchronous suspension>
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [LocalStorageService] saveState() completed. onboardingCompleted=false, monthlyBudget=0, fixedExpenses=0, metadataTags=22.
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   LocalStorageService._log (package:household_ledger/services/local_storage_service.dart:35:12)
+│ #1   LocalStorageService.saveState (package:household_ledger/services/local_storage_service.dart:83:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [local_storage_service.dart] saveState ( 앱 상태 저장 완료 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:19 +82: C:/household_ledger/test/presenter/widgets/travel_management_page/travel_delete_button_test.dart: ko 작은 화면에서 취소·확인·실패와 중복 제출 방지
+00:19 +82: C:/household_ledger/test/provider/app_background_settings_test.dart: 저장 실패는 화면의 배경 설정을 바꾸지 않는다
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   _logLedgerProvider (package:household_ledger/provider/ledger_provider.dart:22:10)
+│ #1   LedgerNotifier._localStorageService (package:household_ledger/provider/ledger_provider.dart:186:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ledger_provider.dart] _localStorageService ( LocalStorageService 조회 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:19 +83: C:/household_ledger/test/presenter/widgets/travel_management_page/travel_delete_button_test.dart: ko 작은 화면에서 취소·확인·실패와 중복 제출 방지
+00:19 +84: C:/household_ledger/test/presenter/widgets/travel_management_page/travel_delete_button_test.dart: ko 작은 화면에서 취소·확인·실패와 중복 제출 방지
+00:20 +85: C:/household_ledger/test/presenter/widgets/travel_management_page/travel_trip_card_test.dart: ko 작은 화면과 큰 글꼴에서 이름·기간·예산·관리 버튼을 표시한다
+00:20 +86: C:/household_ledger/test/presenter/widgets/travel_management_page/travel_trip_card_test.dart: ko 작은 화면과 큰 글꼴에서 이름·기간·예산·관리 버튼을 표시한다
+00:20 +87: C:/household_ledger/test/presenter/widgets/travel_management_page/travel_trip_card_test.dart: ko 작은 화면과 큰 글꼴에서 이름·기간·예산·관리 버튼을 표시한다
+00:20 +88: C:/household_ledger/test/presenter/widgets/travel_management_page/travel_trip_card_test.dart: ko 작은 화면과 큰 글꼴에서 이름·기간·예산·관리 버튼을 표시한다
+00:20 +89: C:/household_ledger/test/presenter/widgets/travel_management_page/travel_trip_card_test.dart: jp 작은 화면과 큰 글꼴에서 이름·기간·예산·관리 버튼을 표시한다
+00:20 +90: C:/household_ledger/test/presenter/widgets/travel_management_page/travel_trip_card_test.dart: jp 작은 화면과 큰 글꼴에서 이름·기간·예산·관리 버튼을 표시한다
+00:20 +91: C:/household_ledger/test/presenter/widgets/travel_management_page/travel_trip_card_test.dart: jp 작은 화면과 큰 글꼴에서 이름·기간·예산·관리 버튼을 표시한다
+00:20 +92: C:/household_ledger/test/presenter/widgets/travel_management_page/travel_trip_card_test.dart: 예산 초과는 금액과 문구를 표시하고 막대는 100%에서 멈춘다
+00:21 +93: C:/household_ledger/test/presenter/widgets/travel_management_page/travel_trip_card_test.dart: 예산 미설정·지출 0건에서는 예산 설정으로 이동한다
+00:21 +94: C:/household_ledger/test/presenter/widgets/travel_management_page/travel_trip_card_test.dart: 로딩과 오류를 0원으로 오인하지 않고 오류에서 재시도한다
+00:21 +95: C:/household_ledger/test/presenter/widgets/travel_management_page/travel_trip_card_test.dart: 보관 여행에서는 복원 버튼과 보관 상태를 표시한다
+00:21 +96: C:/household_ledger/test/presenter/widgets/travel_management_page/travel_trip_card_test.dart: (tearDownAll)
+00:21 +96: C:/household_ledger/test/provider/travel_delete_test.dart: 삭제 성공 후 목록 및 활성 여행 갱신: a
+00:21 +97: C:/household_ledger/test/provider/travel_delete_test.dart: 삭제 성공 후 목록 및 활성 여행 갱신: other
+00:21 +98: C:/household_ledger/test/provider/travel_delete_test.dart: 저장 실패 시 여행과 활성 모드를 유지한다
+00:21 +99: C:/household_ledger/test/provider/travel_summary_provider_test.dart: 여행과 연결 지출을 조합해 같은 ID의 요약을 만든다
+00:22 +100: C:/household_ledger/test/provider/travel_summary_provider_test.dart: 존재하지 않는 여행 ID는 DB를 조회하지 않고 null을 반환한다
+00:22 +101: C:/household_ledger/test/services/data_search_service_test.dart: 소비 소구분 코드로 지출을 검색한다
+00:22 +102: C:/household_ledger/test/services/data_search_service_test.dart: 소비 소구분 필터를 해제하면 모든 소구분을 검색한다
+00:22 +103: C:/household_ledger/test/services/imexporting_file/data_im_export_service_test.dart: v3 round trip includes trips, trip links, and complete app settings
+00:22 +104: C:/household_ledger/test/services/imexporting_file/data_im_export_service_test.dart: v2 backup imports without travel data and clears trip links
+00:22 +105: C:/household_ledger/test/services/imexporting_file/data_im_export_service_test.dart: v3 rejects an expense that references a missing trip
+00:23 +106: C:/household_ledger/test/services/travel_delete_sqlite_test.dart: (setUpAll)
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:177:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] loadAllExpenses ( 지출내역 전체 조회 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:178:12)
+│ #1   main.<anonymous closure> (file:///C:/household_ledger/test/services/travel_delete_sqlite_test.dart:50:20)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] loadAllExpenses() started. platform=native
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:112:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( SQLite 데이터베이스 인스턴스 조회 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:119:12)
+│ #1   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:190:22)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _getDatabase() opening SQLite database.
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:123:12)
+│ #1   <asynchronous suspension>
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+00:23 +106 ~1: C:/household_ledger/test/services/travel_delete_sqlite_test.dart: (setUpAll)
+│ 🐛 [ExpenseDatabaseService] _getDatabase() database path: C:\Users\user01\AppData\Local\Temp\household_travel_delete_test_bdb5b025\household_ledger.db
+00:23 +106 ~2: C:/household_ledger/test/services/travel_delete_sqlite_test.dart: (setUpAll)
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._getDatabase.<anonymous closure> (package:household_ledger/services/database/expense_database_service.dart:129:16)
+│ #1   SqfliteDatabaseMixin.doOpen.<anonymous closure> (package:sqflite_common/src/database_mixin.dart:1148:42)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _getDatabase() onCreate() called. creating table=expense_entries
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._getDatabase.<anonymous closure> (package:household_ledger/services/database/expense_database_service.dart:146:16)
+│ #1   <asynchronous suspension>
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _getDatabase() table created: expense_entries
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:170:12)
+│ #1   <asynchronous suspension>
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _getDatabase() database opened successfully.
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:171:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( 데이터베이스 오픈 완료 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:193:12)
+│ #1   <asynchronous suspension>
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] loadAllExpenses() completed via SQLite. count=0
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:196:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] loadAllExpenses ( 지출내역 전체 조회 완료(SQLite) )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:23 +106 ~2: C:/household_ledger/test/services/travel_delete_sqlite_test.dart: 보관 여행의 연도·월 경계 지출을 전환하고 다른 지출의 모든 필드를 유지한다
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService.upsertExpenses (package:household_ledger/services/database/expense_database_service.dart:340:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] upsertExpenses ( 지출내역 다건 저장/수정 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService.upsertExpenses (package:household_ledger/services/database/expense_database_service.dart:341:12)
+│ #1   main.<anonymous closure> (file:///C:/household_ledger/test/services/travel_delete_sqlite_test.dart:82:20)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] upsertExpenses() started. inputCount=5, platform=native
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:112:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( SQLite 데이터베이스 인스턴스 조회 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:114:7)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( 기존 데이터베이스 인스턴스 재사용 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:115:14)
+│ #1   ExpenseDatabaseService.upsertExpenses (package:household_ledger/services/database/expense_database_service.dart:364:22)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _getDatabase() reuse existing database instance.
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._toRow (package:household_ledger/services/database/expense_database_service.dart:608:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _toRow ( 지출내역 모델을 DB 행으로 변환 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._toRow (package:household_ledger/services/database/expense_database_service.dart:609:12)
+│ #1   ExpenseDatabaseService.upsertExpenses (package:household_ledger/services/database/expense_database_service.dart:369:9)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _toRow() called. id=before
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._toRow (package:household_ledger/services/database/expense_database_service.dart:608:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _toRow ( 지출내역 모델을 DB 행으로 변환 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._toRow (package:household_ledger/services/database/expense_database_service.dart:609:12)
+│ #1   ExpenseDatabaseService.upsertExpenses (package:household_ledger/services/database/expense_database_service.dart:369:9)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _toRow() called. id=during
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._toRow (package:household_ledger/services/database/expense_database_service.dart:608:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _toRow ( 지출내역 모델을 DB 행으로 변환 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._toRow (package:household_ledger/services/database/expense_database_service.dart:609:12)
+│ #1   ExpenseDatabaseService.upsertExpenses (package:household_ledger/services/database/expense_database_service.dart:369:9)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _toRow() called. id=after
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._toRow (package:household_ledger/services/database/expense_database_service.dart:608:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _toRow ( 지출내역 모델을 DB 행으로 변환 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._toRow (package:household_ledger/services/database/expense_database_service.dart:609:12)
+│ #1   ExpenseDatabaseService.upsertExpenses (package:household_ledger/services/database/expense_database_service.dart:369:9)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _toRow() called. id=other
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._toRow (package:household_ledger/services/database/expense_database_service.dart:608:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _toRow ( 지출내역 모델을 DB 행으로 변환 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._toRow (package:household_ledger/services/database/expense_database_service.dart:609:12)
+│ #1   ExpenseDatabaseService.upsertExpenses (package:household_ledger/services/database/expense_database_service.dart:369:9)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _toRow() called. id=unassigned
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService.upsertExpenses (package:household_ledger/services/database/expense_database_service.dart:375:12)
+│ #1   <asynchronous suspension>
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] upsertExpenses() completed via SQLite. upsertedCount=5
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService.upsertExpenses (package:household_ledger/services/database/expense_database_service.dart:378:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] upsertExpenses ( 지출내역 다건 저장/수정 완료(SQLite) )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:112:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( SQLite 데이터베이스 인스턴스 조회 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:114:7)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( 기존 데이터베이스 인스턴스 재사용 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:115:14)
+│ #1   ExpenseDatabaseService.deleteTripAndReclassifyExpenses (package:household_ledger/services/database/expense_database_service.dart:76:11)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _getDatabase() reuse existing database instance.
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:177:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] loadAllExpenses ( 지출내역 전체 조회 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:178:12)
+│ #1   main.<anonymous closure> (file:///C:/household_ledger/test/services/travel_delete_sqlite_test.dart:84:53)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] loadAllExpenses() started. platform=native
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:112:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( SQLite 데이터베이스 인스턴스 조회 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:119:12)
+│ #1   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:190:22)
+00:23 +107 ~2: C:/household_ledger/test/services/travel_delete_sqlite_test.dart: 보관 여행의 연도·월 경계 지출을 전환하고 다른 지출의 모든 필드를 유지한다
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _getDatabase() opening SQLite database.
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:123:12)
+│ #1   <asynchronous suspension>
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _getDatabase() database path: C:\Users\user01\AppData\Local\Temp\household_travel_delete_test_bdb5b025\household_ledger.db
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:170:12)
+│ #1   <asynchronous suspension>
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _getDatabase() database opened successfully.
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:171:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( 데이터베이스 오픈 완료 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:626:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _fromRow ( DB 행을 지출내역 모델로 변환 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:627:12)
+│ #1   MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _fromRow() called. id=after
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:626:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _fromRow ( DB 행을 지출내역 모델로 변환 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:627:12)
+│ #1   MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _fromRow() called. id=during
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:626:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _fromRow ( DB 행을 지출내역 모델로 변환 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:627:12)
+│ #1   MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _fromRow() called. id=other
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:626:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _fromRow ( DB 행을 지출내역 모델로 변환 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:627:12)
+│ #1   MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _fromRow() called. id=unassigned
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:626:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _fromRow ( DB 행을 지출내역 모델로 변환 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:627:12)
+│ #1   MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _fromRow() called. id=before
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:193:12)
+│ #1   <asynchronous suspension>
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] loadAllExpenses() completed via SQLite. count=5
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:196:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] loadAllExpenses ( 지출내역 전체 조회 완료(SQLite) )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:112:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( SQLite 데이터베이스 인스턴스 조회 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:114:7)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( 기존 데이터베이스 인스턴스 재사용 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:115:14)
+│ #1   ExpenseDatabaseService.deleteTripAndReclassifyExpenses (package:household_ledger/services/database/expense_database_service.dart:76:11)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _getDatabase() reuse existing database instance.
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:177:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] loadAllExpenses ( 지출내역 전체 조회 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:178:12)
+│ #1   main.<anonymous closure> (file:///C:/household_ledger/test/services/travel_delete_sqlite_test.dart:98:27)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] loadAllExpenses() started. platform=native
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:112:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( SQLite 데이터베이스 인스턴스 조회 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:114:7)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( 기존 데이터베이스 인스턴스 재사용 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:115:14)
+│ #1   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:190:22)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _getDatabase() reuse existing database instance.
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:626:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _fromRow ( DB 행을 지출내역 모델로 변환 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:627:12)
+│ #1   MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _fromRow() called. id=after
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:626:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _fromRow ( DB 행을 지출내역 모델로 변환 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:627:12)
+│ #1   MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _fromRow() called. id=during
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:626:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _fromRow ( DB 행을 지출내역 모델로 변환 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:627:12)
+│ #1   MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _fromRow() called. id=other
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:626:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _fromRow ( DB 행을 지출내역 모델로 변환 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:627:12)
+│ #1   MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _fromRow() called. id=unassigned
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:626:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _fromRow ( DB 행을 지출내역 모델로 변환 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:627:12)
+│ #1   MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _fromRow() called. id=before
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:193:12)
+│ #1   <asynchronous suspension>
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] loadAllExpenses() completed via SQLite. count=5
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:196:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] loadAllExpenses ( 지출내역 전체 조회 완료(SQLite) )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:23 +108 ~2: C:/household_ledger/test/services/travel_delete_sqlite_test.dart: 여행 삭제가 실패하면 먼저 변경한 지출도 롤백하고 재시도할 수 있다
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService.upsertExpense (package:household_ledger/services/database/expense_database_service.dart:308:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] upsertExpense ( 지출내역 단건 저장/수정 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService.upsertExpense (package:household_ledger/services/database/expense_database_service.dart:309:12)
+│ #1   main.<anonymous closure> (file:///C:/household_ledger/test/services/travel_delete_sqlite_test.dart:104:20)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] upsertExpense() started. id=expense, amount=1234, platform=native
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:112:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( SQLite 데이터베이스 인스턴스 조회 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:114:7)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( 기존 데이터베이스 인스턴스 재사용 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:115:14)
+│ #1   ExpenseDatabaseService.upsertExpense (package:household_ledger/services/database/expense_database_service.dart:326:22)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _getDatabase() reuse existing database instance.
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._toRow (package:household_ledger/services/database/expense_database_service.dart:608:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _toRow ( 지출내역 모델을 DB 행으로 변환 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._toRow (package:household_ledger/services/database/expense_database_service.dart:609:12)
+│ #1   ExpenseDatabaseService.upsertExpense (package:household_ledger/services/database/expense_database_service.dart:329:7)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _toRow() called. id=expense
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService.upsertExpense (package:household_ledger/services/database/expense_database_service.dart:332:12)
+│ #1   <asynchronous suspension>
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] upsertExpense() completed via SQLite. id=expense
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService.upsertExpense (package:household_ledger/services/database/expense_database_service.dart:335:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] upsertExpense ( 지출내역 단건 저장/수정 완료(SQLite) )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:112:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( SQLite 데이터베이스 인스턴스 조회 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:114:7)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( 기존 데이터베이스 인스턴스 재사용 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:115:14)
+│ #1   ExpenseDatabaseService.deleteTripAndReclassifyExpenses (package:household_ledger/services/database/expense_database_service.dart:76:11)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _getDatabase() reuse existing database instance.
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:177:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] loadAllExpenses ( 지출내역 전체 조회 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:178:12)
+│ #1   main.<anonymous closure> (file:///C:/household_ledger/test/services/travel_delete_sqlite_test.dart:114:23)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] loadAllExpenses() started. platform=native
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:112:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( SQLite 데이터베이스 인스턴스 조회 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:114:7)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( 기존 데이터베이스 인스턴스 재사용 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:115:14)
+│ #1   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:190:22)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _getDatabase() reuse existing database instance.
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:626:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _fromRow ( DB 행을 지출내역 모델로 변환 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:627:12)
+│ #1   MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _fromRow() called. id=expense
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:193:12)
+│ #1   <asynchronous suspension>
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] loadAllExpenses() completed via SQLite. count=1
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:196:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] loadAllExpenses ( 지출내역 전체 조회 완료(SQLite) )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:112:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( SQLite 데이터베이스 인스턴스 조회 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:114:7)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( 기존 데이터베이스 인스턴스 재사용 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:115:14)
+│ #1   ExpenseDatabaseService.deleteTripAndReclassifyExpenses (package:household_ledger/services/database/expense_database_service.dart:76:11)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _getDatabase() reuse existing database instance.
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:177:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] loadAllExpenses ( 지출내역 전체 조회 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:178:12)
+│ #1   main.<anonymous closure> (file:///C:/household_ledger/test/services/travel_delete_sqlite_test.dart:121:28)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] loadAllExpenses() started. platform=native
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:112:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( SQLite 데이터베이스 인스턴스 조회 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:114:7)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( 기존 데이터베이스 인스턴스 재사용 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:115:14)
+│ #1   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:190:22)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _getDatabase() reuse existing database instance.
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:626:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _fromRow ( DB 행을 지출내역 모델로 변환 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._fromRow (package:household_ledger/services/database/expense_database_service.dart:627:12)
+│ #1   MappedListIterable.elementAt (dart:_internal/iterable.dart:442:31)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _fromRow() called. id=expense
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:193:12)
+│ #1   <asynchronous suspension>
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] loadAllExpenses() completed via SQLite. count=1
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:196:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] loadAllExpenses ( 지출내역 전체 조회 완료(SQLite) )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:23 +109 ~2: C:/household_ledger/test/services/travel_delete_sqlite_test.dart: 지출이 없는 여행도 삭제할 수 있다
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:112:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( SQLite 데이터베이스 인스턴스 조회 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:114:7)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( 기존 데이터베이스 인스턴스 재사용 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:115:14)
+│ #1   ExpenseDatabaseService.deleteTripAndReclassifyExpenses (package:household_ledger/services/database/expense_database_service.dart:76:11)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _getDatabase() reuse existing database instance.
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:177:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] loadAllExpenses ( 지출내역 전체 조회 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:178:12)
+│ #1   main.<anonymous closure> (file:///C:/household_ledger/test/services/travel_delete_sqlite_test.dart:128:27)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] loadAllExpenses() started. platform=native
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:112:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( SQLite 데이터베이스 인스턴스 조회 시작 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:114:7)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] _getDatabase ( 기존 데이터베이스 인스턴스 재사용 )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._getDatabase (package:household_ledger/services/database/expense_database_service.dart:115:14)
+│ #1   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:190:22)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] _getDatabase() reuse existing database instance.
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:193:12)
+│ #1   <asynchronous suspension>
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [ExpenseDatabaseService] loadAllExpenses() completed via SQLite. count=0
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+┌───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+│ #0   ExpenseDatabaseService._log (package:household_ledger/services/database/expense_database_service.dart:107:12)
+│ #1   ExpenseDatabaseService.loadAllExpenses (package:household_ledger/services/database/expense_database_service.dart:196:5)
+├┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄
+│ 🐛 [expense_database_service.dart] loadAllExpenses ( 지출내역 전체 조회 완료(SQLite) )
+└───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+00:23 +110 ~2: C:/household_ledger/test/services/travel_delete_sqlite_test.dart: (tearDownAll)
+00:23 +110 ~2: All tests passed!

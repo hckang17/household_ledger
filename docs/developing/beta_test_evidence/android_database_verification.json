@@ -1,0 +1,130 @@
+[
+  {
+    "stage": "before",
+    "fixed_expenses": [
+      {
+        "id": "1789345679812048",
+        "appliedAt": "2026-09-01T00:00:00.000",
+        "categoryCode": "A",
+        "paymentMethodCode": "_c",
+        "description": "Rent",
+        "amount": 800000,
+        "note": "Monthly"
+      },
+      {
+        "id": "carryover-2026-10-1789345679812048",
+        "appliedAt": "2026-10-01T00:00:00.000",
+        "categoryCode": "A",
+        "paymentMethodCode": "_c",
+        "description": "Rent",
+        "amount": 0,
+        "note": "Monthly"
+      }
+    ],
+    "income_entries": [
+      {
+        "id": 1,
+        "earnedAt": "2026-09-01T00:00:00.000",
+        "amount": 3000000,
+        "description": "Salary"
+      }
+    ],
+    "expense_entries": [
+      {
+        "id": "1789345592795234",
+        "spentAt": "2026-09-14T00:25:00.000",
+        "categoryCode": "F",
+        "subcategoryCode": "_",
+        "tripId": null,
+        "diningOccasionCode": "lunch",
+        "paymentMethodCode": "_c",
+        "description": "Lunch 2000",
+        "amount": 12000,
+        "note": ""
+      },
+      {
+        "id": "1789345865459523",
+        "spentAt": "2026-09-14T00:30:00.000",
+        "categoryCode": "A",
+        "subcategoryCode": "t",
+        "tripId": "1789345799663554",
+        "diningOccasionCode": null,
+        "paymentMethodCode": "_c",
+        "description": "Hotel",
+        "amount": 40000,
+        "note": ""
+      }
+    ],
+    "trips": [
+      {
+        "id": "1789345799663554",
+        "name": "Tokyo-Kyoto-Autumn-Long-Trip-Name",
+        "startDate": "2026-09-14T00:00:00.000",
+        "endDate": "2026-09-14T00:00:00.000",
+        "budget": 200000,
+        "note": "Beta-trip-note",
+        "createdAt": "2026-09-14T00:29:59.663554",
+        "updatedAt": "2026-09-14T00:30:24.175518",
+        "archivedAt": null
+      }
+    ]
+  },
+  {
+    "stage": "after",
+    "fixed_expenses": [
+      {
+        "id": "1789345679812048",
+        "appliedAt": "2026-09-01T00:00:00.000",
+        "categoryCode": "A",
+        "paymentMethodCode": "_c",
+        "description": "Rent",
+        "amount": 800000,
+        "note": "Monthly"
+      },
+      {
+        "id": "carryover-2026-10-1789345679812048",
+        "appliedAt": "2026-10-01T00:00:00.000",
+        "categoryCode": "A",
+        "paymentMethodCode": "_c",
+        "description": "Rent",
+        "amount": 0,
+        "note": "Monthly"
+      }
+    ],
+    "income_entries": [
+      {
+        "id": 1,
+        "earnedAt": "2026-09-01T00:00:00.000",
+        "amount": 3000000,
+        "description": "Salary"
+      }
+    ],
+    "expense_entries": [
+      {
+        "id": "1789345592795234",
+        "spentAt": "2026-09-14T00:25:00.000",
+        "categoryCode": "F",
+        "subcategoryCode": "_",
+        "tripId": null,
+        "diningOccasionCode": "lunch",
+        "paymentMethodCode": "_c",
+        "description": "Lunch 2000",
+        "amount": 12000,
+        "note": ""
+      },
+      {
+        "id": "1789345865459523",
+        "spentAt": "2026-09-14T00:30:00.000",
+        "categoryCode": "A",
+        "subcategoryCode": "_",
+        "tripId": null,
+        "diningOccasionCode": null,
+        "paymentMethodCode": "_c",
+        "description": "Hotel",
+        "amount": 40000,
+        "note": ""
+      }
+    ],
+    "trips": []
+  }
+]
