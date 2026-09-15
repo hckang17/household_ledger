@@ -1,0 +1,40 @@
+{
+  "columns": [
+    "id",
+    "spentAt",
+    "categoryCode",
+    "subcategoryCode",
+    "tripId",
+    "diningOccasionCode",
+    "paymentMethodCode",
+    "description",
+    "amount",
+    "note"
+  ],
+  "rows": [
+    [
+      "1789345865459523",
+      "2026-09-14T00:30:00.000",
+      "00",
+      "_",
+      null,
+      null,
+      "_c",
+      "Hotel",
+      40000,
+      ""
+    ],
+    [
+      "1789345592795234",
+      "2026-09-14T00:25:00.000",
+      "00",
+      "_",
+      null,
+      "lunch",
+      "_c",
+      "Lunch 2000",
+      12000,
+      ""
+    ]
+  ]
+}

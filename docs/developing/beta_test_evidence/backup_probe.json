@@ -1,0 +1,44 @@
+[
+  {
+    "case": "valid",
+    "success": true,
+    "error": null,
+    "expenseCount": 1,
+    "incomeCount": 2,
+    "tagCount": 22
+  },
+  {
+    "case": "truncated_after_tags_marker",
+    "success": true,
+    "error": null,
+    "expenseCount": 1,
+    "incomeCount": 2,
+    "tagCount": 7
+  },
+  {
+    "case": "empty_expenses_section",
+    "success": true,
+    "error": null,
+    "expenseCount": 0,
+    "incomeCount": 2,
+    "tagCount": 22
+  },
+  {
+    "case": "duplicate_income_id",
+    "success": true,
+    "error": null,
+    "expenseCount": 1,
+    "incomeCount": 2,
+    "tagCount": 22,
+    "storedIncomeCount": 1,
+    "storedIncomeTotal": 2000
+  },
+  {
+    "case": "modified_amount",
+    "success": true,
+    "error": null,
+    "expenseCount": 1,
+    "incomeCount": 2,
+    "tagCount": 22
+  }
+]

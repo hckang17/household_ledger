@@ -1,0 +1,9 @@
+{
+  "pages": 5,
+  "encrypted": false,
+  "fontNames": [
+    "(17, 'ttf', 'Type0', 'NotoSansJP-Bold', 'F17', 'Identity-H')",
+    "(7, 'ttf', 'Type0', 'NotoSansJP-Regular', 'F7', 'Identity-H')",
+    "(29, 'ttf', 'Type0', 'NotoSansKR-Bold', 'F29', 'Identity-H')"
+  ]
+}

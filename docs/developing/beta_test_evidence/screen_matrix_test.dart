@@ -5,6 +5,7 @@ import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -44,26 +45,67 @@ void main() {
     databaseFactory = databaseFactoryFfi;
     final dir = await Directory.systemTemp.createTemp('ledger_beta_matrix_');
     await databaseFactory.setDatabasesPath(dir.path);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+          const MethodChannel('plugins.flutter.io/path_provider'),
+          (_) async => dir.path,
+        );
+    // Use readable host fonts for layout probes; native Android is verified separately.
+    final font = FontLoader('BetaSans')
+      ..addFont(
+        File(
+          'C:/Windows/Fonts/malgun.ttf',
+        ).readAsBytes().then((b) => ByteData.sublistView(b)),
+      );
+    await font.load();
+    final icons = FontLoader('MaterialIcons')
+      ..addFont(rootBundle.load('fonts/MaterialIcons-Regular.otf'));
+    await icons.load();
     await initializeDateFormatting();
     await expenseDb.upsertExpenses([
-      for (var i = 0; i < 40; i++) ExpenseEntry.create(
-        id: 'beta-$i', spentAt: DateTime(now.year, now.month - i ~/ 20, i % 20 + 1, 12),
-        categoryCode: ['F', 'T', 'A', 'L'][i % 4],
-        subcategoryCode: i % 2 == 0 ? 't' : '_',
-        tripId: i % 2 == 0 ? 'beta-trip' : null,
-        diningOccasionCode: i % 4 == 0 ? 'lunch' : null,
-        description: 'ベータテスト長い名前の支出項目です',
-        amount: (i + 1) * 123456, note: '테스트 메모',
-      ),
+      for (var i = 0; i < 40; i++)
+        ExpenseEntry.create(
+          id: 'beta-$i',
+          spentAt: DateTime(now.year, now.month - i ~/ 20, i % 20 + 1, 12),
+          categoryCode: ['F', 'T', 'A', 'L'][i % 4],
+          subcategoryCode: i % 2 == 0 ? 't' : '_',
+          tripId: i % 2 == 0 ? 'beta-trip' : null,
+          diningOccasionCode: i % 4 == 0 ? 'lunch' : null,
+          description: 'ベータテスト長い名前の支出項目です',
+          amount: (i + 1) * 123456,
+          note: '테스트 메모',
+        ),
     ]);
     await fixedDb.upsertFixedExpenses([
-      FixedExpense.create(id: 'fixed', appliedAt: now, categoryCode: 'L', description: '家賃と保険料の長い項目名', amount: 800000),
+      FixedExpense.create(
+        id: 'fixed',
+        appliedAt: now,
+        categoryCode: 'L',
+        description: '家賃と保険料の長い項目名',
+        amount: 800000,
+      ),
     ]);
-    await incomeDb.upsertIncome(IncomeEntry.create(earnedAt: now, amount: 3500000, description: 'Beta salary'));
-    await travelDb.upsertTrip(Trip.create(id: 'beta-trip', name: '가을 여행 東京・京都の長い旅行名', startDate: DateTime(now.year, now.month, 1), endDate: DateTime(now.year, now.month, 15), budget: 1000000));
+    await incomeDb.upsertIncome(
+      IncomeEntry.create(
+        earnedAt: now,
+        amount: 3500000,
+        description: 'Beta salary',
+      ),
+    );
+    await travelDb.upsertTrip(
+      Trip.create(
+        id: 'beta-trip',
+        name: '가을 여행 東京・京都の長い旅行名',
+        startDate: DateTime(now.year, now.month, 1),
+        endDate: DateTime(now.year, now.month, 15),
+        budget: 1000000,
+      ),
+    );
   });
   tearDownAll(() async {
-    await File('$evidence/screen_matrix.json').writeAsString(const JsonEncoder.withIndent('  ').convert(results));
+    await File(
+      '$evidence/screen_matrix.json',
+    ).writeAsString(const JsonEncoder.withIndent('  ').convert(results));
   });
   const configurations = [
     ('small', Size(320, 568), 1.0, 'ko'),
@@ -73,7 +115,24 @@ void main() {
     ('largefont', Size(360, 640), 1.8, 'ko'),
     ('japanese', Size(320, 568), 1.3, 'jp'),
   ];
-  const routes = ['/', '/setup', '/home', '/income', '/expense-record', '/fixed-expense', '/analysis', '/travel-management', '/travel-detail', '/data-manage', '/settings', '/my-page', '/export-data', '/import-data', '/generating-report', '/copyrights'];
+  const routes = [
+    '/',
+    '/setup',
+    '/home',
+    '/income',
+    '/expense-record',
+    '/fixed-expense',
+    '/analysis',
+    '/travel-management',
+    '/travel-detail',
+    '/data-manage',
+    '/settings',
+    '/my-page',
+    '/export-data',
+    '/import-data',
+    '/generating-report',
+    '/copyrights',
+  ];
   for (final config in configurations) {
     for (final route in routes) {
       testWidgets('${config.$1} $route', (tester) async {
@@ -81,19 +140,39 @@ void main() {
         tester.view.devicePixelRatio = 1;
         addTearDown(tester.view.resetPhysicalSize);
         addTearDown(tester.view.resetDevicePixelRatio);
-        SharedPreferences.setMockInitialValues({'tutorial_completed': true, 'tutorial_version': 1});
-        final strings = (await tester.runAsync(() => LocalizationService().loadStrings(config.$4)))!;
+        // Audit test lives under docs rather than test/.
+        // ignore: invalid_use_of_visible_for_testing_member
+        SharedPreferences.setMockInitialValues({
+          'tutorial_completed': true,
+          'tutorial_version': 1,
+        });
+        final strings = (await tester.runAsync(
+          () => LocalizationService().loadStrings(config.$4),
+        ))!;
         final state = LedgerState.initial().copyWith(
-          settings: LedgerState.initial().settings.copyWith(localeCode: config.$4, onboardingCompleted: true, monthlyBudget: 4000000),
-          userProfile: UserProfile(name: '베타테스터', email: 'beta@example.com', birthDate: DateTime(1990, 1, 1)),
+          settings: LedgerState.initial().settings.copyWith(
+            localeCode: config.$4,
+            onboardingCompleted: true,
+            monthlyBudget: 4000000,
+          ),
+          userProfile: UserProfile(
+            name: '베타테스터',
+            email: 'beta@example.com',
+            birthDate: DateTime(1990, 1, 1),
+          ),
         );
-        final container = ProviderContainer(overrides: [
-          expenseDatabaseServiceProvider.overrideWithValue(expenseDb),
-          fixedExpenseDatabaseServiceProvider.overrideWithValue(fixedDb),
-          incomeDatabaseServiceProvider.overrideWithValue(incomeDb),
-          travelDatabaseServiceProvider.overrideWithValue(travelDb),
-          localizedStringsProvider.overrideWithValue({...strings, 'currencyUnit': '₩'}),
-        ]);
+        final container = ProviderContainer(
+          overrides: [
+            expenseDatabaseServiceProvider.overrideWithValue(expenseDb),
+            fixedExpenseDatabaseServiceProvider.overrideWithValue(fixedDb),
+            incomeDatabaseServiceProvider.overrideWithValue(incomeDb),
+            travelDatabaseServiceProvider.overrideWithValue(travelDb),
+            localizedStringsProvider.overrideWithValue({
+              ...strings,
+              'currencyUnit': '₩',
+            }),
+          ],
+        );
         await tester.runAsync(() async {
           await LocalStorageService().saveState(state);
           await container.read(ledgerProvider.future);
@@ -103,29 +182,76 @@ void main() {
         final oldError = FlutterError.onError;
         FlutterError.onError = (details) => errors.add(details.toString());
         final boundary = GlobalKey();
-        await tester.pumpWidget(UncontrolledProviderScope(container: container, child: RepaintBoundary(key: boundary, child: MaterialApp(
-          debugShowCheckedModeBanner: false,
-          locale: Locale(config.$4 == 'jp' ? 'ja' : 'ko'),
-          supportedLocales: const [Locale('ko'), Locale('ja')],
-          localizationsDelegates: GlobalMaterialLocalizations.delegates,
-          theme: ThemeData(useMaterial3: true, platform: TargetPlatform.android, colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF0D6EFD))),
-          builder: (context, child) => MediaQuery(data: MediaQuery.of(context).copyWith(textScaler: TextScaler.linear(config.$3)), child: child!),
-          onGenerateInitialRoutes: (_) => [AppRouter().onGenerateRoute(RouteSettings(name: route, arguments: route == '/travel-detail' ? 'beta-trip' : null))],
-          onGenerateRoute: AppRouter().onGenerateRoute,
-        ))));
+        addTearDown(() {
+          FlutterError.onError = oldError;
+        });
+        await tester.pumpWidget(
+          UncontrolledProviderScope(
+            container: container,
+            child: RepaintBoundary(
+              key: boundary,
+              child: MaterialApp(
+                debugShowCheckedModeBanner: false,
+                locale: Locale(config.$4 == 'jp' ? 'ja' : 'ko'),
+                supportedLocales: const [Locale('ko'), Locale('ja')],
+                localizationsDelegates: GlobalMaterialLocalizations.delegates,
+                theme: ThemeData(
+                  fontFamily: 'BetaSans',
+                  scaffoldBackgroundColor: const Color(0xFFF4F7FB),
+                  useMaterial3: true,
+                  platform: TargetPlatform.android,
+                  colorScheme: ColorScheme.fromSeed(
+                    seedColor: const Color(0xFF0D6EFD),
+                  ),
+                ),
+                builder: (context, child) => MediaQuery(
+                  data: MediaQuery.of(
+                    context,
+                  ).copyWith(textScaler: TextScaler.linear(config.$3)),
+                  child: child!,
+                ),
+                onGenerateInitialRoutes: (_) => [
+                  AppRouter().onGenerateRoute(
+                    RouteSettings(
+                      name: route,
+                      arguments: route == '/travel-detail' ? 'beta-trip' : null,
+                    ),
+                  ),
+                ],
+                onGenerateRoute: AppRouter().onGenerateRoute,
+              ),
+            ),
+          ),
+        );
         for (var n = 0; n < 10; n++) {
-          await tester.runAsync(() => Future<void>.delayed(const Duration(milliseconds: 60)));
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 60)),
+          );
           await tester.pump(const Duration(milliseconds: 350));
         }
         final slug = route == '/' ? 'onboarding' : route.substring(1);
         final screen = '${config.$1}_$slug.png';
         await tester.runAsync(() async {
-          final image = await (boundary.currentContext!.findRenderObject()! as RenderRepaintBoundary).toImage();
+          final image =
+              await (boundary.currentContext!.findRenderObject()!
+                      as RenderRepaintBoundary)
+                  .toImage();
           final bytes = await image.toByteData(format: ui.ImageByteFormat.png);
-          await File('$evidence/$screen').writeAsBytes(bytes!.buffer.asUint8List());
+          await File(
+            '$evidence/$screen',
+          ).writeAsBytes(bytes!.buffer.asUint8List());
           image.dispose();
         });
-        results.add({'config': config.$1, 'width': config.$2.width, 'height': config.$2.height, 'textScale': config.$3, 'locale': config.$4, 'route': route, 'errors': errors.toSet().toList(), 'screenshot': screen});
+        results.add({
+          'config': config.$1,
+          'width': config.$2.width,
+          'height': config.$2.height,
+          'textScale': config.$3,
+          'locale': config.$4,
+          'route': route,
+          'errors': errors.toSet().toList(),
+          'screenshot': screen,
+        });
         await tester.pumpWidget(const SizedBox.shrink());
         await tester.pump(const Duration(seconds: 5));
         FlutterError.onError = oldError;

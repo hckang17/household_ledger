@@ -1,0 +1,362 @@
+[
+  {
+    "config": "landscape",
+    "tab": "analysis",
+    "physicalSize": [
+      1280,
+      720
+    ],
+    "density": 320,
+    "logicalSize": [
+      640.0,
+      360.0
+    ],
+    "fontScale": 1.0,
+    "screenshot": "android_matrix_landscape_analysis.png"
+  },
+  {
+    "config": "landscape",
+    "tab": "expense",
+    "physicalSize": [
+      1280,
+      720
+    ],
+    "density": 320,
+    "logicalSize": [
+      640.0,
+      360.0
+    ],
+    "fontScale": 1.0,
+    "screenshot": "android_matrix_landscape_expense.png"
+  },
+  {
+    "config": "landscape",
+    "tab": "fixed",
+    "physicalSize": [
+      1280,
+      720
+    ],
+    "density": 320,
+    "logicalSize": [
+      640.0,
+      360.0
+    ],
+    "fontScale": 1.0,
+    "screenshot": "android_matrix_landscape_fixed.png"
+  },
+  {
+    "config": "landscape",
+    "tab": "home",
+    "physicalSize": [
+      1280,
+      720
+    ],
+    "density": 320,
+    "logicalSize": [
+      640.0,
+      360.0
+    ],
+    "fontScale": 1.0,
+    "screenshot": "android_matrix_landscape_home.png"
+  },
+  {
+    "config": "landscape",
+    "tab": "income",
+    "physicalSize": [
+      1280,
+      720
+    ],
+    "density": 320,
+    "logicalSize": [
+      640.0,
+      360.0
+    ],
+    "fontScale": 1.0,
+    "screenshot": "android_matrix_landscape_income.png"
+  },
+  {
+    "config": "largefont",
+    "tab": "expense",
+    "physicalSize": [
+      720,
+      1280
+    ],
+    "density": 320,
+    "logicalSize": [
+      360.0,
+      640.0
+    ],
+    "fontScale": 1.8,
+    "screenshot": "android_matrix_largefont_expense.png"
+  },
+  {
+    "config": "largefont",
+    "tab": "fixed",
+    "physicalSize": [
+      720,
+      1280
+    ],
+    "density": 320,
+    "logicalSize": [
+      360.0,
+      640.0
+    ],
+    "fontScale": 1.8,
+    "screenshot": "android_matrix_largefont_fixed.png"
+  },
+  {
+    "config": "largefont",
+    "tab": "home",
+    "physicalSize": [
+      720,
+      1280
+    ],
+    "density": 320,
+    "logicalSize": [
+      360.0,
+      640.0
+    ],
+    "fontScale": 1.8,
+    "screenshot": "android_matrix_largefont_home.png"
+  },
+  {
+    "config": "largefont",
+    "tab": "income",
+    "physicalSize": [
+      720,
+      1280
+    ],
+    "density": 320,
+    "logicalSize": [
+      360.0,
+      640.0
+    ],
+    "fontScale": 1.8,
+    "screenshot": "android_matrix_largefont_income.png"
+  },
+  {
+    "config": "phone",
+    "tab": "analysis",
+    "physicalSize": [
+      786,
+      1704
+    ],
+    "density": 320,
+    "logicalSize": [
+      393.0,
+      852.0
+    ],
+    "fontScale": 1.0,
+    "screenshot": "android_matrix_phone_analysis.png"
+  },
+  {
+    "config": "phone",
+    "tab": "expense",
+    "physicalSize": [
+      786,
+      1704
+    ],
+    "density": 320,
+    "logicalSize": [
+      393.0,
+      852.0
+    ],
+    "fontScale": 1.0,
+    "screenshot": "android_matrix_phone_expense.png"
+  },
+  {
+    "config": "phone",
+    "tab": "fixed",
+    "physicalSize": [
+      786,
+      1704
+    ],
+    "density": 320,
+    "logicalSize": [
+      393.0,
+      852.0
+    ],
+    "fontScale": 1.0,
+    "screenshot": "android_matrix_phone_fixed.png"
+  },
+  {
+    "config": "phone",
+    "tab": "home",
+    "physicalSize": [
+      786,
+      1704
+    ],
+    "density": 320,
+    "logicalSize": [
+      393.0,
+      852.0
+    ],
+    "fontScale": 1.0,
+    "screenshot": "android_matrix_phone_home.png"
+  },
+  {
+    "config": "phone",
+    "tab": "income",
+    "physicalSize": [
+      786,
+      1704
+    ],
+    "density": 320,
+    "logicalSize": [
+      393.0,
+      852.0
+    ],
+    "fontScale": 1.0,
+    "screenshot": "android_matrix_phone_income.png"
+  },
+  {
+    "config": "small",
+    "tab": "analysis",
+    "physicalSize": [
+      640,
+      1136
+    ],
+    "density": 320,
+    "logicalSize": [
+      320.0,
+      568.0
+    ],
+    "fontScale": 1.0,
+    "screenshot": "android_matrix_small_analysis.png"
+  },
+  {
+    "config": "small",
+    "tab": "expense",
+    "physicalSize": [
+      640,
+      1136
+    ],
+    "density": 320,
+    "logicalSize": [
+      320.0,
+      568.0
+    ],
+    "fontScale": 1.0,
+    "screenshot": "android_matrix_small_expense.png"
+  },
+  {
+    "config": "small",
+    "tab": "fixed",
+    "physicalSize": [
+      640,
+      1136
+    ],
+    "density": 320,
+    "logicalSize": [
+      320.0,
+      568.0
+    ],
+    "fontScale": 1.0,
+    "screenshot": "android_matrix_small_fixed.png"
+  },
+  {
+    "config": "small",
+    "tab": "home",
+    "physicalSize": [
+      640,
+      1136
+    ],
+    "density": 320,
+    "logicalSize": [
+      320.0,
+      568.0
+    ],
+    "fontScale": 1.0,
+    "screenshot": "android_matrix_small_home.png"
+  },
+  {
+    "config": "small",
+    "tab": "income",
+    "physicalSize": [
+      640,
+      1136
+    ],
+    "density": 320,
+    "logicalSize": [
+      320.0,
+      568.0
+    ],
+    "fontScale": 1.0,
+    "screenshot": "android_matrix_small_income.png"
+  },
+  {
+    "config": "tablet",
+    "tab": "analysis",
+    "physicalSize": [
+      1600,
+      2560
+    ],
+    "density": 320,
+    "logicalSize": [
+      800.0,
+      1280.0
+    ],
+    "fontScale": 1.0,
+    "screenshot": "android_matrix_tablet_analysis.png"
+  },
+  {
+    "config": "tablet",
+    "tab": "expense",
+    "physicalSize": [
+      1600,
+      2560
+    ],
+    "density": 320,
+    "logicalSize": [
+      800.0,
+      1280.0
+    ],
+    "fontScale": 1.0,
+    "screenshot": "android_matrix_tablet_expense.png"
+  },
+  {
+    "config": "tablet",
+    "tab": "fixed",
+    "physicalSize": [
+      1600,
+      2560
+    ],
+    "density": 320,
+    "logicalSize": [
+      800.0,
+      1280.0
+    ],
+    "fontScale": 1.0,
+    "screenshot": "android_matrix_tablet_fixed.png"
+  },
+  {
+    "config": "tablet",
+    "tab": "home",
+    "physicalSize": [
+      1600,
+      2560
+    ],
+    "density": 320,
+    "logicalSize": [
+      800.0,
+      1280.0
+    ],
+    "fontScale": 1.0,
+    "screenshot": "android_matrix_tablet_home.png"
+  },
+  {
+    "config": "tablet",
+    "tab": "income",
+    "physicalSize": [
+      1600,
+      2560
+    ],
+    "density": 320,
+    "logicalSize": [
+      800.0,
+      1280.0
+    ],
+    "fontScale": 1.0,
+    "screenshot": "android_matrix_tablet_income.png"
+  }
+]

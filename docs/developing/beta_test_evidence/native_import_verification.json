@@ -1,0 +1,212 @@
+{
+  "fixed_expenses": [
+    {
+      "id": "carryover-2026-10-1789345679812048",
+      "appliedAt": "2026-10-01T00:00:00.000",
+      "categoryCode": "A",
+      "paymentMethodCode": "_c",
+      "description": "Rent",
+      "amount": 0,
+      "note": "Monthly"
+    },
+    {
+      "id": "1789345679812048",
+      "appliedAt": "2026-09-01T00:00:00.000",
+      "categoryCode": "A",
+      "paymentMethodCode": "_c",
+      "description": "Rent",
+      "amount": 800000,
+      "note": "Monthly"
+    }
+  ],
+  "income_entries": [
+    {
+      "id": 1,
+      "earnedAt": "2026-09-01T00:00:00.000",
+      "amount": 3000000,
+      "description": "Salary"
+    }
+  ],
+  "expense_entries": [
+    {
+      "id": "1789345865459523",
+      "spentAt": "2026-09-14T00:30:00.000",
+      "categoryCode": "A",
+      "subcategoryCode": "_",
+      "tripId": null,
+      "diningOccasionCode": null,
+      "paymentMethodCode": "_c",
+      "description": "Hotel",
+      "amount": 40000,
+      "note": ""
+    },
+    {
+      "id": "1789345592795234",
+      "spentAt": "2026-09-14T00:25:00.000",
+      "categoryCode": "F",
+      "subcategoryCode": "_",
+      "tripId": null,
+      "diningOccasionCode": "lunch",
+      "paymentMethodCode": "_c",
+      "description": "Lunch 2000",
+      "amount": 12000,
+      "note": ""
+    }
+  ],
+  "trips": [],
+  "appState": {
+    "settings": {
+      "localeCode": "jp",
+      "currencyUnit": "¥",
+      "monthlyBudget": 3000000,
+      "onboardingCompleted": true,
+      "pushNotifications": {
+        "enabled": true,
+        "salaryDay": 21,
+        "categories": {
+          "daily": true,
+          "fixedExpense": true,
+          "salary": true,
+          "other": true
+        }
+      },
+      "travelGradientPalette": "sunset",
+      "useGradientBackground": true
+    },
+    "userProfile": {
+      "name": "Beta",
+      "email": "beta@example.com",
+      "birthDate": "1996-01-01T00:00:00.000",
+      "age": 30
+    },
+    "metadataTags": [
+      {
+        "type": "category",
+        "code": "A",
+        "label": "宿泊費",
+        "iconCode": "hotel"
+      },
+      {
+        "type": "category",
+        "code": "C",
+        "label": "カフェ",
+        "iconCode": "local_cafe"
+      },
+      {
+        "type": "category",
+        "code": "D",
+        "label": "日用品＆衣料",
+        "iconCode": "shopping_bag"
+      },
+      {
+        "type": "category",
+        "code": "E",
+        "label": "その他",
+        "iconCode": "category"
+      },
+      {
+        "type": "category",
+        "code": "F",
+        "label": "外食費",
+        "iconCode": "restaurant"
+      },
+      {
+        "type": "category",
+        "code": "G",
+        "label": "食料品",
+        "iconCode": "local_grocery_store"
+      },
+      {
+        "type": "category",
+        "code": "H",
+        "label": "ヒーリング＆趣味",
+        "iconCode": "palette"
+      },
+      {
+        "type": "category",
+        "code": "L",
+        "label": "生活費",
+        "iconCode": "home"
+      },
+      {
+        "type": "category",
+        "code": "S",
+        "label": "スポーツ",
+        "iconCode": "sports_soccer"
+      },
+      {
+        "type": "category",
+        "code": "T",
+        "label": "交通費",
+        "iconCode": "directions_transit"
+      },
+      {
+        "type": "category",
+        "code": "X",
+        "label": "慶弔費",
+        "iconCode": "celebration"
+      },
+      {
+        "type": "subcategory",
+        "code": "_",
+        "label": "普段"
+      },
+      {
+        "type": "subcategory",
+        "code": "t",
+        "label": "旅行"
+      },
+      {
+        "type": "diningOccasion",
+        "code": "breakfast",
+        "label": "朝食"
+      },
+      {
+        "type": "diningOccasion",
+        "code": "brunch",
+        "label": "ブランチ"
+      },
+      {
+        "type": "diningOccasion",
+        "code": "lunch",
+        "label": "昼食"
+      },
+      {
+        "type": "diningOccasion",
+        "code": "snack",
+        "label": "間食"
+      },
+      {
+        "type": "diningOccasion",
+        "code": "dinner",
+        "label": "夕食"
+      },
+      {
+        "type": "diningOccasion",
+        "code": "lateNight",
+        "label": "夜食"
+      },
+      {
+        "type": "diningOccasion",
+        "code": "company",
+        "label": "会食"
+      },
+      {
+        "type": "paymentMethod",
+        "code": "_c",
+        "label": "現金"
+      },
+      {
+        "type": "paymentMethod",
+        "code": "_s",
+        "label": "クレジットカード"
+      },
+      {
+        "type": "category",
+        "code": "00",
+        "label": "BetaCategory",
+        "iconCode": "label"
+      }
+    ]
+  }
+}
