@@ -297,8 +297,6 @@
   "reportPageTitle": "PDFレポート生成",
   "reportPeriodLabel": "期間設定 (必須)",
   "reportEmailLabel": "メールアドレス (必須)",
-  "reportPasswordLabel": "PDFパスワード (任意)",
-  "reportPasswordHint": "パスワードを設定するとPDFを開く際に必要です",
   "reportIncludeDataTitle": "含めるデータ",
   "reportIncludeDetailedData": "全取引履歴 (付録)",
   "reportIncludeTop10": "支出Top 10",
@@ -344,7 +342,6 @@
   "closeLabel": "閉じる",
   "confirmOk": "確認",
   "importRestartMessage": "データが正常に読み込まれました。\nアプリを再起動します。",
-  "pdfUnsupportWarning": "* 現在のバージョンではPDFの暗号化がサポートされていません。",
   "dataManageTitle": "データ管理",
   "dataManageFilterTitle": "検索条件",
   "dataManageTableExpense": "支出記録",
@@ -615,5 +612,13 @@
   "weekdayWednesdayShort": "水",
   "weekdayThursdayShort": "木",
   "weekdayFridayShort": "金",
-  "weekdaySaturdayShort": "土"
+  "weekdaySaturdayShort": "土",
+  "saveToAnotherLocation": "別の場所に保存",
+  "saveAsComplete": "選択した場所に保存しました。",
+  "done": "完了",
+  "workingFilePathLabel": "アプリ内の作業ファイル",
+  "reportWorkingFilePath": "アプリ内のレポート作業ファイル",
+  "appExitTitle": "アプリを終了",
+  "appExitMessage": "家計簿アプリを終了しますか？",
+  "appExitConfirm": "終了"
 }

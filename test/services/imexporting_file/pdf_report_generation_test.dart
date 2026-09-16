@@ -120,6 +120,24 @@ void main() {
       final file = File(path);
       expect(await file.exists(), isTrue);
       expect(await file.length(), greaterThan(10000));
+      final secondPath = await service.generateReport(
+        expenses: expenses,
+        fixedExpenses: fixedExpenses,
+        incomes: const [],
+        ledger: ledger,
+        email: 'beta@example.com',
+        options: const ReportOptions(
+          includeDetailedData: false,
+          includeTop10: false,
+          includePaymentSummary: false,
+        ),
+        periodLabel: '2026-09',
+        strings: strings,
+        periodStart: DateTime(2026, 9),
+        reportTitle: '家計簿レポート',
+      );
+      expect(secondPath, isNot(path));
+      expect(await file.exists(), isTrue);
 
       final koreanStrings = Map<String, String>.from(
         jsonDecode(File('assets/language_data/ko.json').readAsStringSync())
@@ -162,6 +180,45 @@ void main() {
         reportTitle: '가계부 리포트',
       );
       expect(await File(koreanPath).length(), greaterThan(10000));
+
+      final beforeFailure = <String, int>{
+        for (final file in output.listSync().whereType<File>())
+          file.path: file.lengthSync(),
+      };
+      final failingService = ExportPdfReportService(
+        reportDirectoryProvider: () async => output,
+        temporaryFileWriter: (_, _) async {
+          throw const FileSystemException('injected write failure');
+        },
+      );
+      await expectLater(
+        failingService.generateReport(
+          expenses: expenses,
+          fixedExpenses: fixedExpenses,
+          incomes: const [],
+          ledger: ledger,
+          email: 'beta@example.com',
+          options: const ReportOptions(
+            includeDetailedData: false,
+            includeTop10: false,
+            includePaymentSummary: false,
+          ),
+          periodLabel: '2026-09',
+          strings: strings,
+          periodStart: DateTime(2026, 9),
+          reportTitle: '家計簿レポート',
+        ),
+        throwsA(isA<FileSystemException>()),
+      );
+      final afterFailure = <String, int>{
+        for (final file in output.listSync().whereType<File>())
+          file.path: file.lengthSync(),
+      };
+      expect(afterFailure, beforeFailure);
+      expect(
+        output.listSync().whereType<File>().any((f) => f.path.endsWith('.tmp')),
+        isFalse,
+      );
     },
   );
 }

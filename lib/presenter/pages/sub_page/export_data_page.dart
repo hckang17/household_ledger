@@ -3,6 +3,8 @@
 
 import 'dart:async';
 
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -16,6 +18,7 @@ import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/provider/tutorial_provider.dart';
 import 'package:household_ledger/services/imexporting_file/data_im_export_service.dart';
+import 'package:household_ledger/services/imexporting_file/user_selected_file_service.dart';
 import 'package:household_ledger/services/mock_data_service.dart';
 import 'package:showcaseview/showcaseview.dart';
 
@@ -29,6 +32,7 @@ class ExportDataPage extends ConsumerStatefulWidget {
 }
 
 class _ExportDataPageState extends ConsumerState<ExportDataPage> {
+  final UserSelectedFileService _fileSaveService = UserSelectedFileService();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passkeyController = TextEditingController();
   final TextEditingController _passkeyConfirmController =
@@ -275,7 +279,7 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               Text(
-                _text(strings, 'savedPathLabel'),
+                _text(strings, 'workingFilePathLabel'),
                 style: Theme.of(
                   context,
                 ).textTheme.labelMedium?.copyWith(color: Colors.grey[600]),
@@ -315,6 +319,23 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
           ),
           actions: <Widget>[
             TextButton.icon(
+              onPressed: () async {
+                final name = savedPath.split(Platform.pathSeparator).last;
+                final destination = await _fileSaveService.saveAs(
+                  sourcePath: savedPath,
+                  suggestedName: name,
+                  mimeType: 'text/csv',
+                );
+                if (destination != null && mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(_text(strings, 'saveAsComplete'))),
+                  );
+                }
+              },
+              icon: const Icon(Icons.save_as_outlined),
+              label: Text(_text(strings, 'saveToAnotherLocation')),
+            ),
+            TextButton.icon(
               onPressed: () {
                 Navigator.of(ctx).pop();
                 _service.shareFile(savedPath);
@@ -324,7 +345,7 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
             ),
             FilledButton(
               onPressed: () => Navigator.of(ctx).pop(),
-              child: Text(_text(strings, 'save')),
+              child: Text(_text(strings, 'done')),
             ),
           ],
         );

@@ -45,12 +45,21 @@ class ExportPdfReportService {
   ExportPdfReportService({
     PdfReportFontLoader? fontLoader,
     this.reportDirectoryProvider,
-  }) : _fontLoader = fontLoader ?? PdfReportFontLoader();
+    DateTime Function()? nowProvider,
+    Future<void> Function(File file, List<int> bytes)? temporaryFileWriter,
+  }) : _fontLoader = fontLoader ?? PdfReportFontLoader(),
+       _nowProvider = nowProvider ?? DateTime.now,
+       _temporaryFileWriter = temporaryFileWriter ?? _writeTemporaryFile;
 
   final PdfReportFontLoader _fontLoader;
 
   /// 테스트나 별도 보관 정책에서 기본 리포트 디렉터리를 대체한다.
   final Future<Directory> Function()? reportDirectoryProvider;
+  final DateTime Function() _nowProvider;
+  final Future<void> Function(File file, List<int> bytes) _temporaryFileWriter;
+
+  static Future<void> _writeTemporaryFile(File file, List<int> bytes) =>
+      file.writeAsBytes(bytes, flush: true);
 
   // ─── 파일 경로 ──────────────────────────────────────────────────
 
@@ -371,12 +380,31 @@ class ExportPdfReportService {
       RegExp(r'[/\\:*?"<>| ]'),
       '_',
     );
-    final String fileName =
-        'Household_ledger_report_${safeName}_$safePeriod.pdf';
     final Directory dir = await _getReportDirectory();
     onProgress?.call(0.96);
-    final File file = File('${dir.path}${Platform.pathSeparator}$fileName');
-    await file.writeAsBytes(bytes);
+    final String generatedAt = DateFormat(
+      'yyyyMMdd_HHmmss_SSS',
+    ).format(_nowProvider());
+    final String baseName =
+        'Household_ledger_report_${safeName}_${safePeriod}_$generatedAt';
+    var suffix = 0;
+    File file;
+    do {
+      final collision = suffix == 0 ? '' : '_$suffix';
+      file = File(
+        '${dir.path}${Platform.pathSeparator}$baseName$collision.pdf',
+      );
+      suffix++;
+    } while (await file.exists());
+    final File temporary = File(
+      '${file.path}.${_nowProvider().microsecondsSinceEpoch}.tmp',
+    );
+    try {
+      await _temporaryFileWriter(temporary, bytes);
+      await temporary.rename(file.path);
+    } finally {
+      if (await temporary.exists()) await temporary.delete();
+    }
     onProgress?.call(1.0);
     return file.path;
   }

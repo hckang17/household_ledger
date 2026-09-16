@@ -4,6 +4,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/presenter/widgets/common/app_exit_guard.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/provider/tutorial_provider.dart';
@@ -41,54 +42,57 @@ class OnboardingPage extends ConsumerWidget {
     final ledgerState = ref.watch(ledgerProvider);
     final strings = ref.watch(localizedStringsProvider);
 
-    return ledgerState.when(
-      data: (state) {
-        return BootstrapPage(
-          title: "    ${strings['appTitle'] ?? ''}",
-          showSideBar: false,
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 720),
-              child: BootstrapSectionCard(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: <Widget>[
-                    Text(
-                      strings['onboardingTitle'] ?? '',
-                      style: Theme.of(context).textTheme.headlineMedium
-                          ?.copyWith(
-                            fontWeight: FontWeight.w800,
-                            color: const Color(0xFF102A43),
-                          ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      strings['onboardingSubtitle'] ?? '',
-                      style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: const Color(0xFF486581),
+    return AppExitGuard(
+      strings: strings,
+      child: ledgerState.when(
+        data: (state) {
+          return BootstrapPage(
+            title: "    ${strings['appTitle'] ?? ''}",
+            showSideBar: false,
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 720),
+                child: BootstrapSectionCard(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: <Widget>[
+                      Text(
+                        strings['onboardingTitle'] ?? '',
+                        style: Theme.of(context).textTheme.headlineMedium
+                            ?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF102A43),
+                            ),
                       ),
-                    ),
-                    const SizedBox(height: 32),
-                    BootstrapActionButton(
-                      label: state.isInitialized
-                          ? (strings['continueApp'] ?? '')
-                          : (strings['startSetup'] ?? ''),
-                      icon: Icons.play_circle_fill_rounded,
-                      onPressed: () =>
-                          _openNextPage(context, ref, state.isInitialized),
-                    ),
-                  ],
+                      const SizedBox(height: 16),
+                      Text(
+                        strings['onboardingSubtitle'] ?? '',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: const Color(0xFF486581),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      BootstrapActionButton(
+                        label: state.isInitialized
+                            ? (strings['continueApp'] ?? '')
+                            : (strings['startSetup'] ?? ''),
+                        icon: Icons.play_circle_fill_rounded,
+                        onPressed: () =>
+                            _openNextPage(context, ref, state.isInitialized),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-        );
-      },
-      error: (Object error, StackTrace stackTrace) =>
-          Scaffold(body: Center(child: Text(error.toString()))),
-      loading: () =>
-          const Scaffold(body: Center(child: CircularProgressIndicator())),
+          );
+        },
+        error: (Object error, StackTrace stackTrace) =>
+            Scaffold(body: Center(child: Text(error.toString()))),
+        loading: () =>
+            const Scaffold(body: Center(child: CircularProgressIndicator())),
+      ),
     );
   }
 }

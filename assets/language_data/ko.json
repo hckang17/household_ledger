@@ -303,8 +303,6 @@
   "reportPageTitle": "PDF 리포트 생성",
   "reportPeriodLabel": "기간 설정 (필수)",
   "reportEmailLabel": "이메일 (필수)",
-  "reportPasswordLabel": "PDF 암호 (선택)",
-  "reportPasswordHint": "암호를 설정하면 PDF 열 때 입력이 필요합니다",
   "reportIncludeDataTitle": "포함할 데이터",
   "reportIncludeDetailedData": "전체 거래내역 (부록)",
   "reportIncludeTop10": "Top 10 지출 내역",
@@ -352,7 +350,6 @@
   "confirmOk": "확인",
   "importRestartMessage": "정상적으로 데이터를 불러왔습니다.\n앱을 재실행 하겠습니다.",
 
-  "pdfUnsupportWarning": "* 현재 버전에서는 PDF 암호화가 지원되지 않습니다.",
 
   "dataManageTitle": "데이터 관리",
   "dataManageFilterTitle": "검색 조건",
@@ -624,5 +621,13 @@
   "weekdayWednesdayShort": "수",
   "weekdayThursdayShort": "목",
   "weekdayFridayShort": "금",
-  "weekdaySaturdayShort": "토"
+  "weekdaySaturdayShort": "토",
+  "saveToAnotherLocation": "다른 위치에 저장",
+  "saveAsComplete": "선택한 위치에 저장했습니다.",
+  "done": "완료",
+  "workingFilePathLabel": "앱 작업 파일 경로",
+  "reportWorkingFilePath": "앱 리포트 작업 파일 경로",
+  "appExitTitle": "앱 종료",
+  "appExitMessage": "가계부 앱을 종료하시겠습니까?",
+  "appExitConfirm": "종료"
 }

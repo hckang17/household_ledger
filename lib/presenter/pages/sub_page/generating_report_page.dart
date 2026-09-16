@@ -6,6 +6,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/services/imexporting_file/pdf_report_generation_service.dart';
+import 'package:household_ledger/services/imexporting_file/user_selected_file_service.dart';
 import 'package:household_ledger/model/reporting/report_generation_request.dart';
 import 'package:household_ledger/model/reporting/report_options.dart';
 import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';
@@ -44,7 +45,6 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
     text: 'Household Ledger',
   );
   final TextEditingController _emailCtrl = TextEditingController();
-  final TextEditingController _passwordCtrl = TextEditingController();
   final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   final GlobalKey _periodSelectorKey = GlobalKey();
@@ -74,6 +74,7 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
 
   final PdfReportGenerationService _reportService =
       PdfReportGenerationService();
+  final UserSelectedFileService _fileSaveService = UserSelectedFileService();
 
   // ─── 라이프사이클 ───────────────────────────────────────────────
 
@@ -90,7 +91,6 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
   void dispose() {
     _titleCtrl.dispose();
     _emailCtrl.dispose();
-    _passwordCtrl.dispose();
     super.dispose();
   }
 
@@ -376,12 +376,29 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
             ),
             const SizedBox(height: 4),
             Text(
-              _t(strings, 'reportSavedPath', '저장된 경로'),
+              _t(strings, 'reportWorkingFilePath', '앱 작업 파일 경로'),
               style: TextStyle(fontSize: 11, color: Colors.grey.shade500),
             ),
           ],
         ),
         actions: <Widget>[
+          TextButton(
+            onPressed: () async {
+              final destination = await _fileSaveService.saveAs(
+                sourcePath: path,
+                suggestedName: fileName,
+                mimeType: 'application/pdf',
+              );
+              if (destination != null && mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(_t(strings, 'saveAsComplete', '저장했습니다.')),
+                  ),
+                );
+              }
+            },
+            child: Text(_t(strings, 'saveToAnotherLocation', '다른 위치에 저장')),
+          ),
           TextButton(
             onPressed: () {
               Navigator.of(ctx).pop();
@@ -395,6 +412,10 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
               OpenFile.open(path);
             },
             child: Text(_t(strings, 'reportOpenFile', '열기')),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(_t(strings, 'done', '완료')),
           ),
         ],
       ),
@@ -544,48 +565,6 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
                         ),
                       ],
                     ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-
-                // ── PDF 암호 (예약) ──
-                BootstrapSectionCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                        _t(strings, 'reportPasswordLabel', 'PDF 암호 (선택)'),
-                        style: Theme.of(context).textTheme.titleMedium
-                            ?.copyWith(fontWeight: FontWeight.w700),
-                      ),
-                      const SizedBox(height: 12),
-                      TextFormField(
-                        controller: _passwordCtrl,
-                        obscureText: true,
-                        decoration: InputDecoration(
-                          hintText: _t(
-                            strings,
-                            'reportPasswordHint',
-                            '암호를 설정하면 PDF 열 때 입력이 필요합니다',
-                          ),
-                          border: const OutlineInputBorder(),
-                          isDense: true,
-                          prefixIcon: const Icon(Icons.lock_outline_rounded),
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        _t(
-                          strings,
-                          'pdfUnsupportWarning',
-                          '* 현재 버전에서는 PDF 암호화가 지원되지 않습니다.',
-                        ),
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey.shade500,
-                        ),
-                      ),
-                    ],
                   ),
                 ),
                 const SizedBox(height: 12),
