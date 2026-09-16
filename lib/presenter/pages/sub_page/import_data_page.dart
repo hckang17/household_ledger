@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
-import 'package:household_ledger/presenter/widgets/common/ledger_dialogs.dart';
+import 'package:household_ledger/presenter/widgets/import_data_page/import_preview_dialog.dart';
 import 'package:household_ledger/presenter/widgets/common/loading_overlay.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
@@ -83,23 +83,6 @@ class _ImportDataPageState extends ConsumerState<ImportDataPage> {
       return;
     }
 
-    final confirmed = await showLedgerConfirmDialog(
-      context: context,
-      title: _text(strings, 'importConfirmTitle'),
-      message: _text(strings, 'importConfirmMessage'),
-      confirmLabel: _text(strings, 'importButton'),
-      cancelLabel: _text(strings, 'cancel'),
-      isDestructive: false,
-      icon: Icons.restore_rounded,
-    );
-    if (!confirmed) {
-      return;
-    }
-
-    if (!mounted) {
-      return;
-    }
-
     setState(() => _isImporting = true);
 
     try {
@@ -123,6 +106,11 @@ class _ImportDataPageState extends ConsumerState<ImportDataPage> {
         );
         return;
       }
+
+      if (!mounted) return;
+      FocusScope.of(context).unfocus();
+      final confirmed = await showImportPreviewDialog(context, strings, result);
+      if (!confirmed || !mounted) return;
 
       await ref
           .read(ledgerProvider.notifier)

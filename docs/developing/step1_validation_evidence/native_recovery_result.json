@@ -1,0 +1,21 @@
+{
+  "expenses": {
+    "count": 2,
+    "identical": true
+  },
+  "fixedExpenses": {
+    "count": 2,
+    "identical": true
+  },
+  "incomes": {
+    "count": 1,
+    "identical": true
+  },
+  "trips": {
+    "count": 0,
+    "identical": true
+  },
+  "journalRemoved": true,
+  "method": "Dedicated Android emulator: seeded recovery journal, removed expense DB while force-stopped, launched normal main() recovery.",
+  "preferencesIdentical": true
+}

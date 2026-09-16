@@ -18,22 +18,34 @@ class AnalysisScopeControl extends StatelessWidget {
   Widget build(BuildContext context) {
     return BootstrapSectionCard(
       padding: const EdgeInsets.all(10),
-      child: SegmentedButton<bool>(
-        showSelectedIcon: false,
-        segments: <ButtonSegment<bool>>[
-          ButtonSegment<bool>(
-            value: false,
-            icon: const Icon(Icons.date_range_outlined),
-            label: Text(strings['analysisPeriodScope'] ?? '기간별 분석'),
-          ),
-          ButtonSegment<bool>(
-            value: true,
-            icon: const Icon(Icons.flight_takeoff_outlined),
-            label: Text(strings['analysisTravelScope'] ?? '여행별 분석'),
-          ),
-        ],
-        selected: <bool>{isTravel},
-        onSelectionChanged: (Set<bool> values) => onChanged(values.first),
+      child: LayoutBuilder(
+        builder: (BuildContext context, BoxConstraints constraints) {
+          final bool vertical =
+              constraints.maxWidth < 300 ||
+              MediaQuery.textScalerOf(context).scale(14) > 20;
+          return SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<bool>(
+              direction: vertical ? Axis.vertical : Axis.horizontal,
+              expandedInsets: vertical ? null : EdgeInsets.zero,
+              showSelectedIcon: false,
+              segments: <ButtonSegment<bool>>[
+                ButtonSegment<bool>(
+                  value: false,
+                  icon: const Icon(Icons.date_range_outlined),
+                  label: Text(strings['analysisPeriodScope'] ?? '기간별 분석'),
+                ),
+                ButtonSegment<bool>(
+                  value: true,
+                  icon: const Icon(Icons.flight_takeoff_outlined),
+                  label: Text(strings['analysisTravelScope'] ?? '여행별 분석'),
+                ),
+              ],
+              selected: <bool>{isTravel},
+              onSelectionChanged: (Set<bool> values) => onChanged(values.first),
+            ),
+          );
+        },
       ),
     );
   }

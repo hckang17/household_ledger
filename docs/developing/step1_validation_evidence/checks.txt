@@ -1,0 +1,14 @@
+ledger-step1-all-final.txt
+00:26 +134 ~2: All other tests passed!
+
+ledger-step1-validation-final.txt
+00:03 +13: All tests passed!
+
+ledger-restore-final.txt
+00:16 +10: All tests passed!
+
+ledger-step1-analyze-last.txt
+No issues found! (ran in 6.3s)
+
+ledger-step1-build-final.txt
+√ Built build\app\outputs\flutter-apk\app-debug.apk

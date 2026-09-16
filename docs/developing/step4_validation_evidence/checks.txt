@@ -1,0 +1,15 @@
+PDF generation and calculation tests
+00:04 +5: All tests passed!
+
+language pack parity
+language keys match: 604
+
+flutter analyze
+No issues found! (ran in 4.6s)
+
+full flutter test
+00:38 +156 ~2: All other tests passed!
+
+Android x64 debug build
+Built build\app\outputs\flutter-apk\app-debug.apk
+APK contains NotoSansJP/NotoSansKR Regular and Bold assets.

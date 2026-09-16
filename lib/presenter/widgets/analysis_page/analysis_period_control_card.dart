@@ -150,41 +150,62 @@ class AnalysisPeriodControlCard extends StatelessWidget {
         ? _text('analysisPeriodRange', '기간')
         : _text('analysisPeriodMonthly', '월간');
 
-    return Row(
-      children: <Widget>[
-        Builder(
-          builder: (BuildContext btnCtx) => GestureDetector(
-            onTap: () => _showModeMenu(btnCtx),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-              decoration: BoxDecoration(
-                color: Colors.grey.shade100,
-                borderRadius: BorderRadius.circular(10),
-                border: Border.all(color: Colors.grey.shade300),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  Text(
-                    modeLabel,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 13,
-                    ),
+    final Widget modeButton = Builder(
+      builder: (BuildContext btnCtx) => Align(
+        alignment: AlignmentDirectional.centerStart,
+        child: GestureDetector(
+          onTap: () => _showModeMenu(btnCtx),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            decoration: BoxDecoration(
+              color: Colors.grey.shade100,
+              borderRadius: BorderRadius.circular(10),
+              border: Border.all(color: Colors.grey.shade300),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: <Widget>[
+                Text(
+                  modeLabel,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w700,
+                    fontSize: 13,
                   ),
-                  const Icon(Icons.keyboard_arrow_down_rounded, size: 16),
-                ],
-              ),
+                ),
+                const Icon(Icons.keyboard_arrow_down_rounded, size: 16),
+              ],
             ),
           ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: isRangeMode
-              ? _buildRangeNavRow(context)
-              : _buildMonthNavRow(context),
-        ),
-      ],
+      ),
+    );
+    final Widget navigation = isRangeMode
+        ? _buildRangeNavRow(context)
+        : _buildMonthNavRow(context);
+
+    return LayoutBuilder(
+      builder: (BuildContext context, BoxConstraints constraints) {
+        final bool stackControls =
+            constraints.maxWidth < 360 ||
+            MediaQuery.textScalerOf(context).scale(14) > 18;
+        if (stackControls) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: <Widget>[
+              modeButton,
+              const SizedBox(height: 8),
+              navigation,
+            ],
+          );
+        }
+        return Row(
+          children: <Widget>[
+            modeButton,
+            const SizedBox(width: 12),
+            Expanded(child: navigation),
+          ],
+        );
+      },
     );
   }
 
@@ -197,11 +218,18 @@ class AnalysisPeriodControlCard extends StatelessWidget {
         visualDensity: VisualDensity.compact,
         splashRadius: 20,
       ),
-      GestureDetector(
-        onTap: () => _pickMonth(context),
-        child: Text(
-          _monthRangeLabel(),
-          style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+      Flexible(
+        child: GestureDetector(
+          onTap: () => _pickMonth(context),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
+            child: Text(
+              _monthRangeLabel(),
+              maxLines: 1,
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
+            ),
+          ),
         ),
       ),
       IconButton(

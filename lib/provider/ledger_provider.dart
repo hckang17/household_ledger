@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
@@ -16,6 +17,8 @@ import 'package:household_ledger/services/database/travel_database_service.dart'
 import 'package:household_ledger/services/local_storage_service.dart';
 import 'package:household_ledger/services/localization_service.dart';
 import 'package:household_ledger/services/tutorial_service.dart';
+import 'package:household_ledger/services/imexporting_file/backup_restore_service.dart';
+import 'package:household_ledger/services/imexporting_file/backup_restore_data.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void _logLedgerProvider(String methodName, String action) {
@@ -282,6 +285,7 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
 
   /// 현재 메모리 상태를 로컬 저장소에 저장한다.
   Future<void> persistCurrentState() async {
+    if (BackupRestoreService.busy) return;
     _logLedgerProvider('persistCurrentState', '현재 상태 저장 시작');
     final current = state.asData?.value;
     if (current == null) {
@@ -616,81 +620,71 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
   }) async {
     _logLedgerProvider('importAllData', 'import start');
 
-    final travelDatabase = ref.read(travelDatabaseServiceProvider);
-    final previousExpenses = await _expenseDatabaseService.loadAllExpenses();
-    final previousFixedExpenses = await _fixedExpenseDatabaseService
-        .loadAllFixedExpenses();
-    final previousIncomes = await _incomeDatabaseService.loadAllIncomes();
-    final previousTrips = await travelDatabase.loadAllTrips();
-    final previousState = state.asData?.value;
-    final tutorialService = TutorialService();
-    final previousTutorial = await tutorialService.exportValues();
-    final preferences = await SharedPreferences.getInstance();
-    final previousActiveTripId = preferences.getString(
-      TravelDatabaseService.activeTripStorageKey,
+    if (!state.hasValue) throw StateError('Ledger is not ready');
+    final previousState = state;
+    final restore = BackupRestoreService(
+      expenses: _expenseDatabaseService,
+      fixedExpenses: _fixedExpenseDatabaseService,
+      incomes: _incomeDatabaseService,
+      trips: ref.read(travelDatabaseServiceProvider),
     );
-
+    final strings = await LocalizationService().loadStrings(
+      importedState.settings.localeCode,
+    );
+    final imported = importedState.localizeSystemMetadataTags(strings);
+    final settingsJson = imported.toJson()
+      ..remove('expenses')
+      ..remove('fixedExpenses');
+    final preferences = await SharedPreferences.getInstance();
+    final data = BackupRestoreData(
+      expenses: expenses,
+      fixedExpenses: fixedExpenses,
+      incomes: incomes,
+      trips: trips,
+      preferences: {
+        LocalStorageService.storageKey: jsonEncode(settingsJson),
+        TravelDatabaseService.activeTripStorageKey: null,
+        TutorialService.completedKey:
+            tutorialCompleted ??
+            preferences.getBool(TutorialService.completedKey),
+        TutorialService.versionKey: tutorialCompleted == null
+            ? preferences.getInt(TutorialService.versionKey)
+            : (tutorialVersion ?? 1),
+      },
+    );
+    LedgerState? next;
     try {
-      await travelDatabase.replaceAllTrips(trips);
-      await _expenseDatabaseService.deleteAllExpenses();
-      await _fixedExpenseDatabaseService.deleteAllFixedExpenses();
-      await _incomeDatabaseService.deleteAllIncomes();
-
-      await _expenseDatabaseService.upsertExpenses(expenses);
-      await _expenseDatabaseService.migrateLegacyDiningDescriptions();
-      await _fixedExpenseDatabaseService.upsertFixedExpenses(fixedExpenses);
-      await _incomeDatabaseService.upsertIncomes(incomes);
-
-      final nowMonth = DateTime.now();
-      final currentMonthExpenses = await _expenseDatabaseService
-          .loadExpensesByMonth(nowMonth);
-      final prevQuery = computePrevSamePeriodQuery(nowMonth);
-      final prevPeriodExpenses = await _expenseDatabaseService
-          .loadExpensesByRange(
-            start: prevQuery.start,
-            endExclusive: prevQuery.endExclusive,
-          );
-      final strings = await LocalizationService().loadStrings(
-        importedState.settings.localeCode,
-      );
-      final next = importedState
-          .copyWith(
-            expenses: currentMonthExpenses,
+      await restore.replace(
+        data,
+        finalize: () async {
+          // Preserve the existing legacy dining conversion within the recovery boundary.
+          await _expenseDatabaseService.migrateLegacyDiningDescriptions();
+          final month = DateTime.now();
+          final query = computePrevSamePeriodQuery(month);
+          next = imported.copyWith(
+            expenses: await _expenseDatabaseService.loadExpensesByMonth(month),
             fixedExpenses: fixedExpenses,
-            prevPeriodExpenses: prevPeriodExpenses,
-          )
-          .localizeSystemMetadataTags(strings);
-      if (tutorialCompleted != null) {
-        await tutorialService.restoreFromCsv(
-          completed: tutorialCompleted,
-          version: tutorialVersion ?? 1,
-        );
-      }
-      await preferences.remove(TravelDatabaseService.activeTripStorageKey);
-      await _commit(next);
-    } catch (_) {
-      await travelDatabase.replaceAllTrips(previousTrips);
-      await _expenseDatabaseService.deleteAllExpenses();
-      await _expenseDatabaseService.upsertExpenses(previousExpenses);
-      await _fixedExpenseDatabaseService.deleteAllFixedExpenses();
-      await _fixedExpenseDatabaseService.upsertFixedExpenses(
-        previousFixedExpenses,
+            prevPeriodExpenses: await _expenseDatabaseService
+                .loadExpensesByRange(
+                  start: query.start,
+                  endExclusive: query.endExclusive,
+                ),
+          );
+        },
       );
-      await _incomeDatabaseService.deleteAllIncomes();
-      await _incomeDatabaseService.upsertIncomes(previousIncomes);
-      await tutorialService.restoreFromCsv(
-        completed: previousTutorial['tutorial_completed'] == 'true',
-        version: int.tryParse(previousTutorial['tutorial_version'] ?? '1') ?? 1,
-      );
-      if (previousActiveTripId == null) {
-        await preferences.remove(TravelDatabaseService.activeTripStorageKey);
-      } else {
-        await preferences.setString(
-          TravelDatabaseService.activeTripStorageKey,
-          previousActiveTripId,
-        );
+      state = AsyncData(next!);
+      ref.invalidate(monthlyIncomesProvider);
+      ref.invalidate(monthlyExpensesProvider);
+      ref.invalidate(rangeExpensesProvider);
+    } catch (error, stack) {
+      // A retained journal means rollback failed: don't expose a writable normal state.
+      try {
+        state = await restore.journal.read() == null
+            ? previousState
+            : AsyncError(error, stack);
+      } catch (_) {
+        state = AsyncError(error, stack);
       }
-      if (previousState != null) await _commit(previousState);
       rethrow;
     }
     _logLedgerProvider('importAllData', 'import complete');

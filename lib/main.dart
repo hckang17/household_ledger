@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'package:household_ledger/services/imexporting_file/backup_restore_service.dart';
+import 'package:household_ledger/presenter/pages/sub_page/import_recovery_page.dart';
 
 import 'package:flutter/material.dart';
 // import 'package:flutter/rendering.dart';
@@ -45,6 +47,15 @@ Future<void> main() async {
 
   await initializeDateFormatting();
   final preferences = await SharedPreferences.getInstance();
+  try {
+    await BackupRestoreService().recover();
+  } catch (_) {
+    final strings = await LocalizationService().loadStrings(
+      LocalStorageService.readStartupSettings(preferences).localeCode,
+    );
+    runApp(ImportRecoveryPage(strings: strings, retry: main));
+    return;
+  }
   await TravelDatabaseService.instance.initialize();
   runApp(
     AppRestartWidget(

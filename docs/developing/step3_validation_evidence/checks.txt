@@ -1,0 +1,14 @@
+ledger-step3-related.txt
+00:09 +6: All tests passed!
+
+language pack parity
+language keys match: 604
+
+ledger-step3-analyze.txt
+No issues found! (ran in 122.6s)
+
+ledger-step3-all.txt
+00:37 +153 ~2: All other tests passed!
+
+ledger-step3-build.txt
+Built build\app\outputs\flutter-apk\app-debug.apk

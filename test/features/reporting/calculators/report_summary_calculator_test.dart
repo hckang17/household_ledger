@@ -82,4 +82,10 @@ void main() {
     expect(result.balance, 0);
     expect(result.categoryTotals, isEmpty);
   });
+
+  test('카테고리 비율은 고정지출을 제외한 일반 지출 합계를 기준으로 한다', () {
+    expect(regularExpenseShare(40000, 52000), closeTo(76.923, 0.001));
+    expect(regularExpenseShare(12000, 52000), closeTo(23.077, 0.001));
+    expect(regularExpenseShare(40000, 0), 0);
+  });
 }

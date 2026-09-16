@@ -1,4 +1,8 @@
 {
+  "importPreviewCounts": "支出 {expenses}件・固定支出 {fixed}件・収入 {incomes}件\n旅行 {trips}件・タグ {tags}個",
+  "importPreviewReplaceMessage": "現在の支出・固定支出・収入・旅行・タグと設定を、このバックアップで置き換えます。バックアップが0件の項目は、現在の記録も削除されます。続けますか？",
+  "importRecoveryMessage": "中断したインポート前のデータを復元できませんでした。復元用データは保管されています。空き容量を確認してから、もう一度お試しください。",
+  "importRecoveryRetry": "復元を再試行",
   "datetime": "日付",
   "appBackgroundSaveError": "背景を保存できませんでした。もう一度お試しください。",
   "recordTravelExpense": "旅行の支出を記録",
@@ -320,7 +324,7 @@
   "pdfTotalExpense": "総支出額",
   "pdfTotalIncome": "総収入額",
   "pdfBalance": "残高",
-  "pdfCategoryBreakdown": "カテゴリ別支出",
+  "pdfCategoryBreakdown": "通常支出のカテゴリ別割合",
   "pdfFixedExpenseSection": "固定支出内訳",
   "pdfPaymentSummary": "支払手段別サマリー",
   "pdfDailyTrend": "日別支出推移 (Top 5支出日)",
@@ -400,7 +404,7 @@
   "pdfCurrentPeriod": "今月",
   "pdfPrevPeriod": "前月同期",
   "pdfDiffLabel": "差分",
-  "pdfSectionCategoryChart": "支出区分分析チャート",
+  "pdfSectionCategoryChart": "通常支出の区分分析",
   "pdfSectionDailyChart": "日別支出推移チャート",
   "pdfChartCountUnit": "件",
   "reportTitleLabel": "PDFタイトル設定",
@@ -604,5 +608,12 @@
   "fixedExpenseCarryoverCompleteTitle": "固定支出のコピー完了",
   "fixedExpenseCarryoverCompleteMessage": "先月の固定支出を取り込みました。金額を必ず今月のデータに修正してください！",
   "fixedExpenseCarryoverError": "先月の固定支出を取り込めませんでした。もう一度お試しください。",
-  "unsupportedBackupVersionMessage": "このバックアップファイルは現在のアプリより新しいバージョンで作成されています。アプリを更新してからもう一度お試しください。"
+  "unsupportedBackupVersionMessage": "このバックアップファイルは現在のアプリより新しいバージョンで作成されています。アプリを更新してからもう一度お試しください。",
+  "weekdaySundayShort": "日",
+  "weekdayMondayShort": "月",
+  "weekdayTuesdayShort": "火",
+  "weekdayWednesdayShort": "水",
+  "weekdayThursdayShort": "木",
+  "weekdayFridayShort": "金",
+  "weekdaySaturdayShort": "土"
 }

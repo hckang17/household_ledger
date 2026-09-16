@@ -7,6 +7,10 @@ import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/income_entry.dart';
 
+/// 일반 지출 카테고리의 비율을 계산한다. 고정지출은 분모에 포함하지 않는다.
+double regularExpenseShare(int amount, int regularExpenseTotal) =>
+    regularExpenseTotal > 0 ? amount / regularExpenseTotal * 100 : 0;
+
 /// PDF 위젯이나 파일 시스템에 의존하지 않고 리포트 합계를 계산한다.
 class ReportSummaryCalculator {
   const ReportSummaryCalculator();
