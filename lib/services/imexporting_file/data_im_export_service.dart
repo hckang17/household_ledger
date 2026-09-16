@@ -1,6 +1,7 @@
 // 가계부 데이터를 .csv 파일로 내보내거나, .csv 파일에서 가계부 데이터를 불러오는 기능을 담당하는 서비스입니다.
 import 'dart:convert';
 import 'dart:io';
+import 'backup_csv_validation.dart';
 
 import 'package:crypto/crypto.dart';
 import 'package:file_selector/file_selector.dart';
@@ -351,8 +352,11 @@ class DataImExportService {
 
       final metaMap = _parseKeyValue(sections[_sectionMetadata] ?? <String>[]);
       final storedSignature = metaMap['signature'] ?? '';
-      final version = metaMap['version'] ?? '1.0';
-      final majorVersion = int.tryParse(version.split('.').first) ?? 1;
+      final version = metaMap['version'];
+      if (version == null || !RegExp(r'^[1-9]\d*\.\d+$').hasMatch(version)) {
+        throw const FormatException('Invalid version');
+      }
+      final majorVersion = int.parse(version.split('.').first);
       if (majorVersion > 3) {
         return const ImportResult(
           success: false,
@@ -367,42 +371,37 @@ class DataImExportService {
         );
       }
 
-      if (majorVersion >= 3 &&
-          <String>{
-            _sectionExpenses,
-            _sectionTrips,
-            _sectionFixedExpenses,
-            _sectionIncomes,
-            _sectionSettings,
-            _sectionTags,
-          }.any((String section) => !sections.containsKey(section))) {
-        throw const FormatException('Missing required section');
-      }
+      BackupCsvValidation.validate(sections, majorVersion, _parseCsvRow);
 
       final expenses = _parseExpenses(
         sections[_sectionExpenses] ?? <String>[],
-        strict: majorVersion >= 3,
+        strict: true,
+        includeTrips: majorVersion >= 3,
       );
       final fixedExpenses = _parseFixedExpenses(
         sections[_sectionFixedExpenses] ?? <String>[],
-        strict: majorVersion >= 3,
+        strict: true,
       );
       final incomes = _parseIncomes(
         sections[_sectionIncomes] ?? <String>[],
-        strict: majorVersion >= 3,
+        strict: true,
       );
       final settingsMap = _parseKeyValue(
         sections[_sectionSettings] ?? <String>[],
       );
       final tags = _parseTags(
         sections[_sectionTags] ?? <String>[],
-        strict: majorVersion >= 3,
+        strict: true,
       );
       final trips = majorVersion >= 3
           ? _parseTrips(sections[_sectionTrips] ?? <String>[])
           : <Trip>[];
 
-      if (majorVersion >= 3) {
+      {
+        final incomeIds = incomes.map((e) => e.id).whereType<int>().toList();
+        if (incomeIds.toSet().length != incomeIds.length) {
+          throw const FormatException('Duplicate income identifier');
+        }
         final tripIds = trips.map((trip) => trip.id).toSet();
         final expenseIds = expenses.map((expense) => expense.id).toSet();
         final fixedExpenseIds = fixedExpenses
@@ -496,6 +495,8 @@ class DataImExportService {
         metadataTags: tags.isNotEmpty ? tags : null,
       );
 
+      BackupCsvValidation.validateTags(tags, expenses, fixedExpenses);
+
       return ImportResult(
         success: true,
         expenses: expenses,
@@ -525,6 +526,9 @@ class DataImExportService {
     for (var line in _splitCsvRecords(content)) {
       line = line.trimRight();
       if (line.startsWith('[') && line.endsWith(']')) {
+        if (result.containsKey(line)) {
+          throw const FormatException('Duplicate section');
+        }
         current = line;
         result[current] = <String>[];
       } else if (current != null && line.isNotEmpty) {
@@ -561,6 +565,7 @@ class DataImExportService {
         buffer.write(char);
       }
     }
+    if (inQuotes) throw const FormatException('Unclosed quoted record');
     if (buffer.isNotEmpty) records.add(buffer.toString());
     return records;
   }
@@ -570,13 +575,20 @@ class DataImExportService {
     for (final row in rows) {
       final fields = _parseCsvRow(row);
       if (fields.length >= 2) {
+        if (fields.length != 2 || result.containsKey(fields[0])) {
+          throw const FormatException('Invalid or duplicate setting');
+        }
         result[fields[0]] = fields[1];
       }
     }
     return result;
   }
 
-  List<ExpenseEntry> _parseExpenses(List<String> rows, {required bool strict}) {
+  List<ExpenseEntry> _parseExpenses(
+    List<String> rows, {
+    required bool strict,
+    required bool includeTrips,
+  }) {
     if (rows.isEmpty) {
       return <ExpenseEntry>[];
     }
@@ -599,7 +611,7 @@ class DataImExportService {
       }
       try {
         final subcategoryCode = field(f, 'subcategoryCode');
-        final rawTripId = strict ? field(f, 'tripId') : '';
+        final rawTripId = includeTrips ? field(f, 'tripId') : '';
         if (rawTripId.isNotEmpty && subcategoryCode != 't') {
           throw const FormatException('Trip expense must use subcategory t');
         }
@@ -719,7 +731,7 @@ class DataImExportService {
       try {
         result.add(
           IncomeEntry.create(
-            id: int.tryParse(f[0]),
+            id: f[0].isEmpty ? null : int.parse(f[0]),
             earnedAt: DateTime.parse(f[1]),
             amount: int.parse(f[2]),
             description: f[3],
@@ -774,7 +786,7 @@ class DataImExportService {
     final fields = <String>[];
     final buffer = StringBuffer();
     var inQuotes = false;
-
+    var closedQuote = false;
     for (var i = 0; i < row.length; i++) {
       final char = row[i];
       if (inQuotes) {
@@ -784,21 +796,25 @@ class DataImExportService {
             i++;
           } else {
             inQuotes = false;
+            closedQuote = true;
           }
         } else {
           buffer.write(char);
         }
+      } else if (char == ',') {
+        fields.add(buffer.toString());
+        buffer.clear();
+        closedQuote = false;
+      } else if (char == '"' && buffer.isEmpty && !closedQuote) {
+        inQuotes = true;
       } else {
-        if (char == '"') {
-          inQuotes = true;
-        } else if (char == ',') {
-          fields.add(buffer.toString());
-          buffer.clear();
-        } else {
-          buffer.write(char);
+        if (closedQuote || char == '"') {
+          throw const FormatException('Invalid CSV quoting');
         }
+        buffer.write(char);
       }
     }
+    if (inQuotes) throw const FormatException('Unclosed CSV field');
     fields.add(buffer.toString());
     return fields;
   }

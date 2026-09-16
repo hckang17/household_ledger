@@ -8,11 +8,11 @@ import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/model/ledger_state.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
+import 'package:household_ledger/services/imexporting_file/pdf_report_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
 
 // ─── PDF 공통 색상 ─────────────────────────────────────────────────
 const PdfColor _kBlue = PdfColor.fromInt(0xFF0D6EFD);
@@ -42,9 +42,25 @@ typedef _TsFn = pw.TextStyle Function({double size, bool bold, PdfColor color});
 
 /// PDF 가계부 리포트를 생성하고 파일을 관리하는 서비스다.
 class ExportPdfReportService {
+  ExportPdfReportService({
+    PdfReportFontLoader? fontLoader,
+    this.reportDirectoryProvider,
+  }) : _fontLoader = fontLoader ?? PdfReportFontLoader();
+
+  final PdfReportFontLoader _fontLoader;
+
+  /// 테스트나 별도 보관 정책에서 기본 리포트 디렉터리를 대체한다.
+  final Future<Directory> Function()? reportDirectoryProvider;
+
   // ─── 파일 경로 ──────────────────────────────────────────────────
 
   Future<Directory> _getReportDirectory() async {
+    final override = reportDirectoryProvider;
+    if (override != null) {
+      final Directory directory = await override();
+      if (!await directory.exists()) await directory.create(recursive: true);
+      return directory;
+    }
     final Directory base;
     if (Platform.isAndroid) {
       final Directory? ext = await getExternalStorageDirectory();
@@ -81,28 +97,6 @@ class ExportPdfReportService {
 
   // ─── 폰트 로딩 ──────────────────────────────────────────────────
 
-  /// 로케일에 맞는 기본 폰트를 로드한다.
-  Future<pw.Font> _loadFont(String localeCode) async {
-    try {
-      return localeCode == 'jp'
-          ? await PdfGoogleFonts.notoSansJPRegular()
-          : await PdfGoogleFonts.notoSansKRRegular();
-    } catch (_) {
-      return pw.Font.helvetica();
-    }
-  }
-
-  /// 로케일에 맞는 볼드 폰트를 로드한다.
-  Future<pw.Font> _loadBoldFont(String localeCode) async {
-    try {
-      return localeCode == 'jp'
-          ? await PdfGoogleFonts.notoSansJPBold()
-          : await PdfGoogleFonts.notoSansKRBold();
-    } catch (_) {
-      return pw.Font.helveticaBold();
-    }
-  }
-
   // ─── 메인 생성 메서드 ────────────────────────────────────────────
 
   /// PDF 리포트를 생성하고 저장된 파일 경로를 반환한다.
@@ -133,19 +127,18 @@ class ExportPdfReportService {
     final String currency = strings['currencyUnit'] ?? '₩';
     final String name = ledger.userProfile.name;
 
-    // ── UI 폰트: 로케일 언어(JP or KO)용 ──
-    final pw.Font uiFont = await _loadFont(localeCode);
-    final pw.Font uiBoldFont = await _loadBoldFont(localeCode);
+    // 앱 자산만 읽으므로 첫 실행 또는 오프라인 상태에서도 동일한 글꼴을 사용한다.
+    final PdfReportFonts fonts = await _fontLoader.load();
+    final pw.Font uiFont = localeCode == 'jp'
+        ? fonts.japaneseRegular
+        : fonts.koreanRegular;
+    final pw.Font uiBoldFont = localeCode == 'jp'
+        ? fonts.japaneseBold
+        : fonts.koreanBold;
     onProgress?.call(0.12);
 
-    // ── 데이터 폰트: 사용자 입력 한국어 콘텐츠(설명·태그명·이름)용 ──
-    // JP 로케일에서도 데이터는 한국어이므로 KR 폰트를 별도 로드한다.
-    final pw.Font dataFont = localeCode == 'jp'
-        ? await _loadFont('ko')
-        : uiFont;
-    final pw.Font dataBoldFont = localeCode == 'jp'
-        ? await _loadBoldFont('ko')
-        : uiBoldFont;
+    final pw.Font dataFont = fonts.koreanRegular;
+    final pw.Font dataBoldFont = fonts.koreanBold;
     onProgress?.call(0.24);
 
     // ts : UI 문자열(언어팩, 컬럼 헤더, 섹션 제목)에 사용하는 스타일 팩토리
@@ -606,9 +599,7 @@ class ExportPdfReportService {
     for (int i = 0; i < catSorted.length; i++) {
       final String code = catSorted[i].key;
       final int amount = catSorted[i].value;
-      final double pct = combinedExpense > 0
-          ? amount / combinedExpense * 100
-          : 0;
+      final double pct = regularExpenseShare(amount, expenseTotal);
       out.add(
         pw.Padding(
           padding: const pw.EdgeInsets.only(bottom: 8),
@@ -640,7 +631,7 @@ class ExportPdfReportService {
         ..add(
           _buildPieChartWidget(
             pieSlices,
-            combinedExpense,
+            expenseTotal,
             currency,
             strings,
             ts,
@@ -691,7 +682,7 @@ class ExportPdfReportService {
         ..add(pw.SizedBox(height: 8));
       for (int i = 0; i < pmSorted.length; i++) {
         final int amount = pmSorted[i].value;
-        final double pct = expenseTotal > 0 ? amount / expenseTotal * 100 : 0;
+        final double pct = regularExpenseShare(amount, expenseTotal);
         out.add(
           pw.Padding(
             padding: const pw.EdgeInsets.only(bottom: 8),

@@ -86,212 +86,266 @@ class _ExpenseCalendarSectionState extends State<ExpenseCalendarSection> {
     final Map<int, int> dailyTotals = _dailyTotals(widget.entries);
     final String todayText = DateFormat('yyyy-MM-dd').format(DateTime.now());
     final Map<String, String> strings = widget.strings;
+    // Measure the two text lines with the actual (possibly nonlinear) scaler.
+    double lineHeight(TextStyle? style, {double maxWidth = double.infinity}) {
+      final painter = TextPainter(
+        text: TextSpan(text: '31', style: style),
+        textDirection: Directionality.of(context),
+        textScaler: MediaQuery.textScalerOf(context),
+      )..layout(maxWidth: maxWidth);
+      final height = painter.height;
+      painter.dispose();
+      return height;
+    }
 
+    final amountStyle = Theme.of(context).textTheme.labelSmall?.copyWith(
+      color: const Color(0xFF0D6EFD),
+      fontWeight: FontWeight.w700,
+      fontSize: 9,
+      height: 1,
+    );
     return BootstrapSectionCard(
-      child: Column(
-        children: <Widget>[
-          Row(
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final dayWidth = ((constraints.maxWidth - 12) / 7 - 4).clamp(
+            1.0,
+            double.infinity,
+          );
+          final cellHeight =
+              (lineHeight(
+                        Theme.of(context).textTheme.labelMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
+                        maxWidth: dayWidth,
+                      ) +
+                      lineHeight(amountStyle) +
+                      10)
+                  .clamp(48.0, double.infinity);
+          return Column(
             children: <Widget>[
-              Expanded(
-                child: Text(
-                  (strings['todayDateCompact'] ??
-                          '${strings['failedReadingData']}+todayDateCompact')
-                      .replaceAll('{date}', todayText),
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Text(
+                      (strings['todayDateCompact'] ??
+                              '${strings['failedReadingData']}+todayDateCompact')
+                          .replaceAll('{date}', todayText),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ),
-                ),
+                  IconButton(
+                    tooltip: _isCalendarExpanded
+                        ? (strings['calendarFold'] ??
+                              '${strings['failedReadingData']}+calendarFold')
+                        : (strings['calendarUnfold'] ??
+                              '${strings['failedReadingData']}+calendarUnfold'),
+                    onPressed: () => setState(
+                      () => _isCalendarExpanded = !_isCalendarExpanded,
+                    ),
+                    icon: Icon(
+                      _isCalendarExpanded
+                          ? Icons.expand_less
+                          : Icons.expand_more,
+                    ),
+                  ),
+                ],
               ),
-              IconButton(
-                tooltip: _isCalendarExpanded
-                    ? (strings['calendarFold'] ??
-                          '${strings['failedReadingData']}+calendarFold')
-                    : (strings['calendarUnfold'] ??
-                          '${strings['failedReadingData']}+calendarUnfold'),
-                onPressed: () =>
-                    setState(() => _isCalendarExpanded = !_isCalendarExpanded),
-                icon: Icon(
-                  _isCalendarExpanded ? Icons.expand_less : Icons.expand_more,
-                ),
-              ),
-            ],
-          ),
-          AnimatedSize(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeInOut,
-            child: _isCalendarExpanded
-                ? Column(
-                    children: <Widget>[
-                      Row(
+              AnimatedSize(
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeInOut,
+                child: _isCalendarExpanded
+                    ? Column(
                         children: <Widget>[
-                          IconButton(
-                            onPressed: () => widget.onFocusedMonthChanged(
-                              DateTime(
-                                widget.focusedMonth.year,
-                                widget.focusedMonth.month - 1,
+                          Row(
+                            children: <Widget>[
+                              IconButton(
+                                onPressed: () => widget.onFocusedMonthChanged(
+                                  DateTime(
+                                    widget.focusedMonth.year,
+                                    widget.focusedMonth.month - 1,
+                                  ),
+                                ),
+                                icon: const Icon(Icons.chevron_left),
                               ),
-                            ),
-                            icon: const Icon(Icons.chevron_left),
-                          ),
-                          Expanded(
-                            child: Center(
-                              child: Text(
-                                DateFormat(
-                                  'yyyy-MM',
-                                ).format(widget.focusedMonth),
-                                style: Theme.of(context).textTheme.titleMedium
-                                    ?.copyWith(fontWeight: FontWeight.w700),
-                              ),
-                            ),
-                          ),
-                          IconButton(
-                            onPressed: () => widget.onFocusedMonthChanged(
-                              DateTime(
-                                widget.focusedMonth.year,
-                                widget.focusedMonth.month + 1,
-                              ),
-                            ),
-                            icon: const Icon(Icons.chevron_right),
-                          ),
-                        ],
-                      ),
-                      Row(
-                        children: const <Widget>[
-                          Expanded(child: Center(child: Text('Sun'))),
-                          Expanded(child: Center(child: Text('Mon'))),
-                          Expanded(child: Center(child: Text('Tue'))),
-                          Expanded(child: Center(child: Text('Wed'))),
-                          Expanded(child: Center(child: Text('Thu'))),
-                          Expanded(child: Center(child: Text('Fri'))),
-                          Expanded(child: Center(child: Text('Sat'))),
-                        ],
-                      ),
-                      const SizedBox(height: 6),
-                      GridView.builder(
-                        shrinkWrap: true,
-                        physics: const NeverScrollableScrollPhysics(),
-                        itemCount: calendarCells.length,
-                        gridDelegate:
-                            const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 7,
-                              mainAxisExtent: 40,
-                              mainAxisSpacing: 2,
-                              crossAxisSpacing: 2,
-                            ),
-                        itemBuilder: (BuildContext context, int index) {
-                          final DateTime? date = calendarCells[index];
-                          if (date == null) return const SizedBox.shrink();
-
-                          final bool isSelected = _sameDay(
-                            date,
-                            widget.selectedDay,
-                          );
-                          final int amount = dailyTotals[date.day] ?? 0;
-
-                          return InkWell(
-                            onTap: () =>
-                                widget.onSelectedDayChanged(_dateOnly(date)),
-                            borderRadius: BorderRadius.circular(10),
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: isSelected
-                                    ? const Color(0xFFE7F1FF)
-                                    : Colors.transparent,
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              padding: const EdgeInsets.symmetric(
-                                vertical: 4,
-                                horizontal: 2,
-                              ),
-                              child: Column(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: <Widget>[
-                                  Text(
-                                    '${date.day}',
+                              Expanded(
+                                child: Center(
+                                  child: Text(
+                                    DateFormat(
+                                      'yyyy-MM',
+                                    ).format(widget.focusedMonth),
                                     style: Theme.of(context)
                                         .textTheme
-                                        .labelMedium
-                                        ?.copyWith(
-                                          fontWeight: isSelected
-                                              ? FontWeight.w700
-                                              : FontWeight.w500,
-                                        ),
+                                        .titleMedium
+                                        ?.copyWith(fontWeight: FontWeight.w700),
                                   ),
-                                  FittedBox(
-                                    fit: BoxFit.scaleDown,
-                                    child: amount != 0
-                                        ? Text(
-                                            '${amount.toCurrency()}${widget.currency}',
-                                            maxLines: 1,
-                                            style: Theme.of(context)
-                                                .textTheme
-                                                .labelSmall
-                                                ?.copyWith(
-                                                  color: const Color(
-                                                    0xFF0D6EFD,
-                                                  ),
-                                                  fontWeight: FontWeight.w700,
-                                                  fontSize: 9,
-                                                  height: 1,
-                                                ),
-                                          )
-                                        : const SizedBox.shrink(),
-                                  ),
-                                ],
+                                ),
                               ),
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(height: 4),
-                      Row(
-                        children: <Widget>[
-                          Expanded(
-                            child: BootstrapActionButton(
-                              label: strings['queryByDate'] ?? '조회하기',
-                              icon: Icons.search,
-                              onPressed: widget.onQueryByDate,
-                            ),
+                              IconButton(
+                                onPressed: () => widget.onFocusedMonthChanged(
+                                  DateTime(
+                                    widget.focusedMonth.year,
+                                    widget.focusedMonth.month + 1,
+                                  ),
+                                ),
+                                icon: const Icon(Icons.chevron_right),
+                              ),
+                            ],
                           ),
-                          const SizedBox(width: 4),
-                          Expanded(
-                            child: BootstrapActionButton(
-                              label: strings['viewMonthly'] ?? '월 전체 보기',
-                              icon: Icons.view_list,
-                              onPressed: widget.onViewMonthly,
-                              backgroundColor: const Color(0xFF6C757D),
-                            ),
+                          Row(
+                            children: <Widget>[
+                              for (final key in const <String>[
+                                'weekdaySundayShort',
+                                'weekdayMondayShort',
+                                'weekdayTuesdayShort',
+                                'weekdayWednesdayShort',
+                                'weekdayThursdayShort',
+                                'weekdayFridayShort',
+                                'weekdaySaturdayShort',
+                              ])
+                                Expanded(
+                                  child: Center(
+                                    child: Text(
+                                      strings[key] ?? '',
+                                      maxLines: 1,
+                                      overflow: TextOverflow.clip,
+                                    ),
+                                  ),
+                                ),
+                            ],
+                          ),
+                          const SizedBox(height: 6),
+                          GridView.builder(
+                            primary: false,
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: calendarCells.length,
+                            gridDelegate:
+                                SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 7,
+                                  mainAxisExtent: cellHeight,
+                                  mainAxisSpacing: 2,
+                                  crossAxisSpacing: 2,
+                                ),
+                            itemBuilder: (BuildContext context, int index) {
+                              final DateTime? date = calendarCells[index];
+                              if (date == null) return const SizedBox.shrink();
+
+                              final bool isSelected = _sameDay(
+                                date,
+                                widget.selectedDay,
+                              );
+                              final int amount = dailyTotals[date.day] ?? 0;
+
+                              return InkWell(
+                                onTap: () => widget.onSelectedDayChanged(
+                                  _dateOnly(date),
+                                ),
+                                borderRadius: BorderRadius.circular(10),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    color: isSelected
+                                        ? const Color(0xFFE7F1FF)
+                                        : Colors.transparent,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 4,
+                                    horizontal: 2,
+                                  ),
+                                  child: Column(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: <Widget>[
+                                      Text(
+                                        '${date.day}',
+                                        style: Theme.of(context)
+                                            .textTheme
+                                            .labelMedium
+                                            ?.copyWith(
+                                              fontWeight: isSelected
+                                                  ? FontWeight.w700
+                                                  : FontWeight.w500,
+                                            ),
+                                      ),
+                                      FittedBox(
+                                        fit: BoxFit.scaleDown,
+                                        child: amount != 0
+                                            ? Text(
+                                                '${amount.toCurrency()}${widget.currency}',
+                                                maxLines: 1,
+                                                style: Theme.of(context)
+                                                    .textTheme
+                                                    .labelSmall
+                                                    ?.copyWith(
+                                                      color: const Color(
+                                                        0xFF0D6EFD,
+                                                      ),
+                                                      fontWeight:
+                                                          FontWeight.w700,
+                                                      fontSize: 9,
+                                                      height: 1,
+                                                    ),
+                                              )
+                                            : const SizedBox.shrink(),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 4),
+                          Row(
+                            children: <Widget>[
+                              Expanded(
+                                child: BootstrapActionButton(
+                                  label: strings['queryByDate'] ?? '조회하기',
+                                  icon: Icons.search,
+                                  onPressed: widget.onQueryByDate,
+                                ),
+                              ),
+                              const SizedBox(width: 4),
+                              Expanded(
+                                child: BootstrapActionButton(
+                                  label: strings['viewMonthly'] ?? '월 전체 보기',
+                                  icon: Icons.view_list,
+                                  onPressed: widget.onViewMonthly,
+                                  backgroundColor: const Color(0xFF6C757D),
+                                ),
+                              ),
+                            ],
                           ),
                         ],
-                      ),
-                    ],
-                  )
-                : const SizedBox.shrink(),
-          ),
-          const SizedBox(height: 4),
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: BootstrapSummaryTile(
-                  label: widget.totalSpentLabel,
-                  value:
-                      '${widget.monthlySpent.toCurrency()} ${widget.currency}',
-                  color: const Color(0xFFDC3545),
-                ),
+                      )
+                    : const SizedBox.shrink(),
               ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: BootstrapSummaryTile(
-                  label: widget.remainingBudgetLabel,
-                  value:
-                      '${widget.monthlyRemaining.toCurrency()} ${widget.currency}',
-                  color: const Color(0xFF198754),
-                ),
+              const SizedBox(height: 4),
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: BootstrapSummaryTile(
+                      label: widget.totalSpentLabel,
+                      value:
+                          '${widget.monthlySpent.toCurrency()} ${widget.currency}',
+                      color: const Color(0xFFDC3545),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: BootstrapSummaryTile(
+                      label: widget.remainingBudgetLabel,
+                      value:
+                          '${widget.monthlyRemaining.toCurrency()} ${widget.currency}',
+                      color: const Color(0xFF198754),
+                    ),
+                  ),
+                ],
               ),
             ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }

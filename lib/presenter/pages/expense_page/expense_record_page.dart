@@ -86,10 +86,10 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       body: Center(
-        child: Padding(
+        child: SingleChildScrollView(
           padding: const EdgeInsets.symmetric(horizontal: 48),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             children: <Widget>[
               const CircularProgressIndicator(
                 strokeWidth: 3,
@@ -271,6 +271,10 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
         : monthEntries;
 
     final groupedEntries = _groupEntriesByDay(visibleEntries);
+    // Keep only row data here; individual records are built lazily by the sliver.
+    final rows = <Object>[
+      for (final section in groupedEntries) ...[section.key, ...section.value],
+    ];
     final currency = _currencyUnit(strings);
     final categoryTags = ledger.tagsByType(MetadataTagType.category);
     final subcategoryTags = ledger.tagsByType(MetadataTagType.subcategory);
@@ -334,110 +338,112 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
           ),
         ],
         floatingActionButton: fab,
-        child: Column(
-          children: <Widget>[
-            const TravelModeControl(),
-            const SizedBox(height: 8),
-            Showcase(
-              key: _calendarKey,
-              title: strings['tutExpenseCalendarTitle'] ?? '캘린더',
-              description:
-                  strings['tutExpenseCalendarDesc'] ??
-                  '날짜별로 소비 내역을 확인할 수 있어요.\n날짜를 탭하면 해당 날짜의 지출만 필터링됩니다.',
-              tooltipPosition: TooltipPosition.bottom,
-              child: ExpenseCalendarSection(
-                focusedMonth: _focusedMonth,
-                selectedDay: _selectedDay,
-                entries: monthEntries,
-                currency: currency,
-                strings: strings,
-                totalSpentLabel: totalSpentLabel,
-                remainingBudgetLabel: remainingBudgetLabel,
-                monthlySpent: monthlySpent,
-                monthlyRemaining: monthlyRemaining,
-                onFocusedMonthChanged: (DateTime newMonth) => setState(() {
-                  _focusedMonth = newMonth;
-                  _selectedDay = DateTime(newMonth.year, newMonth.month, 1);
-                  _filterBySelectedDay = false;
-                }),
-                onSelectedDayChanged: (DateTime day) =>
-                    setState(() => _selectedDay = day),
-                onQueryByDate: () =>
-                    setState(() => _filterBySelectedDay = true),
-                onViewMonthly: () =>
-                    setState(() => _filterBySelectedDay = false),
+        child: CustomScrollView(
+          key: const PageStorageKey('expense-record-scroll'),
+          slivers: <Widget>[
+            SliverToBoxAdapter(
+              child: Column(
+                children: <Widget>[
+                  const TravelModeControl(),
+                  const SizedBox(height: 8),
+                  Showcase(
+                    key: _calendarKey,
+                    title: strings['tutExpenseCalendarTitle'] ?? '캘린더',
+                    description:
+                        strings['tutExpenseCalendarDesc'] ??
+                        '날짜별로 소비 내역을 확인할 수 있어요.\n날짜를 탭하면 해당 날짜의 지출만 필터링됩니다.',
+                    tooltipPosition: TooltipPosition.bottom,
+                    child: ExpenseCalendarSection(
+                      focusedMonth: _focusedMonth,
+                      selectedDay: _selectedDay,
+                      entries: monthEntries,
+                      currency: currency,
+                      strings: strings,
+                      totalSpentLabel: totalSpentLabel,
+                      remainingBudgetLabel: remainingBudgetLabel,
+                      monthlySpent: monthlySpent,
+                      monthlyRemaining: monthlyRemaining,
+                      onFocusedMonthChanged: (DateTime newMonth) =>
+                          setState(() {
+                            _focusedMonth = newMonth;
+                            _selectedDay = DateTime(
+                              newMonth.year,
+                              newMonth.month,
+                              1,
+                            );
+                            _filterBySelectedDay = false;
+                          }),
+                      onSelectedDayChanged: (DateTime day) =>
+                          setState(() => _selectedDay = day),
+                      onQueryByDate: () =>
+                          setState(() => _filterBySelectedDay = true),
+                      onViewMonthly: () =>
+                          setState(() => _filterBySelectedDay = false),
+                    ),
+                  ),
+
+                  const SizedBox(height: 4),
+                ],
               ),
             ),
-
-            const SizedBox(height: 4),
-
-            Expanded(
-              child: visibleEntries.isEmpty
-                  ? Center(child: Text(_text(strings, 'emptyData')))
-                  : ListView.builder(
-                      itemCount: groupedEntries.length,
-                      itemBuilder: (BuildContext context, int sectionIndex) {
-                        final section = groupedEntries[sectionIndex];
-                        final sectionDate = section.key;
-                        final sectionItems = section.value;
-                        final sectionLabel = _daySectionLabel(
-                          strings,
-                          sectionDate,
-                        );
-
-                        return Padding(
-                          padding: const EdgeInsets.only(bottom: 7),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: <Widget>[
-                              Padding(
-                                padding: const EdgeInsets.only(
-                                  left: 4,
-                                  bottom: 8,
-                                ),
-                                child: Text(
-                                  sectionLabel,
-                                  style: Theme.of(context).textTheme.titleSmall
-                                      ?.copyWith(
-                                        fontWeight: FontWeight.w800,
-                                        color: const Color(0xFF1F3A5F),
-                                      ),
-                                ),
-                              ),
-                              ...sectionItems.map((ExpenseEntry entry) {
-                                return Padding(
-                                  padding: const EdgeInsets.only(bottom: 5),
-                                  child: ExpenseEntryTile(
-                                    entry: entry,
-                                    categoryLabel: categoryTags.labelFor(
-                                      entry.categoryCode,
-                                    ),
-                                    categoryIcon: categoryTags.iconFor(
-                                      entry.categoryCode,
-                                    ),
-                                    currency: currency,
-                                    editTooltip: _text(strings, 'edit'),
-                                    deleteTooltip: _text(strings, 'delete'),
-                                    onTap: () => _showDetail(
-                                      entry,
-                                      categoryTags,
-                                      subcategoryTags,
-                                      diningOccasionTags,
-                                      paymentTags,
-                                      trips,
-                                      strings,
-                                    ),
-                                    onEdit: () => showExpenseEditorSheet(
-                                      context: context,
-                                      ref: ref,
-                                      entry: entry,
-                                      initialDate: _selectedDay,
-                                    ),
-                                    onDelete: () => _delete(entry),
+            SliverPadding(
+              // Leave the last record above the floating action and its margins.
+              padding: const EdgeInsets.only(bottom: 96),
+              sliver: visibleEntries.isEmpty
+                  ? SliverToBoxAdapter(
+                      child: Padding(
+                        padding: const EdgeInsets.all(24),
+                        child: Center(child: Text(_text(strings, 'emptyData'))),
+                      ),
+                    )
+                  : SliverList.builder(
+                      itemCount: rows.length,
+                      itemBuilder: (context, index) {
+                        final row = rows[index];
+                        if (row is DateTime) {
+                          return Padding(
+                            padding: const EdgeInsets.fromLTRB(4, 7, 0, 8),
+                            child: Text(
+                              _daySectionLabel(strings, row),
+                              style: Theme.of(context).textTheme.titleSmall
+                                  ?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    color: const Color(0xFF1F3A5F),
                                   ),
-                                );
-                              }),
-                            ],
+                            ),
+                          );
+                        }
+                        final entry = row as ExpenseEntry;
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 5),
+                          child: ExpenseEntryTile(
+                            key: ValueKey(entry.id),
+                            entry: entry,
+                            categoryLabel: categoryTags.labelFor(
+                              entry.categoryCode,
+                            ),
+                            categoryIcon: categoryTags.iconFor(
+                              entry.categoryCode,
+                            ),
+                            currency: currency,
+                            editTooltip: _text(strings, 'edit'),
+                            deleteTooltip: _text(strings, 'delete'),
+                            onTap: () => _showDetail(
+                              entry,
+                              categoryTags,
+                              subcategoryTags,
+                              diningOccasionTags,
+                              paymentTags,
+                              trips,
+                              strings,
+                            ),
+                            onEdit: () => showExpenseEditorSheet(
+                              context: context,
+                              ref: ref,
+                              entry: entry,
+                              initialDate: _selectedDay,
+                            ),
+                            onDelete: () => _delete(entry),
                           ),
                         );
                       },
