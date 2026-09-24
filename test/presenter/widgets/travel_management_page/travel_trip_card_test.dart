@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_dialog.dart';
 import 'package:household_ledger/model/trip.dart';
 import 'package:household_ledger/presenter/widgets/travel_management_page/travel_trip_card.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
@@ -105,7 +106,7 @@ void main() {
       await tester.ensureVisible(find.text(strings['travelDeleteTitle']!));
       await tester.tap(find.text(strings['travelDeleteTitle']!));
       await tester.pumpAndSettle();
-      expect(find.byType(AlertDialog), findsOneWidget);
+      expect(find.byType(BootstrapDialog), findsOneWidget);
       await tester.tap(find.text(strings['travelDeleteNo']!));
       await tester.pumpAndSettle();
       expect(opened, 1);

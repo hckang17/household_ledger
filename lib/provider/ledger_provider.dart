@@ -462,6 +462,28 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
     _logLedgerProvider('deleteExpense', '소비내역 기록 삭제 완료');
   }
 
+  /// 앱 재시작 뒤에도 남을 수 있는 튜토리얼 임시 지출을 영속 표식으로 정리한다.
+  Future<int> cleanupTutorialExpenses({
+    required String idPrefix,
+    required String legacyNoteMarker,
+  }) async {
+    final current = state.asData?.value;
+    if (current == null) return 0;
+
+    final deletedCount = await _expenseDatabaseService
+        .deleteTutorialMockExpenses(
+          idPrefix: idPrefix,
+          legacyNoteMarker: legacyNoteMarker,
+        );
+    final retained = current.expenses.where((ExpenseEntry entry) {
+      return !entry.id.startsWith(idPrefix) && entry.note != legacyNoteMarker;
+    }).toList();
+    if (retained.length != current.expenses.length) {
+      await _commit(current.copyWith(expenses: retained));
+    }
+    return deletedCount;
+  }
+
   Future<int> countLegacyDiningDescriptions() {
     return _expenseDatabaseService.countLegacyDiningDescriptions();
   }

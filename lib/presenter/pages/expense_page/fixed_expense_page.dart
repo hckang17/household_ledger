@@ -417,6 +417,9 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                     onPrevious: _prevMonth,
                     onNext: _nextMonth,
                     onTap: _pickMonth,
+                    previousLabel: _text(strings, 'previousMonth'),
+                    nextLabel: _text(strings, 'nextMonth'),
+                    selectLabel: _text(strings, 'selectMonth'),
                   ),
                   const SizedBox(height: 12),
                   fixedExpensesAsync.when(
@@ -528,8 +531,13 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                                 ),
                               ),
                               IconButton(
-                                visualDensity: VisualDensity.compact,
                                 icon: const Icon(Icons.edit_outlined, size: 18),
+                                constraints: const BoxConstraints.tightFor(
+                                  width: 48,
+                                  height: 48,
+                                ),
+                                tooltip:
+                                    '${item.description} ${_text(strings, 'edit')}',
                                 onPressed: () => showFixedExpenseEditorSheet(
                                   context: context,
                                   ref: ref,
@@ -538,7 +546,12 @@ class _FixedExpensePageState extends ConsumerState<FixedExpensePage> {
                                 ),
                               ),
                               IconButton(
-                                visualDensity: VisualDensity.compact,
+                                constraints: const BoxConstraints.tightFor(
+                                  width: 48,
+                                  height: 48,
+                                ),
+                                tooltip:
+                                    '${item.description} ${_text(strings, 'delete')}',
                                 icon: const Icon(
                                   Icons.delete_outline,
                                   size: 18,

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/model/data_search_filter.dart';
 import 'package:household_ledger/model/expense_entry.dart';
@@ -77,6 +79,40 @@ void main() {
     expect(database.entries.single.subcategoryCode, '_');
     expect(database.entries.single.tripId, isNull);
   });
+
+  test('늦게 끝난 이전 검색은 최신 검색 결과를 덮어쓰지 않는다', () async {
+    final database = _QueuedExpenseDatabaseService();
+    final container = ProviderContainer(
+      overrides: [expenseDatabaseServiceProvider.overrideWithValue(database)],
+    );
+    addTearDown(container.dispose);
+    final notifier = container.read(dataManageProvider.notifier);
+
+    notifier.setFilter(
+      const DataSearchFilter(
+        tableType: DataTableType.expense,
+        descriptionQuery: 'old',
+      ),
+    );
+    final oldSearch = notifier.search();
+    notifier.setFilter(
+      const DataSearchFilter(
+        tableType: DataTableType.expense,
+        descriptionQuery: 'new',
+      ),
+    );
+    final newSearch = notifier.search();
+
+    database.requests[1].complete(<ExpenseEntry>[expense(id: 'new')]);
+    await newSearch;
+    database.requests[0].complete(<ExpenseEntry>[expense(id: 'old')]);
+    await oldSearch;
+
+    expect(
+      container.read(dataManageProvider).expenses.map((entry) => entry.id),
+      <String>['new'],
+    );
+  });
 }
 
 class _FakeExpenseDatabaseService extends ExpenseDatabaseService {
@@ -94,5 +130,17 @@ class _FakeExpenseDatabaseService extends ExpenseDatabaseService {
   Future<void> upsertExpense(ExpenseEntry entry) async {
     entries.removeWhere((ExpenseEntry current) => current.id == entry.id);
     entries.add(entry);
+  }
+}
+
+class _QueuedExpenseDatabaseService extends ExpenseDatabaseService {
+  final List<Completer<List<ExpenseEntry>>> requests =
+      <Completer<List<ExpenseEntry>>>[];
+
+  @override
+  Future<List<ExpenseEntry>> loadAllExpenses() {
+    final request = Completer<List<ExpenseEntry>>();
+    requests.add(request);
+    return request.future;
   }
 }

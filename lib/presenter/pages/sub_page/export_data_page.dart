@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_dialog.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';
@@ -263,17 +264,10 @@ class _ExportDataPageState extends ConsumerState<ExportDataPage> {
     await showDialog<void>(
       context: context,
       builder: (BuildContext ctx) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(20),
-          ),
-          title: Row(
-            children: <Widget>[
-              const Icon(Icons.check_circle, color: Color(0xFF28A745)),
-              const SizedBox(width: 8),
-              Flexible(child: Text(_text(strings, 'exportSuccessMessage'))),
-            ],
-          ),
+        return BootstrapDialog(
+          icon: Icons.check_circle_rounded,
+          iconColor: const Color(0xFF198754),
+          title: _text(strings, 'exportSuccessMessage'),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,

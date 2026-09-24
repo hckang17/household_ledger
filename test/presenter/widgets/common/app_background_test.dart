@@ -17,6 +17,21 @@ import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/travel_provider.dart';
 
 void main() {
+  test('단색과 모든 그라데이션은 밝은 배경용 시스템바 아이콘을 사용한다', () {
+    for (final useGradient in <bool>[false, true]) {
+      for (final palette in TravelGradientPalette.values) {
+        final style = systemUiStyleForAppBackground(
+          useGradient: useGradient,
+          palette: palette,
+        );
+        expect(style.statusBarIconBrightness, Brightness.dark);
+        expect(style.systemNavigationBarIconBrightness, Brightness.dark);
+        expect(style.statusBarColor, isNot(Colors.transparent));
+        expect(style.systemNavigationBarColor, isNot(Colors.transparent));
+      }
+    }
+  });
+
   testWidgets('앱 내부 재시작 시 초기 스냅샷 대신 최신 저장 배경을 첫 프레임에 읽는다', (tester) async {
     SharedPreferences.setMockInitialValues({});
     final preferences = await SharedPreferences.getInstance();

@@ -13,6 +13,9 @@ class MonthNavigatorBar extends StatelessWidget {
     required this.onPrevious,
     required this.onNext,
     required this.onTap,
+    required this.previousLabel,
+    required this.nextLabel,
+    required this.selectLabel,
     super.key,
     this.textStyle,
   });
@@ -29,6 +32,10 @@ class MonthNavigatorBar extends StatelessWidget {
   /// 중앙 텍스트 탭 콜백 (달 선택 다이얼로그 등).
   final VoidCallback onTap;
 
+  final String previousLabel;
+  final String nextLabel;
+  final String selectLabel;
+
   /// 중앙 텍스트 스타일 (null이면 titleMedium bold).
   final TextStyle? textStyle;
 
@@ -40,25 +47,40 @@ class MonthNavigatorBar extends StatelessWidget {
         IconButton(
           onPressed: onPrevious,
           icon: const Icon(Icons.chevron_left),
+          tooltip: previousLabel,
+          constraints: const BoxConstraints.tightFor(width: 48, height: 48),
           splashRadius: 24,
         ),
-        GestureDetector(
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            child: Text(
-              displayText,
-              style:
-                  textStyle ??
-                  Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.w700,
+        Expanded(
+          child: Semantics(
+            button: true,
+            label: '$selectLabel: $displayText',
+            excludeSemantics: true,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(12),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48),
+                child: Center(
+                  child: Text(
+                    displayText,
+                    textAlign: TextAlign.center,
+                    style:
+                        textStyle ??
+                        Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.w700,
+                        ),
                   ),
+                ),
+              ),
             ),
           ),
         ),
         IconButton(
           onPressed: onNext,
           icon: const Icon(Icons.chevron_right),
+          tooltip: nextLabel,
+          constraints: const BoxConstraints.tightFor(width: 48, height: 48),
           splashRadius: 24,
         ),
       ],

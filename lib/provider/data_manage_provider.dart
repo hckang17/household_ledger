@@ -81,6 +81,8 @@ class DataManageState {
 }
 
 class DataManageNotifier extends Notifier<DataManageState> {
+  int _searchToken = 0;
+
   @override
   DataManageState build() => const DataManageState();
 
@@ -89,11 +91,13 @@ class DataManageNotifier extends Notifier<DataManageState> {
   }
 
   Future<void> search() async {
-    final DataTableType? tableType = state.filter.tableType;
+    final DataSearchFilter filter = state.filter;
+    final DataTableType? tableType = filter.tableType;
     if (tableType == null) {
       return;
     }
 
+    final int searchToken = ++_searchToken;
     state = state.copyWith(
       status: DataManageStatus.searching,
       selectedIds: const <String>{},
@@ -106,8 +110,9 @@ class DataManageNotifier extends Notifier<DataManageState> {
             .loadAllExpenses();
         final List<ExpenseEntry> filtered = DataSearchService.filterExpenses(
           all,
-          state.filter,
+          filter,
         );
+        if (searchToken != _searchToken) return;
         state = state.copyWith(
           expenses: filtered,
           searchedTableType: tableType,
@@ -118,7 +123,8 @@ class DataManageNotifier extends Notifier<DataManageState> {
             .read(fixedExpenseDatabaseServiceProvider)
             .loadAllFixedExpenses();
         final List<FixedExpense> filtered =
-            DataSearchService.filterFixedExpenses(all, state.filter);
+            DataSearchService.filterFixedExpenses(all, filter);
+        if (searchToken != _searchToken) return;
         state = state.copyWith(
           fixedExpenses: filtered,
           searchedTableType: tableType,
@@ -130,8 +136,9 @@ class DataManageNotifier extends Notifier<DataManageState> {
             .loadAllIncomes();
         final List<IncomeEntry> filtered = DataSearchService.filterIncomes(
           all,
-          state.filter,
+          filter,
         );
+        if (searchToken != _searchToken) return;
         state = state.copyWith(
           incomes: filtered,
           searchedTableType: tableType,

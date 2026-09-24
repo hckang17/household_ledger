@@ -21,9 +21,11 @@ Future<bool> showLedgerConfirmDialog({
   required String cancelLabel,
   bool isDestructive = true,
   IconData? icon,
+  bool barrierDismissible = true,
 }) async {
   final result = await showDialog<bool>(
     context: context,
+    barrierDismissible: barrierDismissible,
     builder: (BuildContext dialogContext) {
       return BootstrapDialog(
         title: title,
@@ -225,8 +227,9 @@ Future<String?> showReplacementTagDialog({
   final result = await showDialog<String>(
     context: context,
     builder: (BuildContext dialogContext) {
-      return AlertDialog(
-        title: Text(title),
+      return BootstrapDialog(
+        title: title,
+        icon: Icons.swap_horiz_rounded,
         content: StatefulBuilder(
           builder: (BuildContext context, StateSetter setState) {
             return DropdownButtonFormField<String>(

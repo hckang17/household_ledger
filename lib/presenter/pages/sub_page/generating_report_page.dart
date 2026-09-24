@@ -4,6 +4,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/services/imexporting_file/pdf_report_generation_service.dart';
 import 'package:household_ledger/services/imexporting_file/user_selected_file_service.dart';
@@ -358,13 +359,10 @@ class _GeneratingReportPageState extends ConsumerState<GeneratingReportPage> {
     final String fileName = path.split(Platform.pathSeparator).last;
     showDialog<void>(
       context: context,
-      builder: (BuildContext ctx) => AlertDialog(
-        icon: const Icon(
-          Icons.check_circle_rounded,
-          color: Color(0xFF198754),
-          size: 40,
-        ),
-        title: Text(_t(strings, 'reportSuccessTitle', 'PDF 생성 완료!')),
+      builder: (BuildContext ctx) => BootstrapDialog(
+        icon: Icons.check_circle_rounded,
+        iconColor: const Color(0xFF198754),
+        title: _t(strings, 'reportSuccessTitle', 'PDF 생성 완료!'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.center,

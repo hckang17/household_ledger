@@ -629,5 +629,9 @@
   "reportWorkingFilePath": "앱 리포트 작업 파일 경로",
   "appExitTitle": "앱 종료",
   "appExitMessage": "가계부 앱을 종료하시겠습니까?",
-  "appExitConfirm": "종료"
+  "appExitConfirm": "종료",
+  "previousMonth": "이전 달",
+  "nextMonth": "다음 달",
+  "expandSection": "펼치기",
+  "collapseSection": "접기"
 }

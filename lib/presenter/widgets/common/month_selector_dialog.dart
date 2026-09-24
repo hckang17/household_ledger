@@ -3,6 +3,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_dialog.dart';
 
 /// 월 선택 다이얼로그를 표시하고 선택 결과를 반환한다.
 ///
@@ -38,11 +39,9 @@ Future<DateTime?> showMonthSelectorDialog({
             (picked.year > now.year ||
                 (picked.year == now.year && picked.month >= now.month));
 
-        return AlertDialog(
-          title: Text(
-            strings['selectMonth'] ?? '달 선택',
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
+        return BootstrapDialog(
+          title: strings['selectMonth'] ?? '달 선택',
+          icon: Icons.calendar_month_rounded,
           content: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: <Widget>[

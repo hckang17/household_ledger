@@ -120,6 +120,11 @@ void main() {
       final file = File(path);
       expect(await file.exists(), isTrue);
       expect(await file.length(), greaterThan(10000));
+      expect(
+        _pdfPageCount(await file.readAsBytes()),
+        2,
+        reason: '소량 데이터의 개요는 빈 후속 페이지 없이 한 장에 표시해야 한다.',
+      );
       final secondPath = await service.generateReport(
         expenses: expenses,
         fixedExpenses: fixedExpenses,
@@ -222,3 +227,7 @@ void main() {
     },
   );
 }
+
+int _pdfPageCount(List<int> bytes) => RegExp(
+  r'/Type\s*/Page\b',
+).allMatches(latin1.decode(bytes, allowInvalid: true)).length;

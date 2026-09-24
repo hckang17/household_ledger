@@ -13,6 +13,7 @@ import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/presenter/widgets/common/metadata_tag_icon_label.dart';
 import 'package:household_ledger/model/trip.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
+import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_dialog.dart';
 import 'package:household_ledger/presenter/extensions/currency_extension.dart';
 import 'package:household_ledger/presenter/widgets/data_managing_page/bulk_tag_change_sheet.dart';
 import 'package:household_ledger/presenter/widgets/common/expense_editor_sheet.dart';
@@ -45,21 +46,15 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
   // ── 검색 로딩 인디케이터용 상태 ──────────────────────────────────────────────
   double _searchProgress = 0.0;
   int _searchMsgIndex = 0;
-  bool _isPostSearchRendering = false;
-  int _postSearchToken = 0; // 완료 대기 콜백이 중복 실행되는 것을 방지한다.
-  int _renderTotal = 0; // 검색 완료 후 처리중 N/N에 사용
-  int _renderCompleted = 0;
   Timer? _searchRotateTimer;
   Timer? _searchProgressTimer;
 
   void _startSearchLoading() {
-    _postSearchToken++; // 진행 중인 완료 대기를 무효화한다.
     _searchProgressTimer?.cancel();
     _searchRotateTimer?.cancel();
     setState(() {
       _searchProgress = 0.0;
       _searchMsgIndex = Random().nextInt(3);
-      _isPostSearchRendering = false;
     });
     _searchProgressTimer = Timer.periodic(const Duration(milliseconds: 80), (
       _,
@@ -83,46 +78,13 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
     });
   }
 
-  // 검색 완료: 처리중 N/N 카운트 애니메이션 후 1.5초 뒤 결과 표시
-  void _completeSearchLoading(int resultCount) {
+  // 실제 검색 완료 즉시 타이머를 끝내고 결과를 표시한다.
+  void _completeSearchLoading() {
     _searchProgressTimer?.cancel();
     _searchProgressTimer = null;
-    if (!mounted) return;
-    final int myToken = ++_postSearchToken;
-    setState(() {
-      _searchProgress = 1.0;
-      _isPostSearchRendering = true;
-      _renderTotal = resultCount;
-      _renderCompleted = 0;
-    });
-    // 처리중 카운트를 0 → resultCount 로 20단계에 걸쳐 약 1.1초 동안 애니메이션
-    if (resultCount > 0) {
-      final int stepSize = (resultCount / 20).ceil().clamp(1, resultCount);
-      const stepDuration = Duration(milliseconds: 55);
-      void tick(int step) {
-        if (!mounted || _postSearchToken != myToken) return;
-        final int next = (step * stepSize).clamp(0, resultCount);
-        setState(() => _renderCompleted = next);
-        if (next < resultCount) {
-          Future.delayed(stepDuration, () => tick(step + 1));
-        } else {
-          setState(() => _renderCompleted = resultCount);
-        }
-      }
-
-      Future.delayed(stepDuration, () => tick(1));
-    }
-    // 1500ms 후 로딩 카드 숨김 → 결과 표시
-    Future.delayed(const Duration(milliseconds: 1500), () {
-      if (!mounted || _postSearchToken != myToken) return;
-      setState(() {
-        _isPostSearchRendering = false;
-        _renderTotal = 0;
-        _renderCompleted = 0;
-      });
-      _searchRotateTimer?.cancel();
-      _searchRotateTimer = null;
-    });
+    _searchRotateTimer?.cancel();
+    _searchRotateTimer = null;
+    if (mounted) setState(() => _searchProgress = 1.0);
   }
 
   @override
@@ -243,13 +205,10 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
   Future<void> _confirmDelete(Map<String, String> strings, int count) async {
     final bool? confirmed = await showDialog<bool>(
       context: context,
-      builder: (BuildContext ctx) => AlertDialog(
-        icon: const Icon(
-          Icons.warning_amber_rounded,
-          color: Color(0xFFDC3545),
-          size: 36,
-        ),
-        title: Text(_s(strings, 'dataManageDeleteConfirmTitle', '선택 항목 삭제')),
+      builder: (BuildContext ctx) => BootstrapDialog(
+        icon: Icons.warning_amber_rounded,
+        iconColor: const Color(0xFFDC3545),
+        title: _s(strings, 'dataManageDeleteConfirmTitle', '선택 항목 삭제'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -334,8 +293,9 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
 
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (BuildContext dialogContext) => AlertDialog(
-        title: Text(_s(strings, 'dataManageChangeConfirmTitle', '태그 변경 확인')),
+      builder: (BuildContext dialogContext) => BootstrapDialog(
+        icon: Icons.swap_horiz_rounded,
+        title: _s(strings, 'dataManageChangeConfirmTitle', '태그 변경 확인'),
         content: Text(
           _s(
             strings,
@@ -732,47 +692,6 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
     Map<String, String> strings,
     List<String> searchMessages,
   ) {
-    if (_isPostSearchRendering) {
-      // 검색 완료 후: 처리중 N/N건 (operation progress 스타일)
-      final double progress = _renderTotal == 0
-          ? 1.0
-          : _renderCompleted / _renderTotal;
-      return BootstrapSectionCard(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Text(
-              '${_s(strings, 'dataManageOperating', '처리중')} '
-              '$_renderCompleted / $_renderTotal${_s(strings, 'dataManageResultCount', '건')}',
-              style: const TextStyle(fontWeight: FontWeight.w600),
-            ),
-            const SizedBox(height: 8),
-            ClipRRect(
-              borderRadius: BorderRadius.circular(4),
-              child: LinearProgressIndicator(
-                value: progress,
-                minHeight: 6,
-                backgroundColor: const Color(0xFFDDE5ED),
-                color: const Color(0xFF2563EB),
-              ),
-            ),
-            const SizedBox(height: 6),
-            Align(
-              alignment: Alignment.centerRight,
-              child: Text(
-                '${(progress * 100).round()}%',
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF829AB1),
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-            ),
-          ],
-        ),
-      );
-    }
-
     // 검색 중: 회전 메시지 + 시뮬레이션 진행바
     return BootstrapSectionCard(
       child: Column(
@@ -1184,7 +1103,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
       if (!wasSearching && next.isSearching) {
         _startSearchLoading();
       } else if (wasSearching && !next.isSearching) {
-        _completeSearchLoading(next.resultCount);
+        _completeSearchLoading();
       }
     });
 
@@ -1250,7 +1169,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 ),
               ),
               const SliverToBoxAdapter(child: SizedBox(height: 12)),
-              if (manageState.isSearching || _isPostSearchRendering)
+              if (manageState.isSearching)
                 SliverToBoxAdapter(
                   child: _buildSearchLoadingCard(strings, <String>[
                     strings['dataManageSearching1'] ?? 'DB에서 검색중입니다...',
@@ -1264,8 +1183,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
                 ),
               if (manageState.hasResults &&
                   !manageState.isOperating &&
-                  !manageState.isSearching &&
-                  !_isPostSearchRendering) ...<Widget>[
+                  !manageState.isSearching) ...<Widget>[
                 SliverToBoxAdapter(
                   child: _buildActionBar(
                     strings,

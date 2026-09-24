@@ -34,6 +34,10 @@ class TagManagementSection extends StatefulWidget {
 class _TagManagementSectionState extends State<TagManagementSection> {
   bool _expanded = false;
 
+  String _label(String key, String fallback) => widget.strings[key] ?? fallback;
+
+  void _toggleExpanded() => setState(() => _expanded = !_expanded);
+
   @override
   Widget build(BuildContext context) {
     return BootstrapSectionCard(
@@ -43,12 +47,24 @@ class _TagManagementSectionState extends State<TagManagementSection> {
           Row(
             children: <Widget>[
               Expanded(
-                child: GestureDetector(
-                  onTap: () => setState(() => _expanded = !_expanded),
-                  child: Text(
-                    widget.title,
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                      fontWeight: FontWeight.w700,
+                child: Semantics(
+                  button: true,
+                  label:
+                      '${widget.title} ${_label(_expanded ? 'collapseSection' : 'expandSection', _expanded ? '접기' : '펼치기')}',
+                  excludeSemantics: true,
+                  child: InkWell(
+                    onTap: _toggleExpanded,
+                    borderRadius: BorderRadius.circular(12),
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 48),
+                      child: Align(
+                        alignment: Alignment.centerLeft,
+                        child: Text(
+                          widget.title,
+                          style: Theme.of(context).textTheme.titleLarge
+                              ?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -56,10 +72,23 @@ class _TagManagementSectionState extends State<TagManagementSection> {
               IconButton(
                 onPressed: widget.onAdd,
                 icon: const Icon(Icons.add_circle_outline),
+                constraints: const BoxConstraints.tightFor(
+                  width: 48,
+                  height: 48,
+                ),
+                tooltip: '${widget.title} ${_label('addTag', '태그 추가')}',
               ),
               IconButton(
-                onPressed: () => setState(() => _expanded = !_expanded),
+                onPressed: _toggleExpanded,
                 icon: Icon(_expanded ? Icons.expand_less : Icons.expand_more),
+                constraints: const BoxConstraints.tightFor(
+                  width: 48,
+                  height: 48,
+                ),
+                tooltip: _label(
+                  _expanded ? 'collapseSection' : 'expandSection',
+                  _expanded ? '접기' : '펼치기',
+                ),
               ),
             ],
           ),
@@ -98,16 +127,22 @@ class _TagManagementSectionState extends State<TagManagementSection> {
                                     ),
                             ),
                             IconButton(
-                              visualDensity: VisualDensity.compact,
-                              tooltip: widget.strings['edit'],
+                              constraints: const BoxConstraints.tightFor(
+                                width: 48,
+                                height: 48,
+                              ),
+                              tooltip: '${tag.label} ${_label('edit', '수정')}',
                               onPressed: isSystemDefault
                                   ? null
                                   : () => widget.onEdit(tag),
                               icon: const Icon(Icons.edit_outlined),
                             ),
                             IconButton(
-                              visualDensity: VisualDensity.compact,
-                              tooltip: widget.strings['delete'],
+                              constraints: const BoxConstraints.tightFor(
+                                width: 48,
+                                height: 48,
+                              ),
+                              tooltip: '${tag.label} ${_label('delete', '삭제')}',
                               onPressed:
                                   !isSystemDefault && widget.tags.length > 1
                                   ? () => widget.onDelete(tag)

@@ -16,6 +16,13 @@ class FixedExpenseDatabaseService {
 
   Database? _database;
 
+  /// 테스트가 사용한 SQLite 연결을 명시적으로 닫는다.
+  @visibleForTesting
+  Future<void> closeForTesting() async {
+    await _database?.close();
+    _database = null;
+  }
+
   void _log(String methodName, String action) {
     logger.d('[fixed_expense_database_service.dart] $methodName ( $action )');
   }

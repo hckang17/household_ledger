@@ -620,5 +620,9 @@
   "reportWorkingFilePath": "アプリ内のレポート作業ファイル",
   "appExitTitle": "アプリを終了",
   "appExitMessage": "家計簿アプリを終了しますか？",
-  "appExitConfirm": "終了"
+  "appExitConfirm": "終了",
+  "previousMonth": "前の月",
+  "nextMonth": "次の月",
+  "expandSection": "展開",
+  "collapseSection": "折りたたむ"
 }

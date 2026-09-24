@@ -252,7 +252,9 @@ class ExportPdfReportService {
     pdf.addPage(
       pw.MultiPage(
         pageFormat: PdfPageFormat.a4,
-        margin: const pw.EdgeInsets.all(36),
+        // 개요는 차트가 포함되어도 소량 데이터가 한 장에 들어오도록
+        // 세로 여백만 조금 줄인다. 가로 여백은 표의 가독성을 유지한다.
+        margin: const pw.EdgeInsets.symmetric(horizontal: 36, vertical: 28),
         header: (pw.Context ctx) => _pageHeader(name, periodLabel, ts, tsD),
         footer: (pw.Context ctx) => _pageFooter(ctx, ts),
         build: (pw.Context ctx) => _buildOverviewWidgets(
@@ -650,23 +652,30 @@ class ExportPdfReportService {
       out
         ..add(pw.SizedBox(height: 12))
         ..add(
-          _sectionHeader(
-            strings['pdfSectionCategoryChart'] ?? '소비구분 분석 차트',
-            ts,
+          pw.Stack(
+            children: <pw.Widget>[
+              pw.Column(
+                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                children: <pw.Widget>[
+                  _sectionHeader(
+                    strings['pdfSectionCategoryChart'] ?? '소비구분 분석 차트',
+                    ts,
+                  ),
+                  pw.SizedBox(height: 8),
+                  _buildPieChartWidget(
+                    pieSlices,
+                    expenseTotal,
+                    currency,
+                    strings,
+                    ts,
+                    tsD,
+                  ),
+                ],
+              ),
+            ],
           ),
         )
-        ..add(pw.SizedBox(height: 8))
-        ..add(
-          _buildPieChartWidget(
-            pieSlices,
-            expenseTotal,
-            currency,
-            strings,
-            ts,
-            tsD,
-          ),
-        )
-        ..add(pw.SizedBox(height: 16));
+        ..add(pw.SizedBox(height: 12));
     }
 
     // ── 고정지출 ──
@@ -731,7 +740,10 @@ class ExportPdfReportService {
     }
 
     // ── 일별 지출 추이 (Top 5) ──
-    if (expenses.isNotEmpty) {
+    // 기간 시작일이 없어 선형 차트를 만들 수 없을 때만 간단한 Top 5를
+    // 대체 표시한다. 두 시각화를 함께 넣으면 소량 데이터에서도 개요가
+    // 불필요하게 다음 페이지로 넘어간다.
+    if (expenses.isNotEmpty && currDailyData.isEmpty) {
       final Map<String, int> daily = <String, int>{};
       for (final ExpenseEntry e in expenses) {
         final String key = DateFormat('MM/dd').format(e.spentAt);
@@ -804,21 +816,29 @@ class ExportPdfReportService {
 
     // ── 일별 지출 추이 차트 ──
     if (currDailyData.isNotEmpty) {
-      out
-        ..add(
-          _sectionHeader(strings['pdfSectionDailyChart'] ?? '일별 지출 추이 차트', ts),
-        )
-        ..add(pw.SizedBox(height: 8))
-        ..add(
-          _buildLineChartWidget(
-            currDailyData,
-            prevDailyData,
-            currency,
-            strings,
-            ts,
-          ),
-        )
-        ..add(pw.SizedBox(height: 16));
+      out.add(
+        pw.Stack(
+          children: <pw.Widget>[
+            pw.Column(
+              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              children: <pw.Widget>[
+                _sectionHeader(
+                  strings['pdfSectionDailyChart'] ?? '일별 지출 추이 차트',
+                  ts,
+                ),
+                pw.SizedBox(height: 8),
+                _buildLineChartWidget(
+                  currDailyData,
+                  prevDailyData,
+                  currency,
+                  strings,
+                  ts,
+                ),
+              ],
+            ),
+          ],
+        ),
+      );
     }
 
     return out;
@@ -962,7 +982,7 @@ class ExportPdfReportService {
   ) {
     const PdfColor prevColor = PdfColor.fromInt(0xFFFF8C42);
     const double canvasW = 446;
-    const double canvasH = 100;
+    const double canvasH = 92;
     const double yLabelW = 48;
     const double pT = 6.0;
     const double pB = 6.0;
