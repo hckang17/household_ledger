@@ -633,5 +633,7 @@
   "previousMonth": "이전 달",
   "nextMonth": "다음 달",
   "expandSection": "펼치기",
-  "collapseSection": "접기"
+  "collapseSection": "접기",
+  "expenseRequiredFieldsHint": "* 필수 항목 · 날짜와 소비 분류는 기본값이 선택되어 있습니다.",
+  "expenseDescriptionSuggestions": "이번 달 자주 입력한 내용"
 }

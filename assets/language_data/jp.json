@@ -624,5 +624,7 @@
   "previousMonth": "前の月",
   "nextMonth": "次の月",
   "expandSection": "展開",
-  "collapseSection": "折りたたむ"
+  "collapseSection": "折りたたむ",
+  "expenseRequiredFieldsHint": "* 必須項目 · 日付と支出の分類には初期値が選択されています。",
+  "expenseDescriptionSuggestions": "今月よく入力した内容"
 }
