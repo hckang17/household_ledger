@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/model/travel_gradient_palette.dart';
 import 'package:household_ledger/presenter/extensions/travel_gradient_palette_extension.dart';
@@ -95,52 +96,83 @@ class _AnimatedAppBackgroundState extends State<_AnimatedAppBackground>
 
   @override
   Widget build(BuildContext context) {
-    return ColoredBox(
-      color: const Color(0xFFF4F7FB),
-      child: Stack(
-        fit: StackFit.expand,
-        children: <Widget>[
-          const ColoredBox(
-            key: ValueKey<String>('default-app-background'),
-            color: Color(0xFFF4F7FB),
-          ),
-          if (widget.useGradient)
-            IgnorePointer(
-              child: RepaintBoundary(
-                child: Opacity(
-                  key: const ValueKey<String>('app-gradient'),
-                  opacity: 1,
-                  child: AnimatedBuilder(
-                    animation: _controller,
-                    builder: (BuildContext context, Widget? child) {
-                      final phase = Curves.easeInOut.transform(
-                        _controller.value,
-                      );
-                      final wave = math.sin(phase * math.pi);
-                      return DecoratedBox(
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: widget.palette.colors,
-                            stops: <double>[
-                              0,
-                              0.28 + (wave * 0.08),
-                              0.68 + (phase * 0.06),
-                              1,
-                            ],
-                            begin: Alignment.topCenter,
-                            end: Alignment.bottomCenter,
-                            transform: GradientRotation(math.pi * phase),
+    final systemStyle = systemUiStyleForAppBackground(
+      useGradient: widget.useGradient,
+      palette: widget.palette,
+    );
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: systemStyle,
+      child: ColoredBox(
+        color: const Color(0xFFF4F7FB),
+        child: Stack(
+          fit: StackFit.expand,
+          children: <Widget>[
+            const ColoredBox(
+              key: ValueKey<String>('default-app-background'),
+              color: Color(0xFFF4F7FB),
+            ),
+            if (widget.useGradient)
+              IgnorePointer(
+                child: RepaintBoundary(
+                  child: Opacity(
+                    key: const ValueKey<String>('app-gradient'),
+                    opacity: 1,
+                    child: AnimatedBuilder(
+                      animation: _controller,
+                      builder: (BuildContext context, Widget? child) {
+                        final phase = Curves.easeInOut.transform(
+                          _controller.value,
+                        );
+                        final wave = math.sin(phase * math.pi);
+                        return DecoratedBox(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: widget.palette.colors,
+                              stops: <double>[
+                                0,
+                                0.28 + (wave * 0.08),
+                                0.68 + (phase * 0.06),
+                                1,
+                              ],
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              transform: GradientRotation(math.pi * phase),
+                            ),
                           ),
-                        ),
-                      );
-                    },
+                        );
+                      },
+                    ),
                   ),
                 ),
               ),
-            ),
-          widget.child,
-        ],
+            widget.child,
+          ],
+        ),
       ),
     );
   }
+}
+
+/// 선택한 배경의 상·하단 명도에 맞는 Android 시스템바 스타일을 만든다.
+@visibleForTesting
+SystemUiOverlayStyle systemUiStyleForAppBackground({
+  required bool useGradient,
+  required TravelGradientPalette palette,
+}) {
+  const solid = Color(0xFFF4F7FB);
+  final top = useGradient ? palette.colors.first : solid;
+  final bottom = useGradient ? palette.colors.last : solid;
+  Brightness iconsFor(Color color) =>
+      color.computeLuminance() > 0.5 ? Brightness.dark : Brightness.light;
+
+  return SystemUiOverlayStyle(
+    statusBarColor: top,
+    statusBarIconBrightness: iconsFor(top),
+    statusBarBrightness: iconsFor(top) == Brightness.dark
+        ? Brightness.light
+        : Brightness.dark,
+    systemNavigationBarColor: bottom,
+    systemNavigationBarIconBrightness: iconsFor(bottom),
+    systemNavigationBarDividerColor: Colors.transparent,
+  );
 }

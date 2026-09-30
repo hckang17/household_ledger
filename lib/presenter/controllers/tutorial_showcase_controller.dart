@@ -3,6 +3,7 @@
 // """ MVVM 메모: BuildContext에 의존하므로 ViewModel이 아니라 View 전용 Controller """
 
 import 'package:flutter/material.dart';
+import 'package:household_ledger/presenter/widgets/common/ledger_dialogs.dart';
 import 'package:showcaseview/showcaseview.dart';
 
 /// 페이지마다 반복되던 Showcase 시작·재시작·해제 흐름을 관리한다.
@@ -53,25 +54,14 @@ Future<bool> showTutorialExitConfirmation({
   required BuildContext context,
   required Map<String, String> strings,
 }) async {
-  return await showDialog<bool>(
-        context: context,
-        barrierDismissible: false,
-        builder: (BuildContext dialogContext) => AlertDialog(
-          title: Text(strings['tutorialExitTitle'] ?? '튜토리얼 종료'),
-          content: Text(
-            strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.',
-          ),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(dialogContext).pop(false),
-              child: Text(strings['tutorialContinue'] ?? '계속하기'),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.of(dialogContext).pop(true),
-              child: Text(strings['tutorialExitConfirm'] ?? '종료'),
-            ),
-          ],
-        ),
-      ) ??
-      false;
+  return showLedgerConfirmDialog(
+    context: context,
+    title: strings['tutorialExitTitle'] ?? '튜토리얼 종료',
+    message: strings['tutorialExitMessage'] ?? '튜토리얼을 종료하시겠습니까?\n완료로 처리됩니다.',
+    cancelLabel: strings['tutorialContinue'] ?? '계속하기',
+    confirmLabel: strings['tutorialExitConfirm'] ?? '종료',
+    isDestructive: false,
+    icon: Icons.exit_to_app_rounded,
+    barrierDismissible: false,
+  );
 }

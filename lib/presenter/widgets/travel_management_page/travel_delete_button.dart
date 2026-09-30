@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/model/trip.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/provider/travel_provider.dart';
+import 'package:household_ledger/presenter/widgets/common/ledger_dialogs.dart';
 
 /// 삭제 확인과 중복 제출 방지를 담당하는 여행 관리 전용 버튼.
 class TravelDeleteButton extends ConsumerStatefulWidget {
@@ -21,29 +22,16 @@ class _TravelDeleteButtonState extends ConsumerState<TravelDeleteButton> {
     setState(() => _busy = true);
     final strings = ref.read(localizedStringsProvider);
     try {
-      final confirmed = await showDialog<bool>(
+      final confirmed = await showLedgerConfirmDialog(
         context: context,
-        builder: (context) => AlertDialog(
-          title: Text(strings['travelDeleteTitle']!),
-          content: SingleChildScrollView(
-            child: Text(
-              strings['travelDeleteWarning']!.replaceAll(
-                '{name}',
-                widget.trip.name,
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(strings['travelDeleteNo']!),
-            ),
-            FilledButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: Text(strings['travelDeleteYes']!),
-            ),
-          ],
+        title: strings['travelDeleteTitle']!,
+        message: strings['travelDeleteWarning']!.replaceAll(
+          '{name}',
+          widget.trip.name,
         ),
+        cancelLabel: strings['travelDeleteNo']!,
+        confirmLabel: strings['travelDeleteYes']!,
+        isDestructive: true,
       );
       if (confirmed != true || !mounted) return;
       await ref.read(travelProvider.notifier).deleteTrip(widget.trip.id);

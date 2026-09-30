@@ -3,11 +3,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:household_ledger/features/expense/calculators/expense_description_suggestions.dart';
+import 'package:household_ledger/presenter/widgets/common/expense_editor/expense_description_field.dart';
 import 'package:household_ledger/features/expense/calculators/expense_editor_dining_policy.dart';
 import 'package:household_ledger/features/expense/calculators/expense_editor_travel_policy.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
-import 'package:household_ledger/presenter/widgets/common/metadata_tag_icon_label.dart';
+import 'package:household_ledger/features/expense/calculators/expense_tag_order.dart';
+import 'package:household_ledger/presenter/widgets/common/expense_editor/expense_tag_selector.dart';
 import 'package:household_ledger/model/trip.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
@@ -64,7 +67,22 @@ Future<void> showExpenseEditorSheet({
     return;
   }
 
+  // Capture the current month's usage once so choices do not move while typing.
+  List<MetadataTag> orderedTags(
+    List<MetadataTag> tags,
+    String Function(ExpenseEntry) codeOf,
+    String? selectedCode,
+  ) {
+    final byCode = {for (final tag in tags) tag.code: tag};
+    return orderExpenseTagCodes(
+      availableCodes: byCode.keys,
+      usedCodes: ledger.expenses.map(codeOf),
+      selectedCode: selectedCode,
+    ).map((code) => byCode[code]!).toList(growable: false);
+  }
+
   final now = DateTime.now();
+  final descriptionSuggestions = rankExpenseDescriptions(ledger.expenses);
   final selectedInitialDate =
       entry?.spentAt ??
       (initialDate == null
@@ -84,11 +102,28 @@ Future<void> showExpenseEditorSheet({
       return _ExpenseEditorSheetBody(
         entry: entry,
         selectedInitialDate: selectedInitialDate,
-        categoryTags: categoryTags,
-        subcategoryTags: subcategoryTags,
+        categoryTags: orderedTags(
+          categoryTags,
+          (e) => e.categoryCode,
+          tutorialPreset?.categoryCode ?? entry?.categoryCode,
+        ),
+        subcategoryTags: orderedTags(
+          subcategoryTags,
+          (e) => e.subcategoryCode,
+          tutorialPreset?.subcategoryCode ??
+              entry?.subcategoryCode ??
+              ((initialTripId ?? travelState?.activeTripId) != null
+                  ? 't'
+                  : null),
+        ),
         diningOccasionTags: diningOccasionTags,
-        paymentTags: paymentTags,
+        paymentTags: orderedTags(
+          paymentTags,
+          (e) => e.paymentMethodCode,
+          tutorialPreset?.paymentMethodCode ?? entry?.paymentMethodCode,
+        ),
         strings: strings,
+        descriptionSuggestions: descriptionSuggestions,
         tutorialPreset: tutorialPreset,
         trips: travelState?.trips ?? const <Trip>[],
         initialActiveTripId: entry == null && tutorialPreset == null
@@ -120,6 +155,7 @@ class _ExpenseEditorSheetBody extends StatefulWidget {
     required this.diningOccasionTags,
     required this.paymentTags,
     required this.strings,
+    required this.descriptionSuggestions,
     required this.trips,
     this.tutorialPreset,
     this.initialActiveTripId,
@@ -132,6 +168,7 @@ class _ExpenseEditorSheetBody extends StatefulWidget {
   final List<MetadataTag> diningOccasionTags;
   final List<MetadataTag> paymentTags;
   final Map<String, String> strings;
+  final List<String> descriptionSuggestions;
   final List<Trip> trips;
   final TutorialExpensePreset? tutorialPreset;
   final String? initialActiveTripId;
@@ -282,11 +319,19 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: <Widget>[
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Text(
+                  widget.strings['expenseRequiredFieldsHint'] ?? '',
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ),
+              const SizedBox(height: 8),
               TextField(
                 controller: dateController,
                 readOnly: true,
                 decoration: InputDecoration(
-                  labelText: widget.strings['datetime'],
+                  labelText: '${widget.strings['datetime'] ?? ''} *',
                 ),
                 onTap: () async {
                   FocusScope.of(context).unfocus();
@@ -315,22 +360,11 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
                 },
               ),
               const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: categoryCode,
-                decoration: InputDecoration(
-                  labelText: widget.strings['categoryLabel'],
-                ),
-                items: widget.categoryTags.map((MetadataTag tag) {
-                  return DropdownMenuItem<String>(
-                    value: tag.code,
-                    child: MetadataTagIconLabel(tag: tag),
-                  );
-                }).toList(),
-                onChanged: (String? value) {
-                  if (value == null) {
-                    return;
-                  }
-
+              ExpenseTagSelector(
+                label: '${widget.strings['categoryLabel'] ?? ''} *',
+                tags: widget.categoryTags,
+                selectedCode: categoryCode,
+                onSelected: (String value) {
                   setState(() {
                     categoryCode = value;
                     if (categoryCode != 'F') {
@@ -345,22 +379,11 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
                 },
               ),
               const SizedBox(height: 12),
-              DropdownButtonFormField<String>(
-                initialValue: subcategoryCode,
-                decoration: InputDecoration(
-                  labelText: widget.strings['subcategoryLabel'],
-                ),
-                items: widget.subcategoryTags.map((MetadataTag tag) {
-                  return DropdownMenuItem<String>(
-                    value: tag.code,
-                    child: Text(tag.label),
-                  );
-                }).toList(),
-                onChanged: (String? value) {
-                  if (value == null) {
-                    return;
-                  }
-
+              ExpenseTagSelector(
+                label: '${widget.strings['subcategoryLabel'] ?? ''} *',
+                tags: widget.subcategoryTags,
+                selectedCode: subcategoryCode,
+                onSelected: (String value) {
                   setState(() {
                     subcategoryCode = value;
                     tripId = _travelPolicy.tripAfterSubcategoryChanged(
@@ -453,22 +476,11 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
                 ],
                 const SizedBox(height: 12),
               ],
-              DropdownButtonFormField<String>(
-                initialValue: paymentCode,
-                decoration: InputDecoration(
-                  labelText: widget.strings['paymentMethodLabel'],
-                ),
-                items: widget.paymentTags.map((MetadataTag tag) {
-                  return DropdownMenuItem<String>(
-                    value: tag.code,
-                    child: Text(tag.label),
-                  );
-                }).toList(),
-                onChanged: (String? value) {
-                  if (value == null) {
-                    return;
-                  }
-
+              ExpenseTagSelector(
+                label: '${widget.strings['paymentMethodLabel'] ?? ''} *',
+                tags: widget.paymentTags,
+                selectedCode: paymentCode,
+                onSelected: (String value) {
                   setState(() {
                     paymentCode = value;
                   });
@@ -508,10 +520,13 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
                 ),
                 const SizedBox(height: 12),
               ],
-              TextField(
+              ExpenseDescriptionField(
                 controller: descriptionController,
+                suggestions: widget.descriptionSuggestions,
+                suggestionsLabel:
+                    widget.strings['expenseDescriptionSuggestions'] ?? '',
                 decoration: InputDecoration(
-                  labelText: widget.strings['descriptionLabel'],
+                  labelText: '${widget.strings['descriptionLabel'] ?? ''} *',
                   hintText: widget.strings['descriptionHint'],
                   errorText: descriptionError,
                 ),
@@ -526,7 +541,7 @@ class _ExpenseEditorSheetBodyState extends State<_ExpenseEditorSheetBody> {
                 controller: amountController,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: widget.strings['amountLabel'],
+                  labelText: '${widget.strings['amountLabel'] ?? ''} *',
                   hintText: widget.strings['amountHint'],
                   errorText: amountError,
                 ),

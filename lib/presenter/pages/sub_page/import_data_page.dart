@@ -5,6 +5,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_dialog.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/presenter/widgets/import_data_page/import_preview_dialog.dart';
@@ -133,13 +134,10 @@ class _ImportDataPageState extends ConsumerState<ImportDataPage> {
         context: context,
         barrierDismissible: true,
         builder: (BuildContext dialogContext) {
-          return AlertDialog(
-            icon: const Icon(
-              Icons.check_circle_outline_rounded,
-              color: Color(0xFF198754),
-              size: 40,
-            ),
-            title: Text(_text(strings, 'importSuccessMessage')),
+          return BootstrapDialog(
+            icon: Icons.check_circle_outline_rounded,
+            iconColor: const Color(0xFF198754),
+            title: _text(strings, 'importSuccessMessage'),
             content: Text(_text(strings, 'importRestartMessage')),
             actions: <Widget>[
               FilledButton(

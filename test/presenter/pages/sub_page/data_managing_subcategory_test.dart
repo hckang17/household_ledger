@@ -12,6 +12,69 @@ import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/provider/travel_provider.dart';
 
 void main() {
+  testWidgets('검색 완료 결과를 인위적인 1.5초 대기 없이 표시한다', (tester) async {
+    await tester.binding.setSurfaceSize(const Size(390, 900));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    final container = ProviderContainer(
+      overrides: [
+        ledgerProvider.overrideWith(
+          () => _FakeLedgerNotifier(LedgerState.initial()),
+        ),
+        travelProvider.overrideWith(
+          () => _FakeTravelNotifier(
+            Trip.create(
+              id: 'trip-a',
+              name: '여행',
+              startDate: DateTime(2026, 9, 1),
+              endDate: DateTime(2026, 9, 2),
+            ),
+          ),
+        ),
+        dataManageProvider.overrideWith(_ImmediateSearchNotifier.new),
+        localizedStringsProvider.overrideWithValue(const <String, String>{
+          'dataManageTitle': '데이터 관리',
+          'dataManageFilterTitle': '검색 조건',
+          'dataManageTableExpense': '소비기록',
+          'dataManageTableFixed': '고정지출',
+          'dataManageTableIncome': '수입',
+          'dataManageAllPeriod': '전체',
+          'dataManageMonthPeriod': '특정 달',
+          'dataManageRangePeriod': '기간 지정',
+          'dataManageAll': '전체',
+          'dataManageResultCount': '건',
+          'dataManageSelectAll': '전체선택',
+          'dataManageUnselectAll': '전체해제',
+          'paymentMethodLabel': '소비수단',
+          'categoryLabel': '소비구분',
+          'subcategoryLabel': '소비 소구분',
+          'descriptionLabel': '내용',
+          'noteLabel': '비고',
+          'dataManageSearch': '검색',
+          'dataManageSearching1': '검색 중',
+          'dataManageSearching2': '검색 중',
+          'dataManageSearching3': '검색 중',
+        }),
+      ],
+    );
+    addTearDown(container.dispose);
+    await container.read(ledgerProvider.future);
+    await container.read(travelProvider.future);
+    await tester.pumpWidget(
+      UncontrolledProviderScope(
+        container: container,
+        child: const MaterialApp(home: DataManagingPage()),
+      ),
+    );
+    await tester.pump();
+
+    await tester.tap(find.text('검색'));
+    await tester.pump();
+    await tester.pump();
+
+    expect(find.text('즉시 표시 결과'), findsOneWidget);
+    expect(find.text('검색 중'), findsNothing);
+  });
+
   testWidgets('소비 소구분 검색과 여행 연결 일괄 변경 UI를 표시한다', (WidgetTester tester) async {
     await tester.binding.setSurfaceSize(const Size(390, 900));
     addTearDown(() => tester.binding.setSurfaceSize(null));
@@ -120,6 +183,32 @@ class _FakeDataManageNotifier extends DataManageNotifier {
       searchedTableType: DataTableType.expense,
       selectedIds: const <String>{'expense-a'},
       status: DataManageStatus.found,
+    );
+  }
+}
+
+class _ImmediateSearchNotifier extends DataManageNotifier {
+  @override
+  DataManageState build() => const DataManageState(
+    filter: DataSearchFilter(tableType: DataTableType.expense),
+  );
+
+  @override
+  Future<void> search() async {
+    state = state.copyWith(status: DataManageStatus.searching);
+    await Future<void>.value();
+    state = state.copyWith(
+      status: DataManageStatus.found,
+      searchedTableType: DataTableType.expense,
+      expenses: <ExpenseEntry>[
+        ExpenseEntry.create(
+          id: 'instant',
+          spentAt: DateTime(2026, 9, 1),
+          categoryCode: 'E',
+          description: '즉시 표시 결과',
+          amount: 1000,
+        ),
+      ],
     );
   }
 }

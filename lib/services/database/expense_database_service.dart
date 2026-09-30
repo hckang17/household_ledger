@@ -18,6 +18,13 @@ class ExpenseDatabaseService {
 
   Database? _database;
 
+  /// 테스트가 사용한 SQLite 연결을 명시적으로 닫는다.
+  @visibleForTesting
+  Future<void> closeForTesting() async {
+    await _database?.close();
+    _database = null;
+  }
+
   /// 여행 메타데이터를 삭제하고 연결된 전체 지출을 평상시로 전환한다.
   /// 네이티브는 연결 DB 트랜잭션으로 두 파일의 변경을 함께 커밋한다.
   /// Web은 두 번째 저장 실패 시 원래 지출 JSON을 복원한다.
@@ -407,6 +414,35 @@ class ExpenseDatabaseService {
       '$_logPrefix deleteExpense() completed via SQLite. deletedCount=$deletedCount',
     );
     _log('deleteExpense', '지출내역 단건 삭제 완료(SQLite)');
+  }
+
+  /// 튜토리얼 전용 ID 또는 구버전 표식이 있는 임시 지출을 삭제한다.
+  ///
+  /// [idPrefix]는 신규 튜토리얼 데이터의 영속 식별자이며,
+  /// [legacyNoteMarker]는 ID 표식 도입 전 생성된 데이터 정리에만 사용한다.
+  /// 반복 호출해도 이미 정리된 데이터에는 영향을 주지 않는다.
+  Future<int> deleteTutorialMockExpenses({
+    required String idPrefix,
+    required String legacyNoteMarker,
+  }) async {
+    if (kIsWeb) {
+      final entries = await _loadAllExpensesFromPreferences();
+      final retained = entries.where((ExpenseEntry entry) {
+        return !entry.id.startsWith(idPrefix) && entry.note != legacyNoteMarker;
+      }).toList();
+      final deletedCount = entries.length - retained.length;
+      if (deletedCount > 0) {
+        await _saveAllExpensesToPreferences(retained);
+      }
+      return deletedCount;
+    }
+
+    final db = await _getDatabase();
+    return db.delete(
+      _tableName,
+      where: 'substr(id, 1, ?) = ? OR note = ?',
+      whereArgs: <Object?>[idPrefix.length, idPrefix, legacyNoteMarker],
+    );
   }
 
   /// DB에 저장된 지출내역을 전부 삭제한다.

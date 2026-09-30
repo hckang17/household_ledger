@@ -1,0 +1,8 @@
+2026-09-16
+flutter analyze: PASS
+flutter test: PASS (158 passed, 2 skipped)
+PDF generation regression tests: PASS
+User-selected file service tests: PASS
+Android x64 debug APK build: PASS
+Android SAF save to Downloads: PASS
+Saved CSV selectable again through app import picker without ADB copy: PASS

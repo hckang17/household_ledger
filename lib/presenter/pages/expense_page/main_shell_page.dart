@@ -11,7 +11,9 @@ import 'package:household_ledger/presenter/pages/expense_page/expense_record_pag
 import 'package:household_ledger/presenter/pages/expense_page/fixed_expense_page.dart';
 import 'package:household_ledger/presenter/pages/expense_page/home_page.dart';
 import 'package:household_ledger/presenter/pages/expense_page/income_page.dart';
+import 'package:household_ledger/presenter/widgets/common/app_exit_guard.dart';
 import 'package:household_ledger/provider/nav_tab_provider.dart';
+import 'package:household_ledger/provider/localization_provider.dart';
 
 /// 바텀 내비게이션 바를 포함하는 공통 쉘 화면이다.
 ///
@@ -68,22 +70,26 @@ class _MainShellPageState extends ConsumerState<MainShellPage> {
   @override
   Widget build(BuildContext context) {
     final int tab = ref.watch(currentNavTabProvider);
+    final strings = ref.watch(localizedStringsProvider);
 
     // 현재 탭을 처음 방문하는 경우 로드 목록에 추가한다.
     _loadedTabs.add(tab);
 
-    return Scaffold(
-      body: IndexedStack(
-        index: tab,
-        children: List.generate(5, (i) {
-          if (!_loadedTabs.contains(i)) {
-            // 아직 방문하지 않은 탭은 빈 위젯으로 대체한다.
-            return const SizedBox.shrink();
-          }
-          return _pageForIndex(i);
-        }),
+    return AppExitGuard(
+      strings: strings,
+      child: Scaffold(
+        body: IndexedStack(
+          index: tab,
+          children: List.generate(5, (i) {
+            if (!_loadedTabs.contains(i)) {
+              // 아직 방문하지 않은 탭은 빈 위젯으로 대체한다.
+              return const SizedBox.shrink();
+            }
+            return _pageForIndex(i);
+          }),
+        ),
+        bottomNavigationBar: const LedgerBottomNavBar(),
       ),
-      bottomNavigationBar: const LedgerBottomNavBar(),
     );
   }
 }

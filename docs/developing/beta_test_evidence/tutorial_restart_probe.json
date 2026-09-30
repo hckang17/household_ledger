@@ -1,1 +1,1 @@
-{"inserted":1,"remainingAfterFreshServiceCleanup":1,"remainingMockTagged":1,"remainingTotal":5000,"method":"WidgetRef and real SQLite; service recreation simulates loss of in-memory IDs, not a native process-restart test"}
+{"inserted":2,"remainingAfterFreshServiceCleanup":0,"remainingMockTagged":0,"remainingTotal":0,"method":"WidgetRef and real SQLite; service recreation simulates loss of in-memory IDs, not a native process-restart test"}

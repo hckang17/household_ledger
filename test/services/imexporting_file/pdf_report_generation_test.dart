@@ -120,6 +120,29 @@ void main() {
       final file = File(path);
       expect(await file.exists(), isTrue);
       expect(await file.length(), greaterThan(10000));
+      expect(
+        _pdfPageCount(await file.readAsBytes()),
+        2,
+        reason: '소량 데이터의 개요는 빈 후속 페이지 없이 한 장에 표시해야 한다.',
+      );
+      final secondPath = await service.generateReport(
+        expenses: expenses,
+        fixedExpenses: fixedExpenses,
+        incomes: const [],
+        ledger: ledger,
+        email: 'beta@example.com',
+        options: const ReportOptions(
+          includeDetailedData: false,
+          includeTop10: false,
+          includePaymentSummary: false,
+        ),
+        periodLabel: '2026-09',
+        strings: strings,
+        periodStart: DateTime(2026, 9),
+        reportTitle: '家計簿レポート',
+      );
+      expect(secondPath, isNot(path));
+      expect(await file.exists(), isTrue);
 
       final koreanStrings = Map<String, String>.from(
         jsonDecode(File('assets/language_data/ko.json').readAsStringSync())
@@ -162,6 +185,49 @@ void main() {
         reportTitle: '가계부 리포트',
       );
       expect(await File(koreanPath).length(), greaterThan(10000));
+
+      final beforeFailure = <String, int>{
+        for (final file in output.listSync().whereType<File>())
+          file.path: file.lengthSync(),
+      };
+      final failingService = ExportPdfReportService(
+        reportDirectoryProvider: () async => output,
+        temporaryFileWriter: (_, _) async {
+          throw const FileSystemException('injected write failure');
+        },
+      );
+      await expectLater(
+        failingService.generateReport(
+          expenses: expenses,
+          fixedExpenses: fixedExpenses,
+          incomes: const [],
+          ledger: ledger,
+          email: 'beta@example.com',
+          options: const ReportOptions(
+            includeDetailedData: false,
+            includeTop10: false,
+            includePaymentSummary: false,
+          ),
+          periodLabel: '2026-09',
+          strings: strings,
+          periodStart: DateTime(2026, 9),
+          reportTitle: '家計簿レポート',
+        ),
+        throwsA(isA<FileSystemException>()),
+      );
+      final afterFailure = <String, int>{
+        for (final file in output.listSync().whereType<File>())
+          file.path: file.lengthSync(),
+      };
+      expect(afterFailure, beforeFailure);
+      expect(
+        output.listSync().whereType<File>().any((f) => f.path.endsWith('.tmp')),
+        isFalse,
+      );
     },
   );
 }
+
+int _pdfPageCount(List<int> bytes) => RegExp(
+  r'/Type\s*/Page\b',
+).allMatches(latin1.decode(bytes, allowInvalid: true)).length;

@@ -188,6 +188,11 @@ class _IncomePageState extends ConsumerState<IncomePage> {
                       IconButton(
                         onPressed: () => _changeFocusedMonth(-1),
                         icon: const Icon(Icons.chevron_left),
+                        tooltip: _text(strings, 'previousMonth', '이전 달'),
+                        constraints: const BoxConstraints.tightFor(
+                          width: 48,
+                          height: 48,
+                        ),
                       ),
                       Expanded(
                         child: Center(
@@ -201,6 +206,11 @@ class _IncomePageState extends ConsumerState<IncomePage> {
                       IconButton(
                         onPressed: () => _changeFocusedMonth(1),
                         icon: const Icon(Icons.chevron_right),
+                        tooltip: _text(strings, 'nextMonth', '다음 달'),
+                        constraints: const BoxConstraints.tightFor(
+                          width: 48,
+                          height: 48,
+                        ),
                       ),
                     ],
                   ),
