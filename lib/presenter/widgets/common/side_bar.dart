@@ -153,24 +153,20 @@ class RightSideBar extends ConsumerWidget {
                       title: _text(strings, 'sideBarSettingsGroup', '설정'),
                       children: <Widget>[
                         _SideBarItem(
-                          icon: Icons.sell_outlined,
-                          label: _text(
-                            strings,
-                            'sideBarMetadataEdit',
-                            '메타데이터 수정',
-                          ),
+                          icon: Icons.settings_outlined,
+                          label: _text(strings, 'settingsTitle', '환경설정'),
                           onTap: () =>
                               _navigate(context, AppRouter.settingsRoute),
                         ),
                         _SideBarItem(
-                          icon: Icons.notifications_active_outlined,
+                          icon: Icons.sell_outlined,
                           label: _text(
                             strings,
-                            'sideBarNotificationSettings',
-                            '알림 설정',
+                            'ledgerMetadataTitle',
+                            '가계부 메타데이터 수정',
                           ),
                           onTap: () =>
-                              _navigate(context, AppRouter.settingsRoute),
+                              _navigate(context, AppRouter.ledgerMetadataRoute),
                         ),
                       ],
                     ),

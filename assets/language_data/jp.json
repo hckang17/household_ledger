@@ -120,6 +120,7 @@
   "metadataTagNameRequired": "カテゴリ名を空欄で保存することはできません。",
   "metadataTagNameDuplicate": "同じ区分に同じカテゴリ名がすでに存在します。",
   "settingsTitle": "設定",
+  "ledgerMetadataTitle": "家計簿メタデータ編集",
   "sideBarOpen": "メニューを開く",
   "sideBarTitle": "クイックメニュー",
   "sideBarMyPage": "マイページ",
@@ -478,8 +479,8 @@
 
   "tutDataManageFilterTitle": "データ検索",
   "tutDataManageFilterDesc": "支払手段・期間・支出区分・小区分などの条件で記録を照会し\n一括削除またはタグ変更ができます。",
-  "tutDataManageSettingsNavTitle": "設定画面へ移動",
-  "tutDataManageSettingsNavDesc": "次はアプリの設定画面を見てみましょう！\n設定でタグ管理・データバックアップなどができます。",
+  "tutDataManageSettingsNavTitle": "家計簿メタデータ編集へ移動",
+  "tutDataManageSettingsNavDesc": "次は家計簿メタデータ編集画面を見てみましょう！\nタグ管理・データバックアップなどができます。",
 
   "tutSettingsTagTitle": "タグ管理",
   "tutSettingsTagDesc": "支出区分・支出小区分・支払手段タグを追加・編集・削除できます。\n独自のタグで支出分類をカスタマイズしてみてください！",

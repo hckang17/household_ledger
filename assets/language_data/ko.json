@@ -120,6 +120,7 @@
   "metadataTagNameRequired": "카테고리 명은 빈칸으로 저장할 수 없습니다.",
   "metadataTagNameDuplicate": "같은 구분에 이미 존재하는 카테고리 명입니다.",
   "settingsTitle": "환경설정",
+  "ledgerMetadataTitle": "가계부 메타데이터 수정",
   "sideBarOpen": "메뉴 열기",
   "sideBarTitle": "빠른 메뉴",
   "sideBarMyPage": "마이페이지",
@@ -487,8 +488,8 @@
 
   "tutDataManageFilterTitle": "데이터 검색",
   "tutDataManageFilterDesc": "소비수단, 기간, 소비구분·소구분 등 조건으로 기록을 조회하고\n일괄 삭제 또는 태그 변경을 할 수 있어요.",
-  "tutDataManageSettingsNavTitle": "설정 화면으로 이동",
-  "tutDataManageSettingsNavDesc": "다음은 앱 설정 화면을 살펴볼게요!\n설정에서 태그 관리, 데이터 백업 등을 할 수 있어요.",
+  "tutDataManageSettingsNavTitle": "가계부 메타데이터 수정으로 이동",
+  "tutDataManageSettingsNavDesc": "다음은 가계부 메타데이터 수정 화면을 살펴볼게요!\n태그 관리, 데이터 백업 등을 할 수 있어요.",
 
   "tutSettingsTagTitle": "태그 관리",
   "tutSettingsTagDesc": "소비구분, 소비세부, 소비수단 태그를 추가·수정·삭제할 수 있어요.\n나만의 태그로 지출 분류를 맞춤 설정해보세요!",
