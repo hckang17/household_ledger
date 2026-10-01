@@ -18,8 +18,20 @@ Future<void> showIncomeEditorSheet({
 }) async {
   String t(String key, String fallback) => strings[key] ?? fallback;
 
+  final now = DateTime.now();
+  final initialDate =
+      item?.earnedAt ??
+      DateTime(
+        focusedMonth.year,
+        focusedMonth.month,
+        now.day.clamp(
+          1,
+          DateTime(focusedMonth.year, focusedMonth.month + 1, 0).day,
+        ),
+      );
+  var selectedCategory = item?.category ?? IncomeCategory.regular;
   final dateController = TextEditingController(
-    text: DateFormat('yyyy-MM-dd HH:mm').format(item?.earnedAt ?? focusedMonth),
+    text: DateFormat('yyyy-MM-dd').format(initialDate),
   );
   final amountController = TextEditingController(
     text: item?.amount.toString() ?? '',
@@ -27,7 +39,7 @@ Future<void> showIncomeEditorSheet({
   final descriptionController = TextEditingController(
     text: item?.description ?? '',
   );
-  var selectedDate = item?.earnedAt ?? focusedMonth;
+  var selectedDate = initialDate;
   var isSaving = false;
 
   final saved = await showModalBottomSheet<IncomeEntry>(
@@ -59,10 +71,16 @@ Future<void> showIncomeEditorSheet({
                         final pickedDate = await showDatePicker(
                           context: ctx,
                           initialDate: selectedDate,
-                          firstDate: DateTime(2020),
-                          lastDate: DateTime(2100),
+                          firstDate: DateTime(
+                            selectedDate.year < 1900 ? selectedDate.year : 1900,
+                          ),
+                          lastDate: DateTime(
+                            selectedDate.year > 2100 ? selectedDate.year : 2100,
+                            12,
+                            31,
+                          ),
                         );
-                        if (pickedDate == null) return;
+                        if (pickedDate == null || !ctx.mounted) return;
                         setModalState(() {
                           selectedDate = DateTime(
                             pickedDate.year,
@@ -72,9 +90,30 @@ Future<void> showIncomeEditorSheet({
                             selectedDate.minute,
                           );
                           dateController.text = DateFormat(
-                            'yyyy-MM-dd HH:mm',
+                            'yyyy-MM-dd',
                           ).format(selectedDate);
                         });
+                      },
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<IncomeCategory>(
+                      initialValue: selectedCategory,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        labelText: strings['incomeCategoryLabel'],
+                      ),
+                      items: IncomeCategory.values
+                          .map(
+                            (category) => DropdownMenuItem(
+                              value: category,
+                              child: Text(strings[category.localizationKey]!),
+                            ),
+                          )
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setModalState(() => selectedCategory = value);
+                        }
                       },
                     ),
                     const SizedBox(height: 12),
@@ -104,6 +143,7 @@ Future<void> showIncomeEditorSheet({
                         final next = IncomeEntry.create(
                           id: item?.id,
                           earnedAt: selectedDate,
+                          category: selectedCategory,
                           amount: amount,
                           description: descriptionController.text,
                         );

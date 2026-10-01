@@ -627,5 +627,15 @@
   "expandSection": "展開",
   "collapseSection": "折りたたむ",
   "expenseRequiredFieldsHint": "* 必須項目 · 日付と支出の分類には初期値が選択されています。",
-  "expenseDescriptionSuggestions": "今月よく入力した内容"
+  "expenseDescriptionSuggestions": "今月よく入力した内容",
+  "incomeCategoryLabel": "収入の分類",
+  "incomeCategory_regular": "定期収入（給与など）",
+  "incomeCategory_additional": "追加収入（賞与など）",
+  "incomeCategory_business": "事業・副業",
+  "incomeCategory_investment": "利息・配当",
+  "incomeCategory_rental": "賃貸収入",
+  "incomeCategory_pension": "年金",
+  "incomeCategory_support": "給付金・手当",
+  "incomeCategory_gift": "小遣い・贈与",
+  "incomeCategory_other": "その他の収入"
 }

@@ -262,15 +262,13 @@ class _IncomePageState extends ConsumerState<IncomePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: <Widget>[
                               Text(
-                                item.description,
+                                '${strings[item.category.localizationKey]} · ${item.description}',
                                 style: Theme.of(context).textTheme.titleMedium
                                     ?.copyWith(fontWeight: FontWeight.w700),
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                DateFormat(
-                                  'yyyy-MM-dd HH:mm',
-                                ).format(item.earnedAt),
+                                DateFormat('yyyy-MM-dd').format(item.earnedAt),
                               ),
                               const SizedBox(height: 8),
                               Text(

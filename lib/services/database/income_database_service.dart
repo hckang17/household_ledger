@@ -28,16 +28,24 @@ class IncomeDatabaseService {
 
     _database = await openDatabase(
       fullPath,
-      version: 1,
+      version: 2,
       onCreate: (Database db, int version) async {
         await db.execute('''
           CREATE TABLE $_tableName (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             earnedAt TEXT NOT NULL,
             amount INTEGER NOT NULL,
-            description TEXT NOT NULL
+            description TEXT NOT NULL,
+            categoryCode TEXT NOT NULL DEFAULT 'regular'
           )
         ''');
+      },
+      onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute(
+            "ALTER TABLE $_tableName ADD COLUMN categoryCode TEXT NOT NULL DEFAULT 'regular'",
+          );
+        }
       },
     );
 
@@ -206,9 +214,13 @@ class IncomeDatabaseService {
         earnedAt: DateTime.parse(json['earnedAt'] as String),
         amount: json['amount'] as int? ?? 0,
         description: json['description'] as String? ?? '',
+        category: IncomeCategory.fromCode(json['categoryCode'] as String?),
       );
     }).toList();
 
+    if (decoded.any((item) => !(item as Map).containsKey('categoryCode'))) {
+      await _saveAllIncomesToPreferences(entries);
+    }
     entries.sort((IncomeEntry left, IncomeEntry right) {
       final byDate = right.earnedAt.compareTo(left.earnedAt);
       if (byDate != 0) {
@@ -237,6 +249,7 @@ class IncomeDatabaseService {
             'earnedAt': entry.earnedAt.toIso8601String(),
             'amount': entry.amount,
             'description': entry.description,
+            'categoryCode': entry.category.name,
           },
         )
         .toList();
@@ -249,6 +262,7 @@ class IncomeDatabaseService {
       'earnedAt': entry.earnedAt.toIso8601String(),
       'amount': entry.amount,
       'description': entry.description,
+      'categoryCode': entry.category.name,
     };
   }
 
@@ -258,6 +272,7 @@ class IncomeDatabaseService {
       earnedAt: DateTime.parse(row['earnedAt']! as String),
       amount: row['amount']! as int,
       description: row['description']! as String,
+      category: IncomeCategory.fromCode(row['categoryCode'] as String?),
     );
   }
 }

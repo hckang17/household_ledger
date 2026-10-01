@@ -29,6 +29,7 @@ class BackupRestoreData {
             'earnedAt': e.earnedAt.toIso8601String(),
             'amount': e.amount,
             'description': e.description,
+            'categoryCode': e.category.name,
           },
         )
         .toList(),
@@ -52,6 +53,7 @@ class BackupRestoreData {
             earnedAt: DateTime.parse(e['earnedAt'] as String),
             amount: e['amount'] as int,
             description: e['description'] as String,
+            category: IncomeCategory.fromCode(e['categoryCode'] as String?),
           ),
         )
         .toList(),

@@ -104,7 +104,7 @@ CREATE TABLE expense_entries (
 
 - DB 파일명: `household_income.db`
 - 테이블명: `income_entries`
-- SQLite 버전: `1`
+- SQLite 버전: `2`
 - Web 저장 키: `household_ledger_incomes`
 
 ### 테이블 스키마
@@ -114,7 +114,8 @@ CREATE TABLE income_entries (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   earnedAt TEXT NOT NULL,
   amount INTEGER NOT NULL,
-  description TEXT NOT NULL
+  description TEXT NOT NULL,
+  categoryCode TEXT NOT NULL DEFAULT 'regular'
 )
 ```
 
@@ -242,7 +243,7 @@ CREATE TABLE trips (
 ## 6) 마이그레이션/버전 관리 현황
 
 - 지출 DB는 `version: 3`이며 v2에서 식사 유형, v3에서 여행 ID와 partial index를 추가한다.
-- 수입, 고정지출, 여행 DB는 `version: 1`이다.
+- 수입 DB는 `version: 2`, 고정지출·여행 DB는 `version: 1`이다.
 
 향후 스키마 변경 시 권장 사항:
 
@@ -258,3 +259,12 @@ CREATE TABLE trips (
 - `lib/services/database/travel_database_service.dart`
 - `lib/model/fixed_expense.dart`
 - `lib/provider/ledger_provider.dart` (서비스 주입/호출)
+
+### 수입 분류 migration (v2)
+
+`income_entries.categoryCode TEXT NOT NULL DEFAULT 'regular'`를 추가한다. SQLite onUpgrade 트랜잭션에서 기존 모든 행에 regular를 부여하며 ID·일시·금액·설명은 유지한다. 재실행은 DB 버전으로 방지한다. Web JSON도 분류가 없는 데이터를 읽을 때 regular로 저장한다.
+
+코드: regular, additional, business, investment, rental, pension, support, gift, other. 표시 언어와 무관하다. CSV v4는 INCOMES에 categoryCode를 추가한다. v1~v3의 분류 없는 수입 및 구형 복구 journal은 regular로 복원하며 알 수 없는 분류는 거부한다. 날짜는 실제 선택 날짜로 저장하고 월별 조회는 [월초, 다음 월초)이다.
+
+분류 선정 근거: 통계청 가계동향조사의 근로·사업·재산·이전·비경상 소득을 일상 입력 용어로 세분화했다. 정규 수입은 급여, 추가 수입은 상여·성과급, 사업·부업은 자영업·프리랜서, 지원금·수당은 공적 급여, 용돈·선물은 가구 밖에서 받은 금액이다. 계좌 간 이체와 대출 원금은 소득 분류에 포함하지 않는다.
+https://www.kostat.go.kr/boardDownload.es?bid=12030&list_no=372560&seq=2
