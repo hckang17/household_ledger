@@ -89,6 +89,9 @@ class BackupCsvValidation {
       final header = parseRow(rows.first);
       if (header.toSet().length != header.length ||
           !entry.value.every(header.contains) ||
+          (version >= 4 &&
+              entry.key == '[INCOMES]' &&
+              !header.contains('categoryCode')) ||
           (version >= 3 &&
               entry.key == '[EXPENSES]' &&
               !header.contains('tripId'))) {

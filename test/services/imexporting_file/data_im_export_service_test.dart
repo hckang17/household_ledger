@@ -97,7 +97,7 @@ void main() {
       passkey: passkey,
       timestamp: '20260911_120000',
     );
-    csv = csv.replaceFirst('version,3.0', 'version,2.0');
+    csv = csv.replaceFirst('version,4.0', 'version,2.0');
     csv = csv.replaceFirst(',tripId,', ',');
     csv = csv.replaceFirst(',${trip.id},', ',');
     csv = csv.replaceFirst(RegExp(r'appSettingsJson.*\n'), '');

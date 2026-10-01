@@ -58,6 +58,9 @@ void main() {
         earnedAt: DateTime(2026, 9),
         amount: 3000000,
         description: id,
+        category: id == 'old'
+            ? IncomeCategory.pension
+            : IncomeCategory.additional,
       ),
     ],
     trips: [

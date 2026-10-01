@@ -68,7 +68,7 @@ class DataImExportService {
   static const String _sectionSettings = '[SETTINGS]';
   static const String _sectionTags = '[TAGS]';
   static const String _sectionTrips = '[TRIPS]';
-  static const String _csvVersion = '3.0';
+  static const String _csvVersion = '4.0';
   static const String _salt = 'household_ledger_v1_salt';
 
   String _generateSignature(String email, String passkey) {
@@ -190,7 +190,7 @@ class DataImExportService {
     buffer.writeln();
 
     buffer.writeln(_sectionIncomes);
-    buffer.writeln('id,earnedAt,amount,description');
+    buffer.writeln('id,earnedAt,amount,description,categoryCode');
     for (final e in incomes) {
       buffer.writeln(
         _csvRow([
@@ -198,6 +198,7 @@ class DataImExportService {
           e.earnedAt.toIso8601String(),
           e.amount.toString(),
           e.description,
+          e.category.name,
         ]),
       );
     }
@@ -357,7 +358,7 @@ class DataImExportService {
         throw const FormatException('Invalid version');
       }
       final majorVersion = int.parse(version.split('.').first);
-      if (majorVersion > 3) {
+      if (majorVersion > 4) {
         return const ImportResult(
           success: false,
           errorKey: 'unsupportedBackupVersionMessage',
@@ -722,6 +723,7 @@ class DataImExportService {
       return <IncomeEntry>[];
     }
     final result = <IncomeEntry>[];
+    final categoryIndex = _parseCsvRow(rows.first).indexOf('categoryCode');
     for (final row in rows.skip(1)) {
       final f = _parseCsvRow(row);
       if (f.length < 4) {
@@ -735,6 +737,9 @@ class DataImExportService {
             earnedAt: DateTime.parse(f[1]),
             amount: int.parse(f[2]),
             description: f[3],
+            category: IncomeCategory.fromCode(
+              categoryIndex < 0 ? null : f[categoryIndex],
+            ),
           ),
         );
       } catch (_) {

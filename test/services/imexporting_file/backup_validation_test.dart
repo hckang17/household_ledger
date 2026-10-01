@@ -21,6 +21,7 @@ void main() {
         earnedAt: DateTime(2026, 9, 2),
         amount: 2000,
         description: 'bonus',
+        category: IncomeCategory.additional,
       ),
     ],
     ledgerState: LedgerState.initial(),
@@ -35,7 +36,7 @@ void main() {
   );
 
   final corruptions = <String, String Function(String)>{
-    'missing version': (s) => s.replaceFirst('version,3.0\n', ''),
+    'missing version': (s) => s.replaceFirst('version,4.0\n', ''),
     'truncated tags': (s) => s.substring(0, s.indexOf('[TAGS]') + 6),
     'missing expense header': (s) =>
         s.replaceFirst(RegExp(r'\[EXPENSES\]\n[^\n]+'), '[EXPENSES]'),
@@ -47,7 +48,7 @@ void main() {
     'duplicate section': (s) =>
         '$s\n[INCOMES]\nid,earnedAt,amount,description\n',
     'truncated quoted record': (s) => '$s\ncategory,Z,"unfinished',
-    'invalid version': (s) => s.replaceFirst('version,3.0', 'version,broken'),
+    'invalid version': (s) => s.replaceFirst('version,4.0', 'version,broken'),
     'wrong income header': (s) => s.replaceFirst(
       'id,earnedAt,amount,description',
       'id,date,amount,description',
@@ -75,7 +76,7 @@ void main() {
   test('v1 and v2 still accept optional missing travel section', () async {
     for (final version in ['1.0', '2.0']) {
       final csv = backup()
-          .replaceFirst('version,3.0', 'version,$version')
+          .replaceFirst('version,4.0', 'version,$version')
           .replaceFirst(RegExp(r'\[TRIPS\][\s\S]*?\n\n'), '');
       expect((await parse(csv)).success, isTrue);
       expect(
@@ -84,4 +85,40 @@ void main() {
       );
     }
   });
+  test(
+    'category and date round trip; legacy files default to regular',
+    () async {
+      final result = await parse(backup());
+      expect(result.incomes.last.category, IncomeCategory.additional);
+      expect(result.incomes.last.earnedAt, DateTime(2026, 9, 2));
+      for (final version in ['1.0', '2.0', '3.0']) {
+        final legacy = backup()
+            .replaceFirst('version,4.0', 'version,$version')
+            .replaceFirst('description,categoryCode', 'description')
+            .replaceFirst('salary,regular', 'salary')
+            .replaceFirst('bonus,additional', 'bonus');
+        final restored = await parse(legacy);
+        expect(restored.success, isTrue);
+        expect(
+          restored.incomes.every((e) => e.category == IncomeCategory.regular),
+          isTrue,
+        );
+      }
+      expect(
+        (await parse(
+          backup().replaceFirst('bonus,additional', 'bonus,unknown'),
+        )).success,
+        isFalse,
+      );
+      expect(
+        (await parse(
+          backup().replaceFirst(
+            'description,categoryCode',
+            'description,unknown',
+          ),
+        )).success,
+        isFalse,
+      );
+    },
+  );
 }

@@ -507,6 +507,7 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
     }
 
     await _incomeDatabaseService.upsertIncome(entry);
+    ref.invalidate(monthlyIncomesProvider);
     _logLedgerProvider('addIncome', '소득 기록 추가 완료');
   }
 
@@ -520,6 +521,7 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
     }
 
     await _incomeDatabaseService.upsertIncome(entry);
+    ref.invalidate(monthlyIncomesProvider);
     _logLedgerProvider('updateIncome', '소득 기록 수정 완료');
   }
 
@@ -533,6 +535,7 @@ class LedgerNotifier extends AsyncNotifier<LedgerState> {
     }
 
     await _incomeDatabaseService.deleteIncome(id);
+    ref.invalidate(monthlyIncomesProvider);
     _logLedgerProvider('deleteIncome', '소득 기록 삭제 완료');
   }
 
