@@ -2,7 +2,8 @@
 
 가계부 기록 자체가 아닌 설정, 데이터 이동, 리포트, 앱 진입 흐름을 보관한다.
 
-- `settings_page.dart`: 환경설정과 태그 관리
+- `settings_page.dart`: 앱 배경과 푸시 알림 환경설정
+- `ledger_metadata_page.dart`: 사용자 정보·언어·통화·태그·데이터 관리
 - `data_managing_page.dart`: 저장 데이터 검색과 일괄 관리
 - `import_data_page.dart`: 데이터 가져오기
 - `export_data_page.dart`: 데이터 내보내기

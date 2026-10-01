@@ -108,7 +108,7 @@ class _DataManagingPageState extends ConsumerState<DataManagingPage> {
   void _onShowcaseComplete(int? index, GlobalKey key) {
     if (key == _filterCardKey) {
       ref.read(tutorialProvider.notifier).setPhase(TutorialPhase.settings);
-      Navigator.of(context).pushNamed(AppRouter.settingsRoute);
+      Navigator.of(context).pushNamed(AppRouter.ledgerMetadataRoute);
     }
   }
 

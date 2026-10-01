@@ -1,5 +1,5 @@
-// """ MVVM 계층: View / settings_page """
-// """ 역할: 설정 화면의 메타데이터 태그 목록과 관리 액션 구성 """
+// """ MVVM 계층: View / ledger_metadata_page """
+// """ 역할: 메타데이터 화면의 태그 목록과 관리 액션 구성 """
 
 import 'package:flutter/material.dart';
 import 'package:household_ledger/model/metadata_tag.dart';

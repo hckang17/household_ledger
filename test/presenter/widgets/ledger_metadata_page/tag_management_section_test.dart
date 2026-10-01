@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
-import 'package:household_ledger/presenter/widgets/settings_page/tag_management_section.dart';
+import 'package:household_ledger/presenter/widgets/ledger_metadata_page/tag_management_section.dart';
 
 void main() {
   testWidgets('태그 관리 아이콘은 동작과 대상을 알리고 48dp 터치 영역을 유지한다', (tester) async {
