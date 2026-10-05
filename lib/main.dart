@@ -210,7 +210,7 @@ class _HouseholdLedgerAppState extends ConsumerState<HouseholdLedgerApp> {
     );
 
     return MaterialApp(
-      title: strings['appTitle'] ?? 'Household Ledger',
+      title: strings['appTitle'] ?? 'MOABI',
       debugShowCheckedModeBanner: false,
       locale: _flutterLocaleFromCode(localeCode),
       supportedLocales: const <Locale>[Locale('ko'), Locale('ja')],

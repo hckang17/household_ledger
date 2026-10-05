@@ -1,4 +1,4 @@
-package com.example.household_ledger
+package com.moabi.householdledger
 
 import android.app.Activity
 import android.content.Intent
