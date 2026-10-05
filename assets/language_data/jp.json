@@ -1,4 +1,6 @@
 {
+  "deepAnalysisTitle": "支出の詳細分析",
+  "deepAnalysisComingSoon": "詳細分析を準備しています。",
   "importPreviewCounts": "支出 {expenses}件・固定支出 {fixed}件・収入 {incomes}件\n旅行 {trips}件・タグ {tags}個",
   "importPreviewReplaceMessage": "現在の支出・固定支出・収入・旅行・タグと設定を、このバックアップで置き換えます。バックアップが0件の項目は、現在の記録も削除されます。続けますか？",
   "importRecoveryMessage": "中断したインポート前のデータを復元できませんでした。復元用データは保管されています。空き容量を確認してから、もう一度お試しください。",

@@ -193,9 +193,9 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     }
 
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: 8),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
           color: bgColor,
           borderRadius: BorderRadius.circular(8),
@@ -266,7 +266,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                       : _AnalysisScope.period;
                 }),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
               TravelAnalysisSection(
                 initialTripId: widget.initialTravelId,
                 categoryTags: categoryTags,
@@ -375,7 +375,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                       : _AnalysisScope.period;
                 }),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
               // ── 상단 컨트롤 카드 ──
               Showcase(
                 key: _periodControlKey,
@@ -417,7 +417,7 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                   }),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 10),
 
               // ── 전월동기 비교 안내 배너 (지출 탭에서만 표시) ──
               if (_showExpense)
@@ -427,6 +427,29 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                   prevCategoryExpenses: prevCategoryExpenses,
                   analysisPrevQuery: analysisPrevQuery,
                 ),
+
+              if (_showExpense) ...<Widget>[
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton.icon(
+                    onPressed: () => Navigator.of(
+                      context,
+                    ).pushNamed(AppRouter.deepAnalysisRoute),
+                    style: FilledButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
+                    ),
+                    icon: const Icon(Icons.insights_rounded),
+                    label: Text(
+                      strings['deepAnalysisTitle'] ?? '',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
 
               // ── 지출 탭 ──
               if (_showExpense)
