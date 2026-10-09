@@ -639,5 +639,7 @@
   "incomeCategory_pension": "年金",
   "incomeCategory_support": "給付金・手当",
   "incomeCategory_gift": "小遣い・贈与",
-  "incomeCategory_other": "その他の収入"
+  "incomeCategory_other": "その他の収入",
+  "adPrivacyOptions": "広告のプライバシー設定",
+  "adPrivacyOptionsError": "広告のプライバシー設定を開けません。しばらくしてからもう一度お試しください。"
 }

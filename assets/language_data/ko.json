@@ -648,5 +648,7 @@
   "incomeCategory_pension": "연금",
   "incomeCategory_support": "지원금·수당",
   "incomeCategory_gift": "용돈·선물",
-  "incomeCategory_other": "기타 수입"
+  "incomeCategory_other": "기타 수입",
+  "adPrivacyOptions": "광고 개인정보 설정",
+  "adPrivacyOptionsError": "광고 개인정보 설정을 열 수 없습니다. 잠시 후 다시 시도해 주세요."
 }
