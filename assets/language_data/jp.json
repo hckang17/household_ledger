@@ -1,4 +1,6 @@
 {
+  "deepAnalysisTitle": "支出の詳細分析",
+  "deepAnalysisComingSoon": "詳細分析を準備しています。",
   "importPreviewCounts": "支出 {expenses}件・固定支出 {fixed}件・収入 {incomes}件\n旅行 {trips}件・タグ {tags}個",
   "importPreviewReplaceMessage": "現在の支出・固定支出・収入・旅行・タグと設定を、このバックアップで置き換えます。バックアップが0件の項目は、現在の記録も削除されます。続けますか？",
   "importRecoveryMessage": "中断したインポート前のデータを復元できませんでした。復元用データは保管されています。空き容量を確認してから、もう一度お試しください。",
@@ -20,7 +22,7 @@
   "travelGradientOcean": "澄んだ海",
   "travelGradientSunset": "夕焼け",
   "travelGradientForest": "森の小道",
-  "appTitle": "家計簿",
+  "appTitle": "モアビ",
   "onboardingTitle": "生活費の流れを一つの画面で管理できます",
   "onboardingSubtitle": "初期設定が終わると、支出記録、固定費、月次分析をすぐ始められます。",
   "homepageGreeting": "{name}さん、今月の支出の流れです。",
@@ -637,5 +639,7 @@
   "incomeCategory_pension": "年金",
   "incomeCategory_support": "給付金・手当",
   "incomeCategory_gift": "小遣い・贈与",
-  "incomeCategory_other": "その他の収入"
+  "incomeCategory_other": "その他の収入",
+  "adPrivacyOptions": "広告のプライバシー設定",
+  "adPrivacyOptionsError": "広告のプライバシー設定を開けません。しばらくしてからもう一度お試しください。"
 }

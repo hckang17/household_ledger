@@ -54,6 +54,7 @@ dependencies:
   flutter_local_notifications: ^22.0.1
   flutter_timezone: ^5.1.0
   timezone: ^0.11.1
+  google_mobile_ads: ^9.1.0
 
 dev_dependencies:
   flutter_test:
@@ -117,5 +118,5 @@ flutter:
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/image/Houseledger_logo.png"
+  image_path: "assets/image/moabi_logo.png"
   remove_alpha_ios: true

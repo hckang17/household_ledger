@@ -12,21 +12,21 @@
 
 | 우선순위 | 현재 상태 | 해야 할 일 |
 |---|---|---|
-| 필수 | `applicationId`와 `namespace`가 `com.example.household_ledger` | 소유한 고유 패키지명으로 변경한다. 예: `com.yourbrand.householdledger` |
+| 확인 | `applicationId`와 `namespace`가 `com.moabi.householdledger` | 모아비 패키지명 반영 완료. 첫 업로드 전 Play Console에서 사용 가능 여부를 확인한다. |
 | 필수 | release 빌드가 `debug` signing config 사용 | 업로드 키를 만들고 release signing config를 분리한다. 디버그 키로는 Play 출시가 불가능하다. |
 | 필수 | 개인정보처리방침 없음 | 공개 HTTPS 웹페이지를 만들고 앱 내부에도 링크 또는 본문을 제공한다. PDF, 비공개 문서, 수정 가능한 공개 문서는 피한다. |
 | 필수 | Play Store용 소개 문구·스크린샷·feature graphic 없음 | 한국어/일본어 스토어 등록정보와 그래픽을 준비한다. |
 | 확인 | `version: 1.0.0+1` | 첫 출시 번호로 사용할 수 있으나, 이미 같은 `versionCode`를 업로드한 적이 있다면 `+2` 이상으로 올린다. |
 | 양호 | `compileSdk = 36`, 현재 Flutter 기본 `targetSdkVersion = 36` | 현재 신규 앱 최소 요건인 API 35 이상을 만족한다. 제출 시 Play Console 경고로 다시 확인한다. |
 | 양호 | 프로덕션 manifest에 별도 민감 권한 없음 | 최종 AAB의 병합 manifest와 Data safety 답변이 일치하는지 재확인한다. |
-| 양호 | 원본 로고 `assets/image/Houseledger_logo.png`가 1024×1024 | 런처 아이콘과 별도로 Play Store용 512×512 PNG를 제작할 수 있다. |
+| 양호 | 원본 로고 `assets/image/moabi_logo.png`가 1254×1254 | 런처 아이콘과 별도로 Play Store용 512×512 PNG를 제작할 수 있다. |
 
 패키지명은 첫 artifact를 Play Console에 올린 뒤에는 사실상 앱의 영구 식별자가 된다. 임시 패키지명으로 먼저 업로드하지 않는다.
 
 ## 1. 출시 범위 결정
 
-- [ ] 앱 이름을 확정한다. 현재 Android 표시 이름은 한국어 `가계부`, 일본어 `家計簿`다.
-- [ ] 고유 패키지명을 확정한다. 소유한 도메인이 있으면 역도메인 형식을 권장한다.
+- [x] 앱 이름을 확정한다. 현재 Android 표시 이름은 한국어 `모아비`, 일본어 `モアビ`다.
+- [x] 패키지명을 `com.moabi.householdledger`로 설정했다. Play Console 사용 가능 여부는 첫 업로드 전에 확인한다.
 - [ ] 첫 출시 국가를 정한다. 현재 지원 언어와 통화를 고려하면 한국·일본부터 시작하는 편이 관리하기 쉽다.
 - [ ] 가격을 `무료`로 할지 확정한다. 현재 광고, 인앱 상품, 구독 기능은 없다.
 - [ ] 대상 사용자를 성인 중심으로 정한다. 특별히 아동을 대상으로 설계한 앱이 아니라면 아동 연령대를 마케팅 대상으로 선택하지 않는다.
@@ -36,8 +36,8 @@
 
 ### 2.1 패키지명 변경
 
-- [ ] `android/app/build.gradle.kts`의 `namespace`와 `applicationId`를 새 패키지명으로 변경한다.
-- [ ] `android/app/src/main/kotlin/com/example/household_ledger/MainActivity.kt`의 package 선언과 폴더 경로를 함께 변경한다.
+- [x] `android/app/build.gradle.kts`의 `namespace`와 `applicationId`를 새 패키지명으로 변경한다.
+- [x] `android/app/src/main/kotlin/com/moabi/householdledger/MainActivity.kt`의 package 선언과 폴더 경로를 함께 변경한다.
 - [ ] `com.example...`가 남아 있지 않은지 검색한다.
 - [ ] 변경 후 기존 설치본과 별개의 앱으로 설치되는 것이 의도한 결과인지 확인한다.
 
@@ -64,7 +64,7 @@ Google Play 신규 앱은 Play App Signing을 사용한다. 로컬에서는 업�
 - [ ] keystore 파일과 암호를 소스 저장소 밖의 안전한 위치 두 곳 이상에 백업한다.
 - [ ] `android/key.properties` 같은 별도 파일에서 암호와 키 경로를 읽도록 설정한다.
 - [ ] keystore 및 `key.properties`가 `.gitignore`에 포함됐는지 확인한다.
-- [ ] `android/app/build.gradle.kts`의 release build가 `signingConfigs.getByName("debug")`를 사용하지 않도록 바꾼다.
+- [x] `android/app/build.gradle.kts`의 release build가 `signingConfigs.getByName("debug")`를 사용하지 않도록 바꾼다.
 - [ ] Play Console 첫 업로드 과정에서 Play App Signing에 등록한다.
 
 예시 명령은 다음과 같다. 별칭과 유효기간은 프로젝트 정책에 맞게 정한다.

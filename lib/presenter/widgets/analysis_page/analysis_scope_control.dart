@@ -17,7 +17,7 @@ class AnalysisScopeControl extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BootstrapSectionCard(
-      padding: const EdgeInsets.all(10),
+      padding: const EdgeInsets.all(8),
       child: LayoutBuilder(
         builder: (BuildContext context, BoxConstraints constraints) {
           final bool vertical =
@@ -26,6 +26,12 @@ class AnalysisScopeControl extends StatelessWidget {
           return SizedBox(
             width: double.infinity,
             child: SegmentedButton<bool>(
+              style: SegmentedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+              ),
               direction: vertical ? Axis.vertical : Axis.horizontal,
               expandedInsets: vertical ? null : EdgeInsets.zero,
               showSelectedIcon: false,

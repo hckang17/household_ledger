@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/presenter/pages/expense_page/analysis_page.dart';
 import 'package:household_ledger/presenter/pages/sub_page/data_managing_page.dart';
+import 'package:household_ledger/presenter/pages/sub_page/deep_analysis_page.dart';
 import 'package:household_ledger/presenter/pages/sub_page/export_data_page.dart';
 import 'package:household_ledger/presenter/pages/sub_page/generating_report_page.dart';
 import 'package:household_ledger/presenter/pages/expense_page/expense_management_page.dart';
@@ -63,6 +64,9 @@ class AppRouter {
   /// 분석 라우트 이름을 정의한다.
   static const String analysisRoute = '/analysis';
 
+  /// 소비내역 심층 분석 화면의 라우트 이름이다.
+  static const String deepAnalysisRoute = '/deep-analysis';
+
   /// 가계부 데이터 추출 라우트 이름을 정의한다.
   static const String exportDataRoute = '/export-data';
 
@@ -117,6 +121,8 @@ class AppRouter {
           AnalysisPage(initialTravelId: initialTravelId),
           settings,
         );
+      case deepAnalysisRoute:
+        return _buildRoute(const DeepAnalysisPage(), settings);
       case exportDataRoute:
         return _buildRoute(const ExportDataPage(), settings);
       case importDataRoute:

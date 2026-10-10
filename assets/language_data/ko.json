@@ -1,4 +1,6 @@
 {
+  "deepAnalysisTitle": "소비내역 심층분석",
+  "deepAnalysisComingSoon": "심층 분석을 준비하고 있어요.",
   "importPreviewCounts": "지출 {expenses}건 · 고정지출 {fixed}건 · 수입 {incomes}건\n여행 {trips}건 · 태그 {tags}개",
   "importPreviewReplaceMessage": "현재 지출·고정지출·수입·여행·태그와 환경설정을 이 백업으로 교체합니다. 백업에 0건인 항목은 현재 기록도 비워집니다. 계속할까요?",
   "importRecoveryMessage": "중단된 가져오기의 이전 데이터를 복구하지 못했습니다. 복구본은 보관되어 있습니다. 저장 공간을 확인한 후 다시 시도해주세요.",
@@ -20,7 +22,7 @@
   "travelGradientOcean": "맑은 바다",
   "travelGradientSunset": "노을빛",
   "travelGradientForest": "숲길",
-  "appTitle": "가계부",
+  "appTitle": "모아비",
   "onboardingTitle": "생활비 흐름을 한 화면에서 관리하세요",
   "onboardingSubtitle": "초기 설정을 마치면 소비 기록, 고정지출, 월별 분석을 바로 시작할 수 있습니다.",
   "homepageGreeting": "{name}님, 이번 달 소비 흐름입니다.",
@@ -646,5 +648,7 @@
   "incomeCategory_pension": "연금",
   "incomeCategory_support": "지원금·수당",
   "incomeCategory_gift": "용돈·선물",
-  "incomeCategory_other": "기타 수입"
+  "incomeCategory_other": "기타 수입",
+  "adPrivacyOptions": "광고 개인정보 설정",
+  "adPrivacyOptionsError": "광고 개인정보 설정을 열 수 없습니다. 잠시 후 다시 시도해 주세요."
 }

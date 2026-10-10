@@ -156,7 +156,7 @@ class AnalysisPeriodControlCard extends StatelessWidget {
         child: GestureDetector(
           onTap: () => _showModeMenu(btnCtx),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             decoration: BoxDecoration(
               color: Colors.grey.shade100,
               borderRadius: BorderRadius.circular(10),
@@ -186,14 +186,14 @@ class AnalysisPeriodControlCard extends StatelessWidget {
     return LayoutBuilder(
       builder: (BuildContext context, BoxConstraints constraints) {
         final bool stackControls =
-            constraints.maxWidth < 360 ||
+            constraints.maxWidth < 240 ||
             MediaQuery.textScalerOf(context).scale(14) > 18;
         if (stackControls) {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: <Widget>[
               modeButton,
-              const SizedBox(height: 8),
+              const SizedBox(height: 6),
               navigation,
             ],
           );
@@ -201,7 +201,7 @@ class AnalysisPeriodControlCard extends StatelessWidget {
         return Row(
           children: <Widget>[
             modeButton,
-            const SizedBox(width: 12),
+            const SizedBox(width: 8),
             Expanded(child: navigation),
           ],
         );
@@ -246,7 +246,7 @@ class AnalysisPeriodControlCard extends StatelessWidget {
       Expanded(
         child: OutlinedButton.icon(
           style: OutlinedButton.styleFrom(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
             ),
@@ -276,12 +276,18 @@ class AnalysisPeriodControlCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BootstrapSectionCard(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       child: Column(
         children: <Widget>[
           SizedBox(
             width: double.infinity,
             child: SegmentedButton<bool>(
+              style: SegmentedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+              ),
               expandedInsets: EdgeInsets.zero,
               selected: <bool>{showExpense},
               segments: <ButtonSegment<bool>>[
@@ -299,7 +305,7 @@ class AnalysisPeriodControlCard extends StatelessWidget {
               onSelectionChanged: (Set<bool> val) => onTabChanged(val.first),
             ),
           ),
-          const SizedBox(height: 14),
+          const SizedBox(height: 8),
           _buildPeriodHeader(context),
           const SizedBox(height: 4),
           Text(
