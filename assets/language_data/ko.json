@@ -688,5 +688,15 @@
   "deepTransport": "교통",
   "deepHousing": "주거",
   "deepTelecom": "통신",
-  "deepSubscription": "구독"
+  "deepSubscription": "구독",
+  "forecastTitle": "이번 달 누적 지출과 월말 예상",
+  "forecastCumulativeSpending": "누적 소비금액",
+  "forecastActual": "오늘까지 누적",
+  "forecastAverage": "일평균 지출",
+  "forecastRemaining": "남은 기간 예상 지출",
+  "forecastMonthEnd": "월말 예상 누적",
+  "forecastLegend": "실선: 실제 누적 · 점선: 예상 누적 (가로축: 일)",
+  "forecastEstimate": "예상 누적",
+  "forecastExplanation": "오늘까지 누적 ÷ 오늘을 포함한 경과 일수(무지출일 포함)로 일평균을 계산합니다. 같은 소비 속도가 이어진다고 가정한 참고용 예상이며, 고정지출과 미래 날짜의 입력 내역은 제외합니다. 오늘 입력이 끝나지 않았거나 월초에는 오차가 클 수 있습니다.",
+  "forecastNoSpending": "오늘까지 기록된 지출이 없어 예상액은 0입니다."
 }

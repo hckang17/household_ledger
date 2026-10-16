@@ -3,6 +3,7 @@
 // """ 계산: FoodAnalysisProvider가 제공한 결과만 화면에 연결 """
 
 import 'package:fl_chart/fl_chart.dart';
+import 'package:household_ledger/presenter/widgets/analysis_page/analysis_forecast_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/features/analysis/calculators/analysis_series_calculator.dart';
@@ -761,6 +762,17 @@ class _AnalysisExpenseTabSectionState
             ),
           ),
         if (dailySpots.isNotEmpty) const SizedBox(height: 16),
+
+        AnalysisForecastCard(
+          input: (
+            expenses: expenses,
+            selectedMonth: widget.chartRangeStart,
+            usingRange: widget.usingRange,
+            today: DateTime.now(),
+          ),
+          strings: widget.strings,
+          currency: widget.currency,
+        ),
 
         if (sections.isEmpty)
           Center(

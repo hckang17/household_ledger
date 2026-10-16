@@ -679,5 +679,15 @@
   "deepTransport": "交通",
   "deepHousing": "住居",
   "deepTelecom": "通信",
-  "deepSubscription": "サブスク"
+  "deepSubscription": "サブスク",
+  "forecastTitle": "今月の累計支出と月末予測",
+  "forecastCumulativeSpending": "累計支出額",
+  "forecastActual": "今日までの累計",
+  "forecastAverage": "1日平均の支出",
+  "forecastRemaining": "残り期間の予想支出",
+  "forecastMonthEnd": "月末の予想累計",
+  "forecastLegend": "実線：実績累計・点線：予想累計（横軸：日）",
+  "forecastEstimate": "予想累計",
+  "forecastExplanation": "今日までの累計 ÷ 今日を含む経過日数（支出のない日も含む）で1日平均を計算します。同じペースが続くと仮定した参考値で、固定費と未来の日付の記録は除きます。今日の入力が未完了の場合や月初は誤差が大きくなることがあります。",
+  "forecastNoSpending": "今日までの支出記録がないため、予想額は0です。"
 }
