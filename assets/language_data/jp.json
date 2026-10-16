@@ -682,12 +682,16 @@
   "deepSubscription": "サブスク",
   "forecastTitle": "今月の累計支出と月末予測",
   "forecastCumulativeSpending": "累計支出額",
-  "forecastActual": "今日までの累計",
-  "forecastAverage": "1日平均の支出",
+  "forecastActual": "今日までの累計（固定費込み）",
+  "forecastAverage": "1日平均の支出（固定費を除く）",
+  "forecastFixed": "含まれる月の固定費",
+  "forecastBudget": "今月の予算",
+  "forecastBudgetLoading": "今月の予算を読み込んでいます。",
+  "forecastBudgetError": "今月の予算を読み込めませんでした。",
   "forecastRemaining": "残り期間の予想支出",
   "forecastMonthEnd": "月末の予想累計",
-  "forecastLegend": "実線：実績累計・点線：予想累計（横軸：日）",
+  "forecastLegend": "実線：累計支出・点線：予想累計（固定費込み、横軸：日）",
   "forecastEstimate": "予想累計",
-  "forecastExplanation": "今日までの累計 ÷ 今日を含む経過日数（支出のない日も含む）で1日平均を計算します。同じペースが続くと仮定した参考値で、固定費と未来の日付の記録は除きます。今日の入力が未完了の場合や月初は誤差が大きくなることがあります。",
-  "forecastNoSpending": "今日までの支出記録がないため、予想額は0です。"
+  "forecastExplanation": "1日平均は今日までの通常支出 ÷ 今日を含む経過日数（支出のない日も含む）です。月の固定費は支払日にかかわらず各累計に一度加算し、1日平均と残り期間の予想支出には含めません。未来の日付の通常支出は除きます。予算は今月の収入があれば収入合計、なければ設定予算です。同じペースを仮定した参考値のため、月初や今日の入力が未完了の場合は誤差が大きくなることがあります。",
+  "forecastNoSpending": "今日までの通常支出がないため追加の予想支出は0で、予想累計には月の固定費のみ反映されます。"
 }

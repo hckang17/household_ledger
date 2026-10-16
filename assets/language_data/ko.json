@@ -691,12 +691,16 @@
   "deepSubscription": "구독",
   "forecastTitle": "이번 달 누적 지출과 월말 예상",
   "forecastCumulativeSpending": "누적 소비금액",
-  "forecastActual": "오늘까지 누적",
-  "forecastAverage": "일평균 지출",
+  "forecastActual": "오늘까지 누적 (고정 포함)",
+  "forecastAverage": "일평균 지출 (고정 제외)",
+  "forecastFixed": "포함된 월 고정지출",
+  "forecastBudget": "이번 달 예산",
+  "forecastBudgetLoading": "이번 달 예산을 불러오는 중입니다.",
+  "forecastBudgetError": "이번 달 예산을 불러오지 못했습니다.",
   "forecastRemaining": "남은 기간 예상 지출",
   "forecastMonthEnd": "월말 예상 누적",
-  "forecastLegend": "실선: 실제 누적 · 점선: 예상 누적 (가로축: 일)",
+  "forecastLegend": "실선: 누적 지출 · 점선: 예상 누적 (고정지출 포함, 가로축: 일)",
   "forecastEstimate": "예상 누적",
-  "forecastExplanation": "오늘까지 누적 ÷ 오늘을 포함한 경과 일수(무지출일 포함)로 일평균을 계산합니다. 같은 소비 속도가 이어진다고 가정한 참고용 예상이며, 고정지출과 미래 날짜의 입력 내역은 제외합니다. 오늘 입력이 끝나지 않았거나 월초에는 오차가 클 수 있습니다.",
-  "forecastNoSpending": "오늘까지 기록된 지출이 없어 예상액은 0입니다."
+  "forecastExplanation": "일평균은 오늘까지 일반 지출 ÷ 오늘 포함 경과 일수(무지출일 포함)입니다. 월 고정지출은 결제일과 무관하게 모든 누적값에 한 번 더하며, 일평균과 남은 기간 예상 지출에는 포함하지 않습니다. 미래 날짜의 일반 지출은 제외합니다. 예산은 이번 달 수입이 있으면 수입 합계, 없으면 설정 예산입니다. 같은 소비 속도를 가정한 참고용 예상으로, 월초나 오늘 입력이 미완료이면 오차가 클 수 있습니다.",
+  "forecastNoSpending": "오늘까지 일반 지출이 없어 추가 예상 지출은 0이며, 누적 예상액에는 월 고정지출만 반영됩니다."
 }

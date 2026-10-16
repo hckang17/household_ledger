@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:household_ledger/model/expense_entry.dart';
+import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/presenter/widgets/analysis_page/analysis_forecast_card.dart';
 
 void main() {
@@ -25,6 +26,8 @@ void main() {
           int month = 1,
           int day = 3,
           int amount = 0,
+          int fixedAmount = 0,
+          AsyncValue<int> budget = const AsyncData(0),
         }) async {
           await tester.pumpWidget(
             ProviderScope(
@@ -36,7 +39,16 @@ void main() {
                     ),
                     child: SingleChildScrollView(
                       child: AnalysisForecastCard(
+                        monthlyBudget: budget,
                         input: (
+                          fixedExpenses: [
+                            FixedExpense.create(
+                              appliedAt: DateTime(2026, 1),
+                              categoryCode: 'L',
+                              description: '',
+                              amount: fixedAmount,
+                            ),
+                          ],
                           expenses: amount == 0
                               ? <ExpenseEntry>[]
                               : [
@@ -115,6 +127,58 @@ void main() {
         );
         await pump(range: true);
         expect(find.byType(LineChart), findsNothing);
+        await pump(
+          amount: 300,
+          fixedAmount: 1000,
+          budget: const AsyncData(100000),
+        );
+        final budgetChart = tester
+            .widget<LineChart>(find.byType(LineChart))
+            .data;
+        expect(budgetChart.extraLinesData.horizontalLines.single.y, 100000);
+        expect(
+          budgetChart.extraLinesData.horizontalLines.single.strokeWidth,
+          3,
+        );
+        expect(budgetChart.maxY, greaterThan(100000));
+        expect(
+          budgetChart.showingTooltipIndicators.single.showingSpots.single.y,
+          1300,
+        );
+        await pump(amount: 300, budget: const AsyncData(50));
+        expect(
+          tester
+              .widget<LineChart>(find.byType(LineChart))
+              .data
+              .extraLinesData
+              .horizontalLines
+              .single
+              .y,
+          50,
+        );
+        await pump(budget: const AsyncLoading());
+        expect(find.text(strings['forecastBudgetLoading']!), findsOneWidget);
+        expect(
+          tester
+              .widget<LineChart>(find.byType(LineChart))
+              .data
+              .extraLinesData
+              .horizontalLines,
+          isEmpty,
+        );
+        await pump(
+          budget: AsyncError(StateError('budget failed'), StackTrace.empty),
+        );
+        expect(find.text(strings['forecastBudgetError']!), findsOneWidget);
+        await pump();
+        expect(
+          tester
+              .widget<LineChart>(find.byType(LineChart))
+              .data
+              .extraLinesData
+              .horizontalLines,
+          isEmpty,
+        );
         await pump(month: 12);
         expect(find.byType(LineChart), findsNothing);
       },

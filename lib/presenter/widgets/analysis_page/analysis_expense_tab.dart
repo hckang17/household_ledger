@@ -31,6 +31,7 @@ class AnalysisExpenseTabSection extends ConsumerStatefulWidget {
     required this.expenses,
     required this.prevCategoryExpenses,
     required this.monthlyFixed,
+    required this.monthlyBudget,
     required this.categoryTags,
     required this.subcategoryTags,
     required this.diningOccasionTags,
@@ -48,6 +49,7 @@ class AnalysisExpenseTabSection extends ConsumerStatefulWidget {
   final List<ExpenseEntry> expenses;
   final List<ExpenseEntry> prevCategoryExpenses;
   final List<FixedExpense> monthlyFixed;
+  final AsyncValue<int> monthlyBudget;
   final List<MetadataTag> categoryTags;
   final List<MetadataTag> subcategoryTags;
   final List<MetadataTag> diningOccasionTags;
@@ -764,8 +766,10 @@ class _AnalysisExpenseTabSectionState
         if (dailySpots.isNotEmpty) const SizedBox(height: 16),
 
         AnalysisForecastCard(
+          monthlyBudget: widget.monthlyBudget,
           input: (
             expenses: expenses,
+            fixedExpenses: widget.monthlyFixed,
             selectedMonth: widget.chartRangeStart,
             usingRange: widget.usingRange,
             today: DateTime.now(),

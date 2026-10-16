@@ -1,5 +1,6 @@
 import 'package:household_ledger/features/analysis/calculators/monthly_spending_forecast_calculator.dart';
 import 'package:household_ledger/model/expense_entry.dart';
+import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:test/test.dart';
 
 ExpenseEntry expense(DateTime date, int amount) => ExpenseEntry.create(
@@ -11,6 +12,87 @@ ExpenseEntry expense(DateTime date, int amount) => ExpenseEntry.create(
 
 void main() {
   const calculator = MonthlySpendingForecastCalculator();
+  test(
+    'Fixed spending offsets every point without changing average or slope',
+    () {
+      final month = DateTime(2026, 1);
+      final entries = [expense(month, 300)];
+      final base = calculator.calculate(
+        expenses: entries,
+        selectedMonth: month,
+        usingRange: false,
+        today: DateTime(2026, 1, 3),
+      )!;
+      final result = calculator.calculate(
+        expenses: entries,
+        fixedExpenses: [
+          FixedExpense.create(
+            appliedAt: month,
+            categoryCode: 'L',
+            description: '',
+            amount: 1000,
+          ),
+          FixedExpense.create(
+            appliedAt: month,
+            categoryCode: 'L',
+            description: '',
+            amount: 500,
+          ),
+          FixedExpense.create(
+            appliedAt: DateTime(2025, 12),
+            categoryCode: 'L',
+            description: '',
+            amount: 9999,
+          ),
+          FixedExpense.create(
+            appliedAt: DateTime(2027, 1),
+            categoryCode: 'L',
+            description: '',
+            amount: 9999,
+          ),
+        ],
+        selectedMonth: month,
+        usingRange: false,
+        today: DateTime(2026, 1, 3),
+      )!;
+      expect(result.fixedAmount, 1500);
+      expect(result.variableAmount, 300);
+      expect(result.dailyAverage, base.dailyAverage);
+      expect(result.remainingAmount, base.remainingAmount);
+      expect(
+        result.actual.map((p) => p.amount),
+        base.actual.map((p) => p.amount + 1500),
+      );
+      expect(
+        result.projected.map((p) => p.amount),
+        base.projected.map((p) => p.amount + 1500),
+      );
+      expect(result.monthEndAmount, base.monthEndAmount + 1500);
+    },
+  );
+  test('Fixed-only month stays flat including the last day', () {
+    for (final day in [1, 15, 31]) {
+      final result = calculator.calculate(
+        expenses: [],
+        fixedExpenses: [
+          FixedExpense.create(
+            appliedAt: DateTime(2026, 1),
+            categoryCode: 'L',
+            description: '',
+            amount: 500,
+          ),
+        ],
+        selectedMonth: DateTime(2026, 1),
+        usingRange: false,
+        today: DateTime(2026, 1, day),
+      )!;
+      expect(result.dailyAverage, 0);
+      expect(result.remainingAmount, 0);
+      expect(result.monthEndAmount, 500);
+      expect(result.actual.every((p) => p.amount == 500), isTrue);
+      expect(result.projected.every((p) => p.amount == 500), isTrue);
+    }
+  });
   test(
     'Includes zero-spend days and today, excludes other months and future days',
     () {

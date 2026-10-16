@@ -2,9 +2,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/features/analysis/calculators/monthly_spending_forecast_calculator.dart';
 import 'package:household_ledger/features/analysis/models/monthly_spending_forecast.dart';
 import 'package:household_ledger/model/expense_entry.dart';
+import 'package:household_ledger/model/fixed_expense.dart';
 
 typedef MonthlySpendingForecastInput = ({
   List<ExpenseEntry> expenses,
+  List<FixedExpense> fixedExpenses,
   DateTime selectedMonth,
   bool usingRange,
   DateTime today,
@@ -18,6 +20,7 @@ final monthlySpendingForecastProvider = Provider.autoDispose
     ) {
       return const MonthlySpendingForecastCalculator().calculate(
         expenses: input.expenses,
+        fixedExpenses: input.fixedExpenses,
         selectedMonth: input.selectedMonth,
         usingRange: input.usingRange,
         today: input.today,

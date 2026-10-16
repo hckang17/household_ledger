@@ -13,12 +13,14 @@ class AnalysisForecastCard extends ConsumerWidget {
     required this.input,
     required this.strings,
     required this.currency,
+    this.monthlyBudget = const AsyncData(0),
     super.key,
   });
 
   final MonthlySpendingForecastInput input;
   final Map<String, String> strings;
   final String currency;
+  final AsyncValue<int> monthlyBudget;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -26,6 +28,9 @@ class AnalysisForecastCard extends ConsumerWidget {
     if (result == null) return const SizedBox.shrink();
     final actualColor = Theme.of(context).colorScheme.primary;
     const forecastColor = Color(0xFFB56000);
+    const budgetColor = Color(0xFF21805B);
+    // 예산 로딩/실패를 0원으로 오인하지 않고 확인된 양수 예산만 그린다.
+    final budget = monthlyBudget.asData?.value;
     String money(int amount) => '${amount.toCurrency()}$currency';
     final compactAmount = NumberFormat.compact(
       locale:
@@ -35,7 +40,8 @@ class AnalysisForecastCard extends ConsumerWidget {
           : 'ko',
     );
     // 금액 크기와 무관하게 네 구간의 읽기 쉬운 눈금을 만든다.
-    final targetStep = math.max(result.monthEndAmount, 100) / 3;
+    final targetStep =
+        math.max(math.max(result.monthEndAmount, budget ?? 0), 100) / 3;
     final magnitude = math
         .pow(10, (math.log(targetStep) / math.ln10).floor())
         .toDouble();
@@ -82,6 +88,7 @@ class AnalysisForecastCard extends ConsumerWidget {
             const SizedBox(height: 12),
             for (final metric in <(String, int)>[
               ('forecastActual', result.accumulatedAmount),
+              ('forecastFixed', result.fixedAmount),
               ('forecastAverage', result.dailyAverage),
               ('forecastRemaining', result.remainingAmount),
               ('forecastMonthEnd', result.monthEndAmount),
@@ -100,6 +107,26 @@ class AnalysisForecastCard extends ConsumerWidget {
                 ),
               ),
             Text(strings['forecastLegend']!),
+            monthlyBudget.when(
+              loading: () => Text(strings['forecastBudgetLoading']!),
+              error: (_, _) => Text(strings['forecastBudgetError']!),
+              data: (amount) => amount > 0
+                  ? Wrap(
+                      spacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Container(width: 24, height: 3, color: budgetColor),
+                        Text(
+                          '${strings['forecastBudget']!} ${money(amount)}',
+                          style: const TextStyle(
+                            color: budgetColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            ),
             const SizedBox(height: 16),
             SizedBox(
               height: 260,
@@ -115,6 +142,14 @@ class AnalysisForecastCard extends ConsumerWidget {
                     ]),
                   ],
                   extraLinesData: ExtraLinesData(
+                    horizontalLines: [
+                      if (budget != null && budget > 0)
+                        HorizontalLine(
+                          y: budget.toDouble(),
+                          color: budgetColor,
+                          strokeWidth: 3,
+                        ),
+                    ],
                     verticalLines: [
                       VerticalLine(
                         x: todayX,
@@ -229,7 +264,7 @@ class AnalysisForecastCard extends ConsumerWidget {
               strings['forecastExplanation']!,
               style: Theme.of(context).textTheme.bodySmall,
             ),
-            if (result.accumulatedAmount == 0)
+            if (result.variableAmount == 0)
               Text(
                 strings['forecastNoSpending']!,
                 style: Theme.of(context).textTheme.bodySmall,

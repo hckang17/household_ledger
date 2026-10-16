@@ -463,6 +463,15 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
                         expenses: expenses,
                         prevCategoryExpenses: prevCategoryExpenses,
                         monthlyFixed: monthlyFixed,
+                        monthlyBudget: incomesAsync.whenData((incomes) {
+                          final incomeTotal = incomes.fold<int>(
+                            0,
+                            (sum, entry) => sum + entry.amount,
+                          );
+                          return incomeTotal > 0
+                              ? incomeTotal
+                              : ledger.settings.monthlyBudget;
+                        }),
                         categoryTags: categoryTags,
                         subcategoryTags: subcategoryTags,
                         diningOccasionTags: diningOccasionTags,
