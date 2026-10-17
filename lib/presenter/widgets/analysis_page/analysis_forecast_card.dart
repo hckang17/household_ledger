@@ -1,3 +1,4 @@
+import 'package:household_ledger/features/analysis/models/monthly_spending_forecast.dart';
 import 'dart:math' as math;
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
@@ -25,6 +26,35 @@ class AnalysisForecastCard extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final result = ref.watch(monthlySpendingForecastProvider(input));
+    return AnalysisForecastView(
+      result: result,
+      input: input,
+      strings: strings,
+      currency: currency,
+      monthlyBudget: monthlyBudget,
+    );
+  }
+}
+
+/// Renders a prepared forecast without re-running its calculation.
+class AnalysisForecastView extends StatelessWidget {
+  const AnalysisForecastView({
+    required this.result,
+    required this.input,
+    required this.strings,
+    required this.currency,
+    required this.monthlyBudget,
+    super.key,
+  });
+  final MonthlySpendingForecast? result;
+  final MonthlySpendingForecastInput input;
+  final Map<String, String> strings;
+  final String currency;
+  final AsyncValue<int> monthlyBudget;
+
+  @override
+  Widget build(BuildContext context) {
+    final result = this.result;
     if (result == null) return const SizedBox.shrink();
     final actualColor = Theme.of(context).colorScheme.primary;
     const forecastColor = Color(0xFFB56000);

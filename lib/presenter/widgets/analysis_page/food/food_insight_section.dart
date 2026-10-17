@@ -176,7 +176,7 @@ class FoodInsightSection extends StatelessWidget {
           addButtonLabel: _text('analysisAddExpenseAction', '소비내역 입력하기'),
           onAddExpense: onAddExpense,
         ),
-      ],
+      ].map((child) => RepaintBoundary(child: child)).toList(),
     );
   }
 }

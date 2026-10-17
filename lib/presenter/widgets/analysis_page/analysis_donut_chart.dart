@@ -190,6 +190,7 @@ class AnalysisDonutChart extends StatelessWidget {
                 );
               }).toList(),
             ),
+            duration: Duration.zero,
           ),
 
           /// 도넛 중앙에 선택된 카테고리 이름과 비율을 오버레이로 표시하는 영역이다.

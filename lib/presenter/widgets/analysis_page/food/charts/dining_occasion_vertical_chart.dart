@@ -123,7 +123,7 @@ class _AnimatedVerticalBar extends StatelessWidget {
       width: 17,
       child: TweenAnimationBuilder<double>(
         tween: Tween<double>(begin: 0, end: fraction),
-        duration: const Duration(milliseconds: 650),
+        duration: Duration.zero,
         curve: Curves.easeOutCubic,
         builder:
             (BuildContext context, double animatedFraction, Widget? child) {

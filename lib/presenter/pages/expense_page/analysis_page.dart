@@ -3,9 +3,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:household_ledger/provider/prepared_expense_analysis_provider.dart';
+import 'package:household_ledger/features/analysis/models/prepared_expense_analysis.dart';
+import 'package:household_ledger/presenter/widgets/analysis_page/analysis_processing_state.dart';
 import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';
 import 'package:household_ledger/model/expense_entry.dart';
-import 'package:household_ledger/model/fixed_expense.dart';
 import 'package:household_ledger/model/income_entry.dart';
 import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
@@ -222,9 +224,21 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
   @override
   Widget build(BuildContext context) {
     final Map<String, String> strings = ref.watch(localizedStringsProvider);
-    final ledger = ref.watch(ledgerProvider).asData?.value;
+    final ledgerAsync = ref.watch(ledgerProvider);
+    final ledger = ledgerAsync.asData?.value;
     if (ledger == null) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+      return Scaffold(
+        body: SafeArea(
+          child: SingleChildScrollView(
+            child: AnalysisProcessingState(
+              strings: strings,
+              onRetry: ledgerAsync.hasError
+                  ? () => ref.invalidate(ledgerProvider)
+                  : null,
+            ),
+          ),
+        ),
+      );
     }
 
     final String localeCode = ledger.settings.localeCode;
@@ -283,33 +297,10 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
     final bool usingRange =
         _periodMode == _PeriodMode.range && _selectedRange != null;
 
-    final ExpenseRangeQuery? rangeQuery = usingRange
-        ? ExpenseRangeQuery(
-            start: _selectedRange!.start,
-            endInclusive: _selectedRange!.end,
-          )
-        : null;
-
-    final AsyncValue<List<ExpenseEntry>> expensesAsync = usingRange
-        ? ref.watch(rangeExpensesProvider(rangeQuery!))
-        : ref.watch(monthlyExpensesProvider(_selectedMonth));
-
     final ExpenseRangeQuery analysisPrevQuery = _computeAnalysisPrevQuery();
-    final List<ExpenseEntry> prevCategoryExpenses =
-        ref.watch(rangeExpensesProvider(analysisPrevQuery)).value ??
-        const <ExpenseEntry>[];
-
-    final AsyncValue<List<IncomeEntry>> incomesAsync = ref.watch(
-      monthlyIncomesProvider(_selectedMonth),
-    );
-
-    final List<FixedExpense> monthlyFixed = ledger.fixedExpenses
-        .where(
-          (FixedExpense f) =>
-              f.appliedAt.year == _selectedMonth.year &&
-              f.appliedAt.month == _selectedMonth.month,
-        )
-        .toList();
+    final AsyncValue<List<IncomeEntry>> incomesAsync = _showExpense
+        ? const AsyncLoading()
+        : ref.watch(monthlyIncomesProvider(_selectedMonth));
 
     final String periodSubtitle = usingRange
         ? _formatRange(localeCode, _selectedRange!)
@@ -330,6 +321,19 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
           : DateTime(_selectedMonth.year, _selectedMonth.month + 1, 0);
     }
 
+    final now = DateTime.now();
+    final query = (
+      start: chartRangeStart,
+      end: DateTime(chartRangeEnd.year, chartRangeEnd.month, chartRangeEnd.day),
+      previousStart: analysisPrevQuery.start,
+      previousEnd: analysisPrevQuery.endInclusive,
+      today: DateTime(now.year, now.month, now.day),
+      usingRange: usingRange,
+    );
+    final analysisAsync = _showExpense
+        ? ref.watch(preparedExpenseAnalysisProvider(query))
+        : const AsyncLoading<PreparedExpenseAnalysis>();
+
     // 기간이 바뀌면 탭 섹션 위젯의 상태(차트 모드, 터치 인덱스)를 초기화한다.
     final String periodKey = usingRange
         ? '${_selectedRange!.start}-${_selectedRange!.end}'
@@ -343,7 +347,9 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
 
     ref.listen(currentNavTabProvider, (_, tab) {
       if (tab == 1 &&
-          ref.read(tutorialProvider).phase == TutorialPhase.analysis) {
+          ref.read(tutorialProvider).phase == TutorialPhase.analysis &&
+          !analysisAsync.isLoading &&
+          analysisAsync.hasValue) {
         _showcase.reset();
         _maybeStartShowcase();
       }
@@ -351,7 +357,10 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
 
     Widget buildInner(BuildContext showcaseCtx) {
       _showcase.bind(showcaseCtx);
-      _maybeStartShowcase();
+      if (!_showExpense ||
+          (!analysisAsync.isLoading && analysisAsync.hasValue)) {
+        _maybeStartShowcase();
+      }
 
       final page = BootstrapPage(
         title: _text(strings, 'analysis', '지출 분석'),
@@ -420,11 +429,14 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
               const SizedBox(height: 10),
 
               // ── 전월동기 비교 안내 배너 (지출 탭에서만 표시) ──
-              if (_showExpense)
+              if (_showExpense &&
+                  !analysisAsync.isLoading &&
+                  analysisAsync.hasValue)
                 _buildComparisonBanner(
                   strings: strings,
-                  expensesAsync: expensesAsync,
-                  prevCategoryExpenses: prevCategoryExpenses,
+                  expensesAsync: AsyncData(analysisAsync.requireValue.expenses),
+                  prevCategoryExpenses:
+                      analysisAsync.requireValue.previousExpenses,
                   analysisPrevQuery: analysisPrevQuery,
                 ),
 
@@ -453,25 +465,18 @@ class _AnalysisPageState extends ConsumerState<AnalysisPage> {
 
               // ── 지출 탭 ──
               if (_showExpense)
-                expensesAsync.when(
-                  loading: () =>
-                      const Center(child: CircularProgressIndicator()),
-                  error: (Object e, _) => Center(child: Text(e.toString())),
-                  data: (List<ExpenseEntry> expenses) =>
+                analysisAsync.when(
+                  skipLoadingOnRefresh: false,
+                  skipLoadingOnReload: false,
+                  loading: () => AnalysisProcessingState(strings: strings),
+                  error: (Object e, _) => AnalysisProcessingState(
+                    strings: strings,
+                    onRetry: () => retryExpenseAnalysis(ref, query),
+                  ),
+                  data: (PreparedExpenseAnalysis analysis) =>
                       AnalysisExpenseTabSection(
                         key: ValueKey('expense-$periodKey'),
-                        expenses: expenses,
-                        prevCategoryExpenses: prevCategoryExpenses,
-                        monthlyFixed: monthlyFixed,
-                        monthlyBudget: incomesAsync.whenData((incomes) {
-                          final incomeTotal = incomes.fold<int>(
-                            0,
-                            (sum, entry) => sum + entry.amount,
-                          );
-                          return incomeTotal > 0
-                              ? incomeTotal
-                              : ledger.settings.monthlyBudget;
-                        }),
+                        analysis: analysis,
                         categoryTags: categoryTags,
                         subcategoryTags: subcategoryTags,
                         diningOccasionTags: diningOccasionTags,
