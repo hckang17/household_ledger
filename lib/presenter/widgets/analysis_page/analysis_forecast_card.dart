@@ -81,51 +81,32 @@ class AnalysisForecastCard extends ConsumerWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              strings['forecastTitle']!,
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 12),
-            for (final metric in <(String, int)>[
-              ('forecastActual', result.accumulatedAmount),
-              ('forecastFixed', result.fixedAmount),
-              ('forecastAverage', result.dailyAverage),
-              ('forecastRemaining', result.remainingAmount),
-              ('forecastMonthEnd', result.monthEndAmount),
-            ])
-              Padding(
-                padding: const EdgeInsets.only(bottom: 8),
-                child: Wrap(
-                  spacing: 12,
-                  children: [
-                    Text(strings[metric.$1]!),
-                    Text(
-                      money(metric.$2),
-                      style: const TextStyle(fontWeight: FontWeight.w700),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    strings['forecastTitle']!,
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
                     ),
-                  ],
+                  ),
                 ),
-              ),
-            Text(strings['forecastLegend']!),
-            monthlyBudget.when(
-              loading: () => Text(strings['forecastBudgetLoading']!),
-              error: (_, _) => Text(strings['forecastBudgetError']!),
-              data: (amount) => amount > 0
-                  ? Wrap(
-                      spacing: 8,
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      children: [
-                        Container(width: 24, height: 3, color: budgetColor),
-                        Text(
-                          '${strings['forecastBudget']!} ${money(amount)}',
-                          style: const TextStyle(
-                            color: budgetColor,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    )
-                  : const SizedBox.shrink(),
+                Tooltip(
+                  message: [
+                    strings['forecastExplanation']!,
+                    if (result.variableAmount == 0)
+                      strings['forecastNoSpending']!,
+                  ].join('\n\n'),
+                  triggerMode: TooltipTriggerMode.tap,
+                  child: const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: Icon(
+                      Icons.help_outline_rounded,
+                      color: Color(0xFF627D98),
+                    ),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: 16),
             SizedBox(
@@ -259,16 +240,48 @@ class AnalysisForecastCard extends ConsumerWidget {
                 duration: Duration.zero,
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              strings['forecastExplanation']!,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-            if (result.variableAmount == 0)
-              Text(
-                strings['forecastNoSpending']!,
-                style: Theme.of(context).textTheme.bodySmall,
+            const SizedBox(height: 16),
+            for (final metric in <(String, int)>[
+              ('forecastActual', result.accumulatedAmount),
+              ('forecastFixed', result.fixedAmount),
+              ('forecastAverage', result.dailyAverage),
+              ('forecastRemaining', result.remainingAmount),
+              ('forecastMonthEnd', result.monthEndAmount),
+            ])
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: Wrap(
+                  spacing: 12,
+                  children: [
+                    Text(strings[metric.$1]!),
+                    Text(
+                      money(metric.$2),
+                      style: const TextStyle(fontWeight: FontWeight.w700),
+                    ),
+                  ],
+                ),
               ),
+            Text(strings['forecastLegend']!),
+            monthlyBudget.when(
+              loading: () => Text(strings['forecastBudgetLoading']!),
+              error: (_, _) => Text(strings['forecastBudgetError']!),
+              data: (amount) => amount > 0
+                  ? Wrap(
+                      spacing: 8,
+                      crossAxisAlignment: WrapCrossAlignment.center,
+                      children: [
+                        Container(width: 24, height: 3, color: budgetColor),
+                        Text(
+                          '${strings['forecastBudget']!} ${money(amount)}',
+                          style: const TextStyle(
+                            color: budgetColor,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    )
+                  : const SizedBox.shrink(),
+            ),
           ],
         ),
       ),

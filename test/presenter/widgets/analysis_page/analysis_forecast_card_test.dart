@@ -77,7 +77,40 @@ void main() {
         }
 
         await pump();
-        expect(find.text(strings['forecastNoSpending']!), findsOneWidget);
+        expect(find.text(strings['forecastNoSpending']!), findsNothing);
+        expect(find.text(strings['forecastExplanation']!), findsNothing);
+        expect(
+          tester
+              .widget<Text>(find.text(strings['forecastTitle']!))
+              .style
+              ?.fontWeight,
+          FontWeight.w700,
+        );
+        for (final key in [
+          'forecastActual',
+          'forecastFixed',
+          'forecastAverage',
+          'forecastRemaining',
+          'forecastMonthEnd',
+          'forecastLegend',
+        ]) {
+          expect(
+            tester.getTopLeft(find.text(strings[key]!)).dy,
+            greaterThanOrEqualTo(
+              tester.getBottomLeft(find.byType(LineChart)).dy,
+            ),
+          );
+        }
+        await tester.tap(find.byIcon(Icons.help_outline_rounded));
+        await tester.pumpAndSettle();
+        expect(
+          find.text(
+            '${strings['forecastExplanation']}\n\n${strings['forecastNoSpending']}',
+          ),
+          findsOneWidget,
+        );
+        Tooltip.dismissAllToolTips();
+        await tester.pumpAndSettle();
         final chart = tester.widget<LineChart>(find.byType(LineChart)).data;
         expect(chart.lineBarsData[0].dashArray, isNull);
         expect(chart.lineBarsData[1].dashArray, [6, 4]);
