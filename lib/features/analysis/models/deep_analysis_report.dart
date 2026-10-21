@@ -12,11 +12,13 @@ class DeepAnalysisReport {
     required this.largeExpenses,
     required this.fixedBreakdown,
     this.isDemo = false,
+    this.asOf,
   });
   final DateTime month;
   final int total, fixedTotal, withoutTop;
   final double fixedShare, topShare;
   final bool isDemo;
+  final DateTime? asOf;
   final List<DeepAnalysisBaseline> baselines;
   final List<DeepAnalysisMonth> trend;
   final List<DeepAnalysisItem> largeExpenses, fixedBreakdown;
@@ -47,12 +49,15 @@ class DeepAnalysisMonth {
 class DeepAnalysisItem {
   const DeepAnalysisItem({
     this.label = '',
+    this.categoryCode,
+    this.recordId,
     this.labelKey,
     required this.amount,
     this.share = 0,
     this.date,
   });
   final String label;
+  final String? categoryCode, recordId;
   final String? labelKey;
   final int amount;
   final double share;

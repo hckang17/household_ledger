@@ -12,14 +12,24 @@ import 'package:household_ledger/presenter/pages/expense_page/analysis_page.dart
 import 'package:household_ledger/presenter/widgets/analysis_page/analysis_donut_chart.dart';
 import 'package:household_ledger/presenter/widgets/analysis_page/analysis_expense_tab.dart';
 import 'package:household_ledger/presenter/widgets/analysis_page/analysis_forecast_card.dart';
+import 'package:household_ledger/presenter/widgets/analysis_page/analysis_period_control_card.dart';
 import 'package:household_ledger/provider/ledger_provider.dart';
 import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/provider/prepared_expense_analysis_provider.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
 class FakeLedger extends LedgerNotifier {
+  FakeLedger([this.language = 'ko']);
+
+  final String language;
+
   @override
-  Future<LedgerState> build() async => LedgerState.initial();
+  Future<LedgerState> build() async {
+    final initial = LedgerState.initial();
+    return initial.copyWith(
+      settings: initial.settings.copyWith(localeCode: language),
+    );
+  }
 }
 
 void main() {
@@ -45,7 +55,7 @@ void main() {
         final container = ProviderContainer(
           retry: (_, _) => null,
           overrides: [
-            ledgerProvider.overrideWith(FakeLedger.new),
+            ledgerProvider.overrideWith(() => FakeLedger(language)),
             localizedStringsProvider.overrideWithValue(strings),
             monthlyExpensesProvider.overrideWith(
               (ref, month) async => [
@@ -124,5 +134,58 @@ void main() {
         expect(tester.takeException(), isNull);
       },
     );
+    testWidgets('$language: empty page, year boundary and leap month', (
+      tester,
+    ) async {
+      tester.view.physicalSize = const Size(320, 640);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.resetPhysicalSize);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      final requests = <ExpenseAnalysisRequest>[];
+      await tester.pumpWidget(
+        ProviderScope(
+          overrides: [
+            ledgerProvider.overrideWith(() => FakeLedger(language)),
+            localizedStringsProvider.overrideWithValue(strings),
+            monthlyExpensesProvider.overrideWith((ref, month) async => []),
+            rangeExpensesProvider.overrideWith((ref, query) async => []),
+            monthlyIncomesProvider.overrideWith((ref, month) async => []),
+            expenseAnalysisRunnerProvider.overrideWithValue((input) async {
+              requests.add(input);
+              return prepareExpenseAnalysis(input);
+            }),
+          ],
+          child: MaterialApp(
+            home: MediaQuery(
+              data: const MediaQueryData(textScaler: TextScaler.linear(1.3)),
+              child: const AnalysisPage(),
+            ),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      expect(find.text(strings['analysisNoCurrMonthData']!), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      AnalysisPeriodControlCard controls() =>
+          tester.widget(find.byType(AnalysisPeriodControlCard));
+      expect(controls().localeCode, language);
+      controls().onMonthChanged(DateTime(2024, 1));
+      await tester.pumpAndSettle();
+      expect(requests.last.start, DateTime(2024, 1));
+      expect(requests.last.previousStart, DateTime(2023, 12));
+      await tester.tap(find.byIcon(Icons.chevron_right));
+      await tester.pumpAndSettle();
+      expect(requests.last.start, DateTime(2024, 2));
+      expect(requests.last.end, DateTime(2024, 2, 29));
+      expect(find.text('02.01 - 02.29'), findsOneWidget);
+      expect(find.text(strings['analysisNoCurrMonthData']!), findsOneWidget);
+      await tester.drag(
+        find.byType(SingleChildScrollView).first,
+        const Offset(0, -1400),
+      );
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
   }
 }

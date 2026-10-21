@@ -1,3 +1,5 @@
+import '../../../support/deep_analysis_fixture.dart';
+import 'package:household_ledger/features/analysis/calculators/deep_analysis_calculator.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
@@ -96,22 +98,37 @@ void main() {
   testWidgets('loading, failure and retry preserve async states', (
     tester,
   ) async {
-    final pending = Completer<DeepAnalysisReport>();
+    final pending = Completer<DeepAnalysisSnapshot>();
     var attempts = 0;
     await tester.pumpWidget(
       ProviderScope(
         overrides: [
           localizedStringsProvider.overrideWithValue(strings('ko')),
-          deepAnalysisProvider.overrideWith((ref) {
+          deepAnalysisLoaderProvider.overrideWithValue((month, today) {
             attempts++;
             return attempts == 1
                 ? pending.future
-                : Future.value(deepAnalysisPreview);
+                : Future<DeepAnalysisSnapshot>.value((
+                    input: (
+                      month: month,
+                      today: today,
+                      expenses: <Never>[],
+                      fixedExpenses: <Never>[],
+                    ),
+                    labels: <String, String>{},
+                  ));
           }),
+          deepAnalysisRunnerProvider.overrideWithValue(
+            (DeepAnalysisInput input) async => deepAnalysisPreview,
+          ),
         ],
         child: const MaterialApp(home: DeepAnalysisPage()),
       ),
     );
+    expect(attempts, 0);
+    expect(find.byType(DeepAnalysisDashboard), findsNothing);
+    await tester.tap(find.text(strings('ko')['deepGenerate']!));
+    await tester.pump();
     expect(find.byType(CircularProgressIndicator), findsOneWidget);
     pending.completeError(StateError('test failure'));
     await tester.pumpAndSettle();

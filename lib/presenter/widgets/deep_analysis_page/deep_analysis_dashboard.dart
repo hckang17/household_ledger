@@ -1,3 +1,4 @@
+import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:flutter/material.dart';
 import 'package:household_ledger/features/analysis/models/deep_analysis_report.dart';
 import 'package:household_ledger/presenter/extensions/currency_extension.dart';
@@ -8,10 +9,12 @@ class DeepAnalysisDashboard extends StatefulWidget {
   const DeepAnalysisDashboard({
     required this.report,
     required this.strings,
+    this.categoryLabels = const {},
     super.key,
   });
   final DeepAnalysisReport report;
   final Map<String, String> strings;
+  final Map<String, String> categoryLabels;
   @override
   State<DeepAnalysisDashboard> createState() => _DeepAnalysisDashboardState();
 }
@@ -21,8 +24,17 @@ class _DeepAnalysisDashboardState extends State<DeepAnalysisDashboard> {
   String t(String key) => widget.strings[key] ?? '';
   String money(int value) => '${value.toCurrency()} ${t('currencyUnit')}';
   String period(int n) => t('deepMonths').replaceAll('{months}', '$n');
-  String label(DeepAnalysisItem item) =>
-      item.labelKey == null ? item.label : t(item.labelKey!);
+  String label(DeepAnalysisItem item) {
+    final code = item.categoryCode;
+    if (code == '__fixed__') return t('deepFixed');
+    if (code != null) {
+      final key =
+          systemMetadataTagLocalizationKeys[MetadataTagType.category]?[code];
+      return key == null ? (widget.categoryLabels[code] ?? code) : t(key);
+    }
+    return item.labelKey == null ? item.label : t(item.labelKey!);
+  }
+
   String signed(int n) =>
       '${n > 0
           ? '+'
@@ -42,10 +54,17 @@ class _DeepAnalysisDashboardState extends State<DeepAnalysisDashboard> {
       );
     }
     final baseline = report.baselines.firstWhere(
-      (b) => b.months == _months,
-      orElse: () => report.baselines.first,
+      (b) => b.months == _months && b.average != null,
+      orElse: () => report.baselines.firstWhere(
+        (b) => b.average != null,
+        orElse: () => report.baselines.first,
+      ),
     );
     final available = baseline.average != null;
+    final maximumChange = baseline.changes.fold<int>(
+      1,
+      (v, e) => e.amount.abs() > v ? e.amount.abs() : v,
+    );
     final cards = <Widget>[
       DeepCard(
         number: '01',
@@ -80,10 +99,7 @@ class _DeepAnalysisDashboardState extends State<DeepAnalysisDashboard> {
                     const SizedBox(height: 7),
                     DeepDivergingBar(
                       value: item.amount,
-                      maximum: baseline.changes.fold<int>(
-                        1,
-                        (v, e) => e.amount.abs() > v ? e.amount.abs() : v,
-                      ),
+                      maximum: maximumChange,
                     ),
                   ],
                 ),
@@ -131,7 +147,7 @@ class _DeepAnalysisDashboardState extends State<DeepAnalysisDashboard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              '${report.topShare}%',
+              '${report.topShare.toStringAsFixed(1)}%',
               style: const TextStyle(
                 fontSize: 36,
                 fontWeight: FontWeight.w800,
@@ -195,7 +211,9 @@ class _DeepAnalysisDashboardState extends State<DeepAnalysisDashboard> {
             ),
             const SizedBox(height: 8),
             Text(
-              t('deepFixedShare').replaceAll('{share}', '${report.fixedShare}'),
+              t(
+                'deepFixedShare',
+              ).replaceAll('{share}', report.fixedShare.toStringAsFixed(1)),
               style: deepMutedStyle,
             ),
             const SizedBox(height: 20),
@@ -232,6 +250,27 @@ class _DeepAnalysisDashboardState extends State<DeepAnalysisDashboard> {
         ),
       ),
     ];
+    for (var i = 0; i < cards.length; i++) {
+      final card = cards[i];
+      cards[i] = TweenAnimationBuilder<double>(
+        key: ValueKey('reveal-$i'),
+        tween: Tween(begin: 0, end: 1),
+        duration: MediaQuery.disableAnimationsOf(context)
+            ? Duration.zero
+            : Duration(milliseconds: 300 + i * 90),
+        builder: (context, value, child) {
+          final progress = ((value - i * .08) / (1 - i * .08)).clamp(0.0, 1.0);
+          return Opacity(
+            opacity: progress,
+            child: Transform.translate(
+              offset: Offset(0, 12 * (1 - progress)),
+              child: child,
+            ),
+          );
+        },
+        child: card,
+      );
+    }
     return SingleChildScrollView(
       child: Center(
         child: ConstrainedBox(
@@ -362,8 +401,18 @@ class _DeepAnalysisDashboardState extends State<DeepAnalysisDashboard> {
                   },
                 ),
                 const SizedBox(height: 8),
-                if (report.isDemo)
-                  Text(t('deepHistoryNote'), style: deepMutedStyle),
+                Text(
+                  t(report.isDemo ? 'deepHistoryNote' : 'deepObservedHistory'),
+                  style: deepMutedStyle,
+                ),
+                if (report.asOf != null)
+                  Text(
+                    t('deepPartialNote').replaceAll(
+                      '{date}',
+                      '${report.asOf!.year}.${report.asOf!.month}.${report.asOf!.day}',
+                    ),
+                    style: deepMutedStyle,
+                  ),
                 const SizedBox(height: 24),
                 LayoutBuilder(
                   builder: (context, box) {

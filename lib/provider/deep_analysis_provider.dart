@@ -1,88 +1,103 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:household_ledger/features/analysis/calculators/deep_analysis_calculator.dart';
 import 'package:household_ledger/features/analysis/models/deep_analysis_report.dart';
+import 'package:household_ledger/model/metadata_tag.dart';
+import 'ledger_provider.dart';
 
-/// UI 검토용 가공 결과만 공급한다. DB에 예시 기록을 쓰지 않는다.
-/// 실제 집계 연결 시 공급원을 교체하고 화면의 결과 계약을 유지한다.
-final deepAnalysisProvider = FutureProvider<DeepAnalysisReport>(
-  (ref) async => deepAnalysisPreview,
+typedef DeepAnalysisSnapshot = ({
+  DeepAnalysisInput input,
+  Map<String, String> labels,
+});
+typedef DeepAnalysisLoader =
+    Future<DeepAnalysisSnapshot> Function(DateTime month, DateTime today);
+
+/// Fresh reads on explicit generation avoid retaining stale cached reports after
+/// edits/imports. No reads occur merely by entering the page.
+final deepAnalysisLoaderProvider = Provider<DeepAnalysisLoader>(
+  (ref) => (month, today) async {
+    final start = DateTime(month.year, month.month - 12);
+    final end = DateTime(month.year, month.month + 1);
+    final (expenses, fixed, ledger) = await (
+      ref
+          .read(expenseDatabaseServiceProvider)
+          .loadExpensesByRange(start: start, endExclusive: end),
+      ref
+          .read(fixedExpenseDatabaseServiceProvider)
+          .loadFixedExpensesByRange(start: start, endExclusive: end),
+      ref.read(ledgerProvider.future),
+    ).wait;
+    return (
+      input: (
+        month: month,
+        today: today,
+        expenses: expenses,
+        fixedExpenses: fixed,
+      ),
+      labels: {
+        for (final tag in ledger.tagsByType(MetadataTagType.category))
+          tag.code: tag.label,
+      },
+    );
+  },
+);
+final deepAnalysisRunnerProvider =
+    Provider<Future<DeepAnalysisReport> Function(DeepAnalysisInput)>(
+      (ref) =>
+          (input) => compute(
+            calculateDeepAnalysis,
+            input,
+            debugLabel: 'deep-analysis',
+          ),
+    );
+final deepAnalysisClockProvider = Provider<DateTime Function()>(
+  (ref) => DateTime.now,
 );
 
-final deepAnalysisPreview = DeepAnalysisReport(
-  month: DateTime(2026, 9),
-  total: 1480000,
-  fixedTotal: 420000,
-  fixedShare: 28.4,
-  topShare: 27.7,
-  withoutTop: 1070000,
-  isDemo: true,
-  baselines: const [
-    DeepAnalysisBaseline(
-      months: 1,
-      average: 1360000,
-      difference: 120000,
-      fixedAverage: 400000,
-      changes: [
-        DeepAnalysisItem(labelKey: 'deepHousehold', amount: 90000),
-        DeepAnalysisItem(labelKey: 'deepFood', amount: 60000),
-        DeepAnalysisItem(labelKey: 'deepFixed', amount: 20000),
-        DeepAnalysisItem(labelKey: 'deepTransport', amount: -50000),
-      ],
-    ),
-    DeepAnalysisBaseline(
-      months: 3,
-      average: 1320000,
-      difference: 160000,
-      fixedAverage: 400000,
-      changes: [
-        DeepAnalysisItem(labelKey: 'deepHousehold', amount: 110000),
-        DeepAnalysisItem(labelKey: 'deepFood', amount: 70000),
-        DeepAnalysisItem(labelKey: 'deepFixed', amount: 20000),
-        DeepAnalysisItem(labelKey: 'deepTransport', amount: -40000),
-      ],
-    ),
-    DeepAnalysisBaseline(
-      months: 6,
-      average: 1290000,
-      difference: 190000,
-      fixedAverage: 390000,
-      changes: [
-        DeepAnalysisItem(labelKey: 'deepHousehold', amount: 130000),
-        DeepAnalysisItem(labelKey: 'deepFood', amount: 70000),
-        DeepAnalysisItem(labelKey: 'deepFixed', amount: 30000),
-        DeepAnalysisItem(labelKey: 'deepTransport', amount: -40000),
-      ],
-    ),
-    DeepAnalysisBaseline(months: 12),
-  ],
-  trend: [
-    DeepAnalysisMonth(DateTime(2026, 3), 1180000),
-    DeepAnalysisMonth(DateTime(2026, 4), 1280000),
-    DeepAnalysisMonth(DateTime(2026, 5), 1320000),
-    DeepAnalysisMonth(DateTime(2026, 6), 1260000),
-    DeepAnalysisMonth(DateTime(2026, 7), 1340000),
-    DeepAnalysisMonth(DateTime(2026, 8), 1360000),
-    DeepAnalysisMonth(DateTime(2026, 9), 1480000),
-  ],
-  largeExpenses: [
-    DeepAnalysisItem(
-      label: 'IKEA',
-      amount: 180000,
-      date: DateTime(2026, 9, 12),
-    ),
-    DeepAnalysisItem(
-      label: 'COSTCO',
-      amount: 135000,
-      date: DateTime(2026, 9, 19),
-    ),
-    DeepAnalysisItem(
-      label: 'UNIQLO',
-      amount: 95000,
-      date: DateTime(2026, 9, 24),
-    ),
-  ],
-  fixedBreakdown: const [
-    DeepAnalysisItem(labelKey: 'deepHousing', amount: 300000, share: 71.4),
-    DeepAnalysisItem(labelKey: 'deepTelecom', amount: 70000, share: 16.7),
-    DeepAnalysisItem(labelKey: 'deepSubscription', amount: 50000, share: 11.9),
-  ],
-);
+/// A generated report is a snapshot, never relabelled by the pending month picker.
+class DeepAnalysisGeneration {
+  const DeepAnalysisGeneration({
+    this.report,
+    this.labels = const {},
+    this.calculating = false,
+  });
+  final DeepAnalysisReport? report;
+  final Map<String, String> labels;
+  final bool calculating;
+}
+
+final deepAnalysisProvider =
+    AsyncNotifierProvider.autoDispose<
+      DeepAnalysisNotifier,
+      DeepAnalysisGeneration
+    >(DeepAnalysisNotifier.new);
+
+class DeepAnalysisNotifier extends AsyncNotifier<DeepAnalysisGeneration> {
+  int _run = 0;
+  @override
+  DeepAnalysisGeneration build() => const DeepAnalysisGeneration();
+
+  Future<void> generate(DateTime selected) async {
+    final run = ++_run;
+    final month = DateTime(selected.year, selected.month);
+    final today = ref.read(deepAnalysisClockProvider)();
+    final loader = ref.read(deepAnalysisLoaderProvider);
+    final runner = ref.read(deepAnalysisRunnerProvider);
+    state = const AsyncLoading();
+    try {
+      final snapshot = await loader(month, today);
+      if (!ref.mounted || run != _run) return;
+      state = const AsyncData(DeepAnalysisGeneration(calculating: true));
+      final report = await runner(snapshot.input);
+      if (!ref.mounted || run != _run) return;
+      state = AsyncData(
+        DeepAnalysisGeneration(
+          report: report,
+          labels: Map.unmodifiable(snapshot.labels),
+        ),
+      );
+    } catch (error, stack) {
+      if (ref.mounted && run == _run) state = AsyncError(error, stack);
+    }
+  }
+}
