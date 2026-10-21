@@ -131,7 +131,7 @@ class AnalysisAnimatedGauge extends StatelessWidget {
   Widget build(BuildContext context) {
     return TweenAnimationBuilder<double>(
       tween: Tween<double>(begin: 0, end: value),
-      duration: const Duration(milliseconds: 700),
+      duration: Duration.zero,
       curve: Curves.easeOutCubic,
       builder: (BuildContext context, double animatedValue, Widget? child) {
         return ClipRRect(
@@ -398,7 +398,7 @@ class _AnimatedBarLine extends StatelessWidget {
                 begin: 0,
                 end: fraction.clamp(0.0, 1.0).toDouble(),
               ),
-              duration: const Duration(milliseconds: 650),
+              duration: Duration.zero,
               curve: Curves.easeOutCubic,
               builder:
                   (

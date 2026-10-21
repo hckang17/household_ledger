@@ -1,11 +1,11 @@
 // """ MVVM 계층: View / analysis_page """
 // """ 역할: 지출 분석 탭의 차트, 카드, 상세 화면을 조합 """
-// """ 계산: FoodAnalysisProvider가 제공한 결과만 화면에 연결 """
+// """ 계산: 준비된 분석 스냅샷을 화면에 연결하며 터치는 차트만 갱신 """
 
 import 'package:fl_chart/fl_chart.dart';
+import 'package:household_ledger/presenter/widgets/analysis_page/analysis_forecast_card.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:household_ledger/features/analysis/calculators/analysis_series_calculator.dart';
 import 'package:household_ledger/presenter/widgets/analysis_page/food/food_insight_section.dart';
 import 'package:household_ledger/model/expense_entry.dart';
 import 'package:household_ledger/model/fixed_expense.dart';
@@ -15,7 +15,7 @@ import 'package:household_ledger/presenter/extensions/currency_extension.dart';
 import 'package:household_ledger/presenter/widgets/analysis_page/analysis_chart_helpers.dart';
 import 'package:household_ledger/presenter/widgets/analysis_page/analysis_daily_chart.dart';
 import 'package:household_ledger/presenter/widgets/analysis_page/analysis_donut_chart.dart';
-import 'package:household_ledger/provider/food_analysis_provider.dart';
+import 'package:household_ledger/features/analysis/models/prepared_expense_analysis.dart';
 import 'package:intl/intl.dart';
 
 /// 도넛 캐러샐의 슬라이드 종류를 정의한다.
@@ -25,11 +25,9 @@ enum AnalysisChartMode { category, subcategory, diningOccasion, paymentMethod }
 ///
 /// 도넛 차트 캐러샐·섹션 목록·고정지출 바·일별 추이를 포함한다.
 /// 캐러샐 모드와 터치 인덱스는 위젯이 내부적으로 관리한다.
-class AnalysisExpenseTabSection extends ConsumerStatefulWidget {
+class AnalysisExpenseTabSection extends StatefulWidget {
   const AnalysisExpenseTabSection({
-    required this.expenses,
-    required this.prevCategoryExpenses,
-    required this.monthlyFixed,
+    required this.analysis,
     required this.categoryTags,
     required this.subcategoryTags,
     required this.diningOccasionTags,
@@ -44,9 +42,7 @@ class AnalysisExpenseTabSection extends ConsumerStatefulWidget {
     super.key,
   });
 
-  final List<ExpenseEntry> expenses;
-  final List<ExpenseEntry> prevCategoryExpenses;
-  final List<FixedExpense> monthlyFixed;
+  final PreparedExpenseAnalysis analysis;
   final List<MetadataTag> categoryTags;
   final List<MetadataTag> subcategoryTags;
   final List<MetadataTag> diningOccasionTags;
@@ -60,14 +56,20 @@ class AnalysisExpenseTabSection extends ConsumerStatefulWidget {
   final VoidCallback onAddExpense;
 
   @override
-  ConsumerState<AnalysisExpenseTabSection> createState() =>
+  State<AnalysisExpenseTabSection> createState() =>
       _AnalysisExpenseTabSectionState();
 }
 
-class _AnalysisExpenseTabSectionState
-    extends ConsumerState<AnalysisExpenseTabSection> {
+class _AnalysisExpenseTabSectionState extends State<AnalysisExpenseTabSection> {
   AnalysisChartMode _chartMode = AnalysisChartMode.category;
-  int _touchedIndex = -1;
+  final ValueNotifier<int> _touchedIndex = ValueNotifier(-1);
+
+  @override
+  void dispose() {
+    _touchedIndex.dispose();
+    super.dispose();
+  }
+
   final GlobalKey _fixedSectionKey = GlobalKey();
 
   // ─── 헬퍼 ────────────────────────────────────────────────────────
@@ -78,7 +80,7 @@ class _AnalysisExpenseTabSectionState
   // ─── 캐러샐 내비게이션 ────────────────────────────────────────────
 
   void _prevChart() => setState(() {
-    _touchedIndex = -1;
+    _touchedIndex.value = -1;
     _chartMode = switch (_chartMode) {
       AnalysisChartMode.category => AnalysisChartMode.paymentMethod,
       AnalysisChartMode.subcategory => AnalysisChartMode.category,
@@ -88,7 +90,7 @@ class _AnalysisExpenseTabSectionState
   });
 
   void _nextChart() => setState(() {
-    _touchedIndex = -1;
+    _touchedIndex.value = -1;
     _chartMode = switch (_chartMode) {
       AnalysisChartMode.category => AnalysisChartMode.subcategory,
       AnalysisChartMode.subcategory => AnalysisChartMode.diningOccasion,
@@ -144,25 +146,7 @@ class _AnalysisExpenseTabSectionState
     required int totalAmount,
   }) {
     return FoodInsightSection(
-      result: ref.watch(
-        foodAnalysisProvider(
-          FoodAnalysisInput(
-            expenses: expenses,
-            previousExpenses: widget.prevCategoryExpenses,
-            activeFixedExpenses: activeFixed,
-            totalAmount: totalAmount,
-            periodDays:
-                widget.chartRangeEnd
-                    .difference(widget.chartRangeStart)
-                    .inDays
-                    .abs() +
-                1,
-            diningOccasionCodes: widget.diningOccasionTags.map(
-              (MetadataTag tag) => tag.code,
-            ),
-          ),
-        ),
-      ),
+      result: widget.analysis.food,
       diningOccasionTags: widget.diningOccasionTags,
       strings: widget.strings,
       currency: widget.currency,
@@ -525,14 +509,14 @@ class _AnalysisExpenseTabSectionState
 
   @override
   Widget build(BuildContext context) {
-    const calculator = AnalysisSeriesCalculator();
-    final List<ExpenseEntry> expenses = widget.expenses;
+    final analysis = widget.analysis;
+    final List<ExpenseEntry> expenses = widget.analysis.expenses;
     final List<FixedExpense> activeFixed = !widget.usingRange
-        ? widget.monthlyFixed
+        ? widget.analysis.fixedExpenses
         : const <FixedExpense>[];
 
-    final int expenseTotal = calculator.expenseTotal(expenses);
-    final int fixedTotal = calculator.fixedExpenseTotal(activeFixed);
+    final int expenseTotal = analysis.expenseTotal;
+    final int fixedTotal = analysis.fixedTotal;
     final int totalAmount = expenseTotal + fixedTotal;
 
     final int chartDisplayTotal = _chartMode == AnalysisChartMode.category
@@ -541,12 +525,13 @@ class _AnalysisExpenseTabSectionState
 
     final List<ExpenseEntry> prevExpenses =
         _chartMode == AnalysisChartMode.category
-        ? widget.prevCategoryExpenses
+        ? widget.analysis.previousExpenses
         : const <ExpenseEntry>[];
-    final Map<String, int> prevCategoryTotals = calculator.categoryTotals(
-      prevExpenses,
-    );
-    final int prevExpensesTotal = calculator.expenseTotal(prevExpenses);
+    final Map<String, int> prevCategoryTotals =
+        _chartMode == AnalysisChartMode.category
+        ? analysis.previousCategoryTotals
+        : const {};
+    final int prevExpensesTotal = analysis.previousTotal;
 
     String? totalDiffText;
     Color? totalDiffColor;
@@ -560,38 +545,24 @@ class _AnalysisExpenseTabSectionState
           : const Color(0xFF198754);
     }
 
-    final List<DonutSection> sections = switch (_chartMode) {
-      AnalysisChartMode.category => buildCategoryDonutSections(
-        expenses,
-        widget.categoryTags,
-        activeFixed,
-        _text('fixedExpenseCategoryLabel', '고정지출'),
-      ),
-      AnalysisChartMode.subcategory => buildSubcategoryDonutSections(
-        expenses,
-        widget.subcategoryTags,
-      ),
-      AnalysisChartMode.diningOccasion => buildDiningOccasionDonutSections(
-        expenses,
-        widget.diningOccasionTags,
-      ),
-      AnalysisChartMode.paymentMethod => buildPaymentDonutSections(
-        expenses,
-        widget.paymentTags,
-      ),
-    };
-
-    final List<FlSpot> dailySpots = buildDailyExpenseSpots(
-      expenses,
-      widget.chartRangeStart,
+    final sections = toAnalysisDonutSections(
+      switch (_chartMode) {
+        AnalysisChartMode.category => analysis.category,
+        AnalysisChartMode.subcategory => analysis.subcategory,
+        AnalysisChartMode.diningOccasion => analysis.diningOccasion,
+        AnalysisChartMode.paymentMethod => analysis.paymentMethod,
+      },
+      labelOf: (code) => code == kAnalysisFixedCode
+          ? _text('fixedExpenseCategoryLabel', '')
+          : switch (_chartMode) {
+              AnalysisChartMode.category => widget.categoryTags,
+              AnalysisChartMode.subcategory => widget.subcategoryTags,
+              AnalysisChartMode.diningOccasion => widget.diningOccasionTags,
+              AnalysisChartMode.paymentMethod => widget.paymentTags,
+            }.labelFor(code),
     );
-
-    final List<FlSpot> prevDailySpots = widget.prevCategoryExpenses.isNotEmpty
-        ? buildDailyExpenseSpots(
-            widget.prevCategoryExpenses,
-            widget.prevRangeStart,
-          )
-        : const <FlSpot>[];
+    final List<FlSpot> dailySpots = toAnalysisSpots(analysis.daily);
+    final List<FlSpot> prevDailySpots = toAnalysisSpots(analysis.previousDaily);
 
     List<ExpenseEntry> filteredFor(DonutSection section) {
       final List<ExpenseEntry> list = switch (_chartMode) {
@@ -631,27 +602,29 @@ class _AnalysisExpenseTabSectionState
           child: Column(
             children: <Widget>[
               _buildCarouselHeader(),
-              AnalysisDonutChart(
-                sections: sections,
-                touchedIndex: _touchedIndex,
-                onTouchUpdate: (int index) =>
-                    setState(() => _touchedIndex = index),
-                onSectionTap: (int index) {
-                  if (index < 0 || index >= sections.length) return;
-                  final DonutSection tapped = sections[index];
-                  if (_chartMode == AnalysisChartMode.category &&
-                      tapped.categoryCode == kAnalysisFixedCode) {
-                    _scrollToFixedSection();
-                    return;
-                  }
-                  _showGroupDetail(tapped, filteredFor(tapped));
-                },
-                totalLabel: _text('analysisTotalLabel', '전체'),
-                totalAmount:
-                    '${chartDisplayTotal.toCurrency()}${widget.currency}',
-                currency: widget.currency,
-                totalDiffText: totalDiffText,
-                totalDiffColor: totalDiffColor,
+              ValueListenableBuilder<int>(
+                valueListenable: _touchedIndex,
+                builder: (context, touchedIndex, child) => AnalysisDonutChart(
+                  sections: sections,
+                  touchedIndex: touchedIndex,
+                  onTouchUpdate: (int index) => _touchedIndex.value = index,
+                  onSectionTap: (int index) {
+                    if (index < 0 || index >= sections.length) return;
+                    final DonutSection tapped = sections[index];
+                    if (_chartMode == AnalysisChartMode.category &&
+                        tapped.categoryCode == kAnalysisFixedCode) {
+                      _scrollToFixedSection();
+                      return;
+                    }
+                    _showGroupDetail(tapped, filteredFor(tapped));
+                  },
+                  totalLabel: _text('analysisTotalLabel', '전체'),
+                  totalAmount:
+                      '${chartDisplayTotal.toCurrency()}${widget.currency}',
+                  currency: widget.currency,
+                  totalDiffText: totalDiffText,
+                  totalDiffColor: totalDiffColor,
+                ),
               ),
               const SizedBox(height: 8),
               Row(
@@ -691,11 +664,9 @@ class _AnalysisExpenseTabSectionState
                     _buildSectionRow(
                       section: entry.value,
                       onRowTap: () {
-                        setState(
-                          () => _touchedIndex = _touchedIndex == entry.key
-                              ? -1
-                              : entry.key,
-                        );
+                        _touchedIndex.value = _touchedIndex.value == entry.key
+                            ? -1
+                            : entry.key;
                         if (isFixed) _scrollToFixedSection();
                       },
                       onDetailTap: () {
@@ -739,10 +710,10 @@ class _AnalysisExpenseTabSectionState
         // ── 고정지출 가로 막대 카드 (월간 모드에서만) ──
         if (!widget.usingRange)
           _buildFixedExpenseBarSection(
-            items: widget.monthlyFixed,
+            items: widget.analysis.fixedExpenses,
             totalAmount: totalAmount,
           ),
-        if (!widget.usingRange && widget.monthlyFixed.isNotEmpty)
+        if (!widget.usingRange && widget.analysis.fixedExpenses.isNotEmpty)
           const SizedBox(height: 16),
 
         // ── 일별 지출 추이 카드 ──
@@ -762,6 +733,20 @@ class _AnalysisExpenseTabSectionState
           ),
         if (dailySpots.isNotEmpty) const SizedBox(height: 16),
 
+        AnalysisForecastView(
+          result: analysis.forecast,
+          monthlyBudget: AsyncData(widget.analysis.budget),
+          input: (
+            expenses: expenses,
+            fixedExpenses: widget.analysis.fixedExpenses,
+            selectedMonth: widget.chartRangeStart,
+            usingRange: widget.usingRange,
+            today: analysis.today,
+          ),
+          strings: widget.strings,
+          currency: widget.currency,
+        ),
+
         if (sections.isEmpty)
           Center(
             child: Padding(
@@ -772,7 +757,7 @@ class _AnalysisExpenseTabSectionState
               ),
             ),
           ),
-      ],
+      ].map((child) => RepaintBoundary(child: child)).toList(),
     );
   }
 }

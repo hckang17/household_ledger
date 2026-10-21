@@ -344,6 +344,7 @@ class AnalysisDailyChart extends ConsumerWidget {
                 ),
               ),
             ),
+            duration: Duration.zero,
           ),
         ),
 

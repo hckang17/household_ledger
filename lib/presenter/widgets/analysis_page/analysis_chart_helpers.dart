@@ -20,7 +20,7 @@ List<DonutSection> buildCategoryDonutSections(
   List<MetadataTag> categoryTags,
   List<FixedExpense> fixedExpenses,
   String fixedLabel,
-) => _toDonutSections(
+) => toAnalysisDonutSections(
   const AnalysisSeriesCalculator().categoryBreakdown(
     expenses: expenses,
     fixedExpenses: fixedExpenses,
@@ -32,7 +32,7 @@ List<DonutSection> buildCategoryDonutSections(
 List<DonutSection> buildSubcategoryDonutSections(
   List<ExpenseEntry> expenses,
   List<MetadataTag> subcategoryTags,
-) => _toDonutSections(
+) => toAnalysisDonutSections(
   const AnalysisSeriesCalculator().subcategoryBreakdown(expenses),
   labelOf: subcategoryTags.labelFor,
 );
@@ -40,7 +40,7 @@ List<DonutSection> buildSubcategoryDonutSections(
 List<DonutSection> buildPaymentDonutSections(
   List<ExpenseEntry> expenses,
   List<MetadataTag> paymentTags,
-) => _toDonutSections(
+) => toAnalysisDonutSections(
   const AnalysisSeriesCalculator().paymentMethodBreakdown(expenses),
   labelOf: paymentTags.labelFor,
 );
@@ -48,7 +48,7 @@ List<DonutSection> buildPaymentDonutSections(
 List<DonutSection> buildDiningOccasionDonutSections(
   List<ExpenseEntry> expenses,
   List<MetadataTag> diningOccasionTags,
-) => _toDonutSections(
+) => toAnalysisDonutSections(
   const AnalysisSeriesCalculator().diningOccasionBreakdown(expenses),
   labelOf: diningOccasionTags.labelFor,
 );
@@ -56,18 +56,18 @@ List<DonutSection> buildDiningOccasionDonutSections(
 List<FlSpot> buildDailyExpenseSpots(
   List<ExpenseEntry> expenses,
   DateTime rangeStart,
-) => _toSpots(
+) => toAnalysisSpots(
   const AnalysisSeriesCalculator().dailyExpenses(expenses, rangeStart),
 );
 
 List<FlSpot> buildDailyIncomeSpots(
   List<IncomeEntry> incomes,
   DateTime rangeStart,
-) => _toSpots(
+) => toAnalysisSpots(
   const AnalysisSeriesCalculator().dailyIncomes(incomes, rangeStart),
 );
 
-List<DonutSection> _toDonutSections(
+List<DonutSection> toAnalysisDonutSections(
   List<AnalysisBreakdownItem> items, {
   required String Function(String code) labelOf,
 }) {
@@ -89,7 +89,7 @@ List<DonutSection> _toDonutSections(
       .toList(growable: false);
 }
 
-List<FlSpot> _toSpots(List<DailyAmountPoint> points) => points
+List<FlSpot> toAnalysisSpots(List<DailyAmountPoint> points) => points
     .map(
       (DailyAmountPoint point) =>
           FlSpot(point.dayOffset.toDouble(), point.amount.toDouble()),

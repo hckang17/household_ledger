@@ -1,8 +1,6 @@
 // """ MVVM 계층: View / Main Feature Shell """
 // """ 역할: 가계부 주기능 페이지와 하단 Navigation 상태를 조합 """
 
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/presenter/widgets/main_shell_page/main_shell_bottom_bar.dart';
@@ -32,23 +30,9 @@ class MainShellPage extends ConsumerStatefulWidget {
 
 class _MainShellPageState extends ConsumerState<MainShellPage> {
   // 최초 방문한 탭 번호를 추적한다. 홈(2)만 초기에 포함.
+  // 시간차로 다른 탭을 만들면 첫 스크롤과 무관한 레이아웃 작업이 겹친다.
+  // 방문할 때만 생성하고 이후 인스턴스와 스크롤 위치를 보관한다.
   final Set<int> _loadedTabs = {2};
-
-  @override
-  void initState() {
-    super.initState();
-    // 홈 탭이 표시된 직후 나머지 탭을 백그라운드에서 600 ms 간격으로 순차 빌드한다.
-    // 사용자가 실제로 보게 될 인스턴스를 미리 준비하므로 첫 탭 전환이 빨라진다.
-    const gap = Duration(milliseconds: 600);
-    const warmupOrder = <int>[0, 1, 3, 4]; // 수입, 분석, 지출기록, 고정지출
-    for (int i = 0; i < warmupOrder.length; i++) {
-      final int tab = warmupOrder[i];
-      Future.delayed(gap * (i + 1), () {
-        if (!mounted) return;
-        setState(() => _loadedTabs.add(tab));
-      });
-    }
-  }
 
   Widget _pageForIndex(int index) {
     switch (index) {
@@ -85,7 +69,7 @@ class _MainShellPageState extends ConsumerState<MainShellPage> {
               // 아직 방문하지 않은 탭은 빈 위젯으로 대체한다.
               return const SizedBox.shrink();
             }
-            return _pageForIndex(i);
+            return TickerMode(enabled: i == tab, child: _pageForIndex(i));
           }),
         ),
         bottomNavigationBar: const MainShellBottomBar(),
