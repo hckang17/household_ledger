@@ -10,6 +10,7 @@ import 'package:household_ledger/provider/localization_provider.dart';
 import 'package:household_ledger/provider/tutorial_provider.dart';
 import 'package:household_ledger/router/app_router.dart';
 import 'package:household_ledger/services/tutorial_service.dart';
+import 'package:household_ledger/presenter/widgets/onboarding_page/onboarding_title.dart';
 
 /// 앱 시작 시 보여줄 온보딩 화면이다.
 class OnboardingPage extends ConsumerWidget {
@@ -57,8 +58,9 @@ class OnboardingPage extends ConsumerWidget {
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: <Widget>[
-                      Text(
-                        strings['onboardingTitle'] ?? '',
+                      OnboardingTitle(
+                        text: strings['onboardingTitle'] ?? '',
+                        animate: !state.isInitialized,
                         style: Theme.of(context).textTheme.headlineMedium
                             ?.copyWith(
                               fontWeight: FontWeight.w800,
