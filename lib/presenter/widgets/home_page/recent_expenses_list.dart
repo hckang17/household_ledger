@@ -19,10 +19,14 @@ class RecentExpensesList extends StatelessWidget {
     required this.onTap,
     required this.onEdit,
     required this.onDelete,
+    this.highlightedEntryId,
+    this.highlightedAt,
     super.key,
   });
 
   final List<ExpenseEntry> entries;
+  final String? highlightedEntryId;
+  final DateTime? highlightedAt;
   final List<MetadataTag> categoryTags;
   final List<MetadataTag> subcategoryTags;
   final List<MetadataTag> paymentTags;
@@ -96,6 +100,9 @@ class RecentExpensesList extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 10),
               child: ExpenseEntryTile(
                 entry: entry,
+                highlightedAt: entry.id == highlightedEntryId
+                    ? highlightedAt
+                    : null,
                 categoryLabel: categoryTags.labelFor(entry.categoryCode),
                 categoryIcon: categoryTags.iconFor(entry.categoryCode),
                 currency: currency,

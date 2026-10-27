@@ -72,17 +72,18 @@ void main() {
     });
   }
 
-  testWidgets('shows full text for returning users and reduced motion', (
-    tester,
-  ) async {
-    await tester.pumpWidget(host('안녕하세요', animate: false));
-    expect(visibleText(tester), '안녕하세요');
-    await tester.pumpWidget(const SizedBox());
-    await tester.pumpWidget(host('こんにちは', reducedMotion: true));
-    expect(visibleText(tester), 'こんにちは');
-    await tester.pumpAndSettle();
-    expect(tester.binding.hasScheduledFrame, isFalse);
-  });
+  testWidgets(
+    'shows full text when animation is disabled or motion is reduced',
+    (tester) async {
+      await tester.pumpWidget(host('안녕하세요', animate: false));
+      expect(visibleText(tester), '안녕하세요');
+      await tester.pumpWidget(const SizedBox());
+      await tester.pumpWidget(host('こんにちは', reducedMotion: true));
+      expect(visibleText(tester), 'こんにちは');
+      await tester.pumpAndSettle();
+      expect(tester.binding.hasScheduledFrame, isFalse);
+    },
+  );
 
   testWidgets(
     'preserves graphemes and stops on preference or language changes',

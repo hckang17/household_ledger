@@ -1,5 +1,7 @@
 import 'package:household_ledger/model/metadata_tag.dart';
 import 'package:flutter/material.dart';
+import 'package:household_ledger/presenter/widgets/common/typewriter_text.dart';
+import 'package:household_ledger/presenter/widgets/common/entrance_reveal.dart';
 import 'package:household_ledger/features/analysis/models/deep_analysis_report.dart';
 import 'package:household_ledger/presenter/extensions/currency_extension.dart';
 import 'package:household_ledger/presenter/widgets/deep_analysis_page/deep_analysis_visuals.dart';
@@ -252,24 +254,7 @@ class _DeepAnalysisDashboardState extends State<DeepAnalysisDashboard> {
     ];
     for (var i = 0; i < cards.length; i++) {
       final card = cards[i];
-      cards[i] = TweenAnimationBuilder<double>(
-        key: ValueKey('reveal-$i'),
-        tween: Tween(begin: 0, end: 1),
-        duration: MediaQuery.disableAnimationsOf(context)
-            ? Duration.zero
-            : Duration(milliseconds: 300 + i * 90),
-        builder: (context, value, child) {
-          final progress = ((value - i * .08) / (1 - i * .08)).clamp(0.0, 1.0);
-          return Opacity(
-            opacity: progress,
-            child: Transform.translate(
-              offset: Offset(0, 12 * (1 - progress)),
-              child: child,
-            ),
-          );
-        },
-        child: card,
-      );
+      cards[i] = EntranceReveal(key: ValueKey('reveal-$i'), child: card);
     }
     return SingleChildScrollView(
       child: Center(
@@ -325,8 +310,9 @@ class _DeepAnalysisDashboardState extends State<DeepAnalysisDashboard> {
                         ),
                       ),
                       const SizedBox(height: 16),
-                      Text(
-                        t('deepHeroNote'),
+                      TypewriterText(
+                        text: t('deepHeroNote'),
+                        animate: true,
                         style: const TextStyle(color: Colors.white70),
                       ),
                     ],

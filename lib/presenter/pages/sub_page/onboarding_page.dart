@@ -60,7 +60,7 @@ class OnboardingPage extends ConsumerWidget {
                     children: <Widget>[
                       OnboardingTitle(
                         text: strings['onboardingTitle'] ?? '',
-                        animate: !state.isInitialized,
+                        animate: true,
                         style: Theme.of(context).textTheme.headlineMedium
                             ?.copyWith(
                               fontWeight: FontWeight.w800,

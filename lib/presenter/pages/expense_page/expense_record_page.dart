@@ -42,6 +42,17 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
   late DateTime _focusedMonth;
   bool _filterBySelectedDay = false;
 
+  String? _savedExpenseId;
+  DateTime? _savedAt;
+
+  void _onExpenseSaved(ExpenseEntry entry) {
+    if (!mounted) return;
+    setState(() {
+      _savedExpenseId = entry.id;
+      _savedAt = DateTime.now();
+    });
+  }
+
   final GlobalKey _calendarKey = GlobalKey();
   final GlobalKey _fabKey = GlobalKey();
   final TutorialShowcaseController _showcase = TutorialShowcaseController();
@@ -320,6 +331,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
           strings: strings,
           floating: true,
           onPressed: () => showExpenseEditorSheet(
+            onSaved: _onExpenseSaved,
             context: context,
             ref: ref,
             initialDate: _selectedDay,
@@ -419,6 +431,9 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
                           child: ExpenseEntryTile(
                             key: ValueKey(entry.id),
                             entry: entry,
+                            highlightedAt: entry.id == _savedExpenseId
+                                ? _savedAt
+                                : null,
                             categoryLabel: categoryTags.labelFor(
                               entry.categoryCode,
                             ),
@@ -438,6 +453,7 @@ class _ExpenseRecordPageState extends ConsumerState<ExpenseRecordPage> {
                               strings,
                             ),
                             onEdit: () => showExpenseEditorSheet(
+                              onSaved: _onExpenseSaved,
                               context: context,
                               ref: ref,
                               entry: entry,

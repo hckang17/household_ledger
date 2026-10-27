@@ -1,6 +1,7 @@
 import '../../../support/deep_analysis_fixture.dart';
 import 'package:household_ledger/features/analysis/calculators/deep_analysis_calculator.dart';
 import 'dart:async';
+import 'package:household_ledger/presenter/widgets/common/typewriter_text.dart';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:ui' as ui;
@@ -46,11 +47,25 @@ void main() {
           ),
         ),
       );
+      final introduction = find.descendant(
+        of: find.byType(TypewriterText),
+        matching: find.byType(Text),
+      );
+      String visibleIntroduction() =>
+          ((tester.widget<Text>(introduction).textSpan! as TextSpan)
+                      .children!
+                      .first
+                  as TextSpan)
+              .text!;
+      expect(visibleIntroduction(), isEmpty);
       await tester.pumpAndSettle();
+      expect(visibleIntroduction(), s['deepHeroNote']);
       expect(tester.takeException(), isNull);
       final button = find.byKey(const ValueKey('baseline-6'));
       await tester.ensureVisible(button);
       await tester.tap(button);
+      await tester.pump();
+      expect(visibleIntroduction(), s['deepHeroNote']);
       await tester.pumpAndSettle();
       expect(find.textContaining('+190,000'), findsOneWidget);
       expect(

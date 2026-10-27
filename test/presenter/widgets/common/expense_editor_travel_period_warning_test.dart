@@ -18,8 +18,10 @@ void main() {
   );
 
   testWidgets('필수 표시와 자동완성은 검증 및 저장 흐름을 유지한다', (tester) async {
+    ExpenseEntry? notified;
     final notifier = await _openEditor(
       tester,
+      onSaved: (entry) => notified = entry,
       trip: trip,
       initialDate: DateTime(2026, 9, 3),
       expenses: [
@@ -43,6 +45,7 @@ void main() {
     await tester.tap(save);
     await tester.pumpAndSettle();
     expect(notifier.saved, isNull);
+    expect(notified, isNull);
     expect(find.text('내용을 입력해주세요.'), findsOneWidget);
     expect(find.text('금액을 입력해주세요.'), findsOneWidget);
     final description = find.byType(TextField).at(1);
@@ -61,6 +64,7 @@ void main() {
     expect(notifier.saved?.description, '스타벅스');
     expect(notifier.saved?.amount, 900);
     expect(notifier.saved?.tripId, trip.id);
+    expect(notified, same(notifier.saved));
   });
 
   testWidgets('칩 선택 후 저장하면 소비구분·소구분·소비수단을 반영한다', (tester) async {
@@ -153,6 +157,7 @@ Future<_FakeLedgerNotifier> _openEditor(
   Trip? otherTrip,
   String? initialTripId,
   List<ExpenseEntry> expenses = const [],
+  ValueChanged<ExpenseEntry>? onSaved,
 }) async {
   final ledgerState = LedgerState.initial().copyWith(expenses: expenses);
   final notifier = _FakeLedgerNotifier(ledgerState);
@@ -189,6 +194,7 @@ Future<_FakeLedgerNotifier> _openEditor(
       child: MaterialApp(
         home: Scaffold(
           body: _ExpenseEditorLauncher(
+            onSaved: onSaved,
             initialDate: initialDate,
             initialTripId: initialTripId,
           ),
@@ -202,7 +208,13 @@ Future<_FakeLedgerNotifier> _openEditor(
 }
 
 class _ExpenseEditorLauncher extends ConsumerWidget {
-  const _ExpenseEditorLauncher({required this.initialDate, this.initialTripId});
+  const _ExpenseEditorLauncher({
+    required this.initialDate,
+    this.initialTripId,
+    this.onSaved,
+  });
+
+  final ValueChanged<ExpenseEntry>? onSaved;
 
   final DateTime initialDate;
   final String? initialTripId;
@@ -212,6 +224,7 @@ class _ExpenseEditorLauncher extends ConsumerWidget {
     return Center(
       child: ElevatedButton(
         onPressed: () => showExpenseEditorSheet(
+          onSaved: onSaved,
           context: context,
           ref: ref,
           initialDate: initialDate,

@@ -45,6 +45,7 @@ Future<void> showExpenseEditorSheet({
   DateTime? initialDate,
   String? initialTripId,
   TutorialExpensePreset? tutorialPreset,
+  ValueChanged<ExpenseEntry>? onSaved,
 }) async {
   final ledger = ref.read(ledgerProvider).asData?.value;
   final strings = ref.read(localizedStringsProvider);
@@ -143,6 +144,7 @@ Future<void> showExpenseEditorSheet({
     ref.invalidate(rangeExpensesProvider);
     ref.invalidate(travelExpensesProvider);
     ref.invalidate(travelExpenseTotalsProvider);
+    if (context.mounted) onSaved?.call(savedEntry);
   }
 }
 

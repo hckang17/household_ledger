@@ -3,6 +3,7 @@ import 'package:household_ledger/presenter/widgets/common/expense_record_action.
 // """ 역할: 예산 현황, 전월 비교, 빠른 소비 입력을 제공하는 홈 화면 """
 
 import 'package:flutter/material.dart';
+import 'package:household_ledger/presenter/widgets/common/entrance_reveal.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:household_ledger/presenter/controllers/tutorial_showcase_controller.dart';
 import 'package:household_ledger/model/expense_entry.dart';
@@ -36,6 +37,17 @@ class HomePage extends ConsumerStatefulWidget {
 }
 
 class _HomePageState extends ConsumerState<HomePage> {
+  String? _savedExpenseId;
+  DateTime? _savedAt;
+
+  void _onExpenseSaved(ExpenseEntry entry) {
+    if (!mounted) return;
+    setState(() {
+      _savedExpenseId = entry.id;
+      _savedAt = DateTime.now();
+    });
+  }
+
   final GlobalKey _totalSpentKey = GlobalKey();
   final GlobalKey _remainingKey = GlobalKey();
   final GlobalKey _compCardKey = GlobalKey();
@@ -178,118 +190,122 @@ class _HomePageState extends ConsumerState<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            BootstrapSectionCard(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Text(
-                    greeting,
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                      fontWeight: FontWeight.w800,
+            EntranceReveal(
+              child: BootstrapSectionCard(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    Text(
+                      greeting,
+                      style: Theme.of(context).textTheme.headlineSmall
+                          ?.copyWith(fontWeight: FontWeight.w800),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  Row(
-                    children: <Widget>[
-                      Expanded(
-                        child: Showcase(
-                          key: _totalSpentKey,
-                          title: strings['tutHomeTotalSpentTitle'] ?? '총 지출금액',
-                          description:
-                              strings['tutHomeTotalSpentDesc'] ??
-                              '고정지출을 제외한, 이번달 소비금액의 총 합입니다.\n? 아이콘을 탭하면 더 자세한 설명이 보여요.',
-                          tooltipPosition: TooltipPosition.bottom,
-                          child: BootstrapSummaryTile(
-                            label: strings['totalSpent'] ?? 'error_label',
-                            value:
-                                '${monthlyExpense.toCurrency()} ${strings['currencyUnit'] ?? ''}',
-                            color: const Color(0xFFDC3545),
-                            tooltipContent: TextSpan(
-                              style: const TextStyle(
-                                color: Color(0xFF333333),
-                                fontSize: 12.5,
-                                height: 1.5,
-                              ),
-                              children: <InlineSpan>[
-                                TextSpan(
-                                  text:
-                                      strings['tooltipTotalSpentFixed'] ??
-                                      '고정지출',
-                                  style: const TextStyle(
-                                    color: Color(0xFF198754),
-                                    fontWeight: FontWeight.bold,
+                    const SizedBox(height: 16),
+                    Row(
+                      children: <Widget>[
+                        Expanded(
+                          child: Showcase(
+                            key: _totalSpentKey,
+                            title:
+                                strings['tutHomeTotalSpentTitle'] ?? '총 지출금액',
+                            description:
+                                strings['tutHomeTotalSpentDesc'] ??
+                                '고정지출을 제외한, 이번달 소비금액의 총 합입니다.\n? 아이콘을 탭하면 더 자세한 설명이 보여요.',
+                            tooltipPosition: TooltipPosition.bottom,
+                            child: BootstrapSummaryTile(
+                              label: strings['totalSpent'] ?? 'error_label',
+                              value:
+                                  '${monthlyExpense.toCurrency()} ${strings['currencyUnit'] ?? ''}',
+                              color: const Color(0xFFDC3545),
+                              tooltipContent: TextSpan(
+                                style: const TextStyle(
+                                  color: Color(0xFF333333),
+                                  fontSize: 12.5,
+                                  height: 1.5,
+                                ),
+                                children: <InlineSpan>[
+                                  TextSpan(
+                                    text:
+                                        strings['tooltipTotalSpentFixed'] ??
+                                        '고정지출',
+                                    style: const TextStyle(
+                                      color: Color(0xFF198754),
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
-                                ),
-                                TextSpan(
-                                  text:
-                                      strings['tooltipTotalSpentSuffix'] ??
-                                      '을 제외한, 이번달 소비금액의 총 합입니다.',
-                                ),
-                              ],
+                                  TextSpan(
+                                    text:
+                                        strings['tooltipTotalSpentSuffix'] ??
+                                        '을 제외한, 이번달 소비금액의 총 합입니다.',
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Showcase(
-                          key: _remainingKey,
-                          title: strings['tutHomeRemainingTitle'] ?? '지출가능금액',
-                          description:
-                              strings['tutHomeRemainingDesc'] ??
-                              '이번달 총 소득에서 고정금액과 총 지출금액을 제외한 남은 예산입니다.',
-                          tooltipPosition: TooltipPosition.bottom,
-                          child: BootstrapSummaryTile(
-                            label: strings['remainingBudget'] ?? 'error_label',
-                            value:
-                                '${remainingBudget.toCurrency()} ${strings['currencyUnit'] ?? ''}',
-                            color: const Color(0xFF198754),
-                            tooltipContent: TextSpan(
-                              style: const TextStyle(
-                                color: Color(0xFF333333),
-                                fontSize: 12.5,
-                                height: 1.5,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Showcase(
+                            key: _remainingKey,
+                            title: strings['tutHomeRemainingTitle'] ?? '지출가능금액',
+                            description:
+                                strings['tutHomeRemainingDesc'] ??
+                                '이번달 총 소득에서 고정금액과 총 지출금액을 제외한 남은 예산입니다.',
+                            tooltipPosition: TooltipPosition.bottom,
+                            child: BootstrapSummaryTile(
+                              label:
+                                  strings['remainingBudget'] ?? 'error_label',
+                              value:
+                                  '${remainingBudget.toCurrency()} ${strings['currencyUnit'] ?? ''}',
+                              color: const Color(0xFF198754),
+                              tooltipContent: TextSpan(
+                                style: const TextStyle(
+                                  color: Color(0xFF333333),
+                                  fontSize: 12.5,
+                                  height: 1.5,
+                                ),
+                                children: <InlineSpan>[
+                                  TextSpan(
+                                    text:
+                                        strings['tooltipRemainingPrefix'] ??
+                                        '이번달 총 소득에서 ',
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        strings['tooltipRemainingFixed'] ??
+                                        '고정금액',
+                                    style: const TextStyle(
+                                      color: Color(0xFF198754),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        strings['tooltipRemainingMid'] ?? '과 ',
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        strings['tooltipRemainingTotal'] ??
+                                        '총 지출금액',
+                                    style: const TextStyle(
+                                      color: Color(0xFFDC3545),
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  TextSpan(
+                                    text:
+                                        strings['tooltipRemainingSuffix'] ??
+                                        '을 제외한 금액입니다.',
+                                  ),
+                                ],
                               ),
-                              children: <InlineSpan>[
-                                TextSpan(
-                                  text:
-                                      strings['tooltipRemainingPrefix'] ??
-                                      '이번달 총 소득에서 ',
-                                ),
-                                TextSpan(
-                                  text:
-                                      strings['tooltipRemainingFixed'] ??
-                                      '고정금액',
-                                  style: const TextStyle(
-                                    color: Color(0xFF198754),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text: strings['tooltipRemainingMid'] ?? '과 ',
-                                ),
-                                TextSpan(
-                                  text:
-                                      strings['tooltipRemainingTotal'] ??
-                                      '총 지출금액',
-                                  style: const TextStyle(
-                                    color: Color(0xFFDC3545),
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                TextSpan(
-                                  text:
-                                      strings['tooltipRemainingSuffix'] ??
-                                      '을 제외한 금액입니다.',
-                                ),
-                              ],
                             ),
                           ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
 
@@ -337,6 +353,7 @@ class _HomePageState extends ConsumerState<HomePage> {
               child: ExpenseRecordAction(
                 strings: strings,
                 onPressed: () => showExpenseEditorSheet(
+                  onSaved: _onExpenseSaved,
                   context: context,
                   ref: ref,
                   initialDate: DateTime.now(),
@@ -392,6 +409,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                 error: (Object e, _) => const SizedBox.shrink(),
                 data: (List<ExpenseEntry> entries) => RecentExpensesList(
                   entries: entries,
+                  highlightedEntryId: _savedExpenseId,
+                  highlightedAt: _savedAt,
                   categoryTags: categoryTags,
                   subcategoryTags: subcategoryTags,
                   paymentTags: paymentTags,
@@ -409,6 +428,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                     currency: currency,
                   ),
                   onEdit: (ExpenseEntry entry) => showExpenseEditorSheet(
+                    onSaved: _onExpenseSaved,
                     context: context,
                     ref: ref,
                     entry: entry,

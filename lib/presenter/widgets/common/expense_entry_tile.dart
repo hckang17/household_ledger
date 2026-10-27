@@ -23,10 +23,14 @@ class ExpenseEntryTile extends StatelessWidget {
     required this.onTap,
     required this.onEdit,
     required this.onDelete,
+    this.highlightedAt,
   });
 
   /// 표시할 소비 항목 데이터
   final ExpenseEntry entry;
+
+  /// Time of a successful save; expired highlights never replay on list rebuilds.
+  final DateTime? highlightedAt;
 
   /// 소비 구분 레이블 (카테고리 태그의 label 값)
   final String categoryLabel;
@@ -53,10 +57,33 @@ class ExpenseEntryTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    const duration = Duration(milliseconds: 650);
+    final elapsed = highlightedAt == null
+        ? duration
+        : DateTime.now().difference(highlightedAt!);
+    final remaining = (duration.inMilliseconds - elapsed.inMilliseconds).clamp(
+      0,
+      duration.inMilliseconds,
+    );
+    final animate = !MediaQuery.disableAnimationsOf(context) && remaining > 0;
     return GestureDetector(
       onTap: onTap,
-      child: BootstrapSectionCard(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: TweenAnimationBuilder<double>(
+        key: ValueKey((entry.id, highlightedAt)),
+        tween: Tween(
+          begin: animate ? remaining / duration.inMilliseconds : 0,
+          end: 0,
+        ),
+        duration: Duration(milliseconds: animate ? remaining : 0),
+        builder: (context, value, child) => BootstrapSectionCard(
+          backgroundColor: Color.lerp(
+            Colors.white,
+            const Color(0xFFD6F2E3),
+            value,
+          )!,
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+          child: child!,
+        ),
         child: Row(
           children: <Widget>[
             Expanded(

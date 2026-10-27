@@ -12,6 +12,7 @@ class BootstrapSectionCard extends StatelessWidget {
     super.key,
     this.padding = const EdgeInsets.all(16),
     this.width = double.infinity,
+    this.backgroundColor = Colors.white,
   });
 
   /// 카드 내부 자식을 보관한다.
@@ -22,13 +23,14 @@ class BootstrapSectionCard extends StatelessWidget {
 
   /// 카드의 넓이를 보관한다.
   final double width;
+  final Color backgroundColor;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: width,
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: backgroundColor,
         borderRadius: BorderRadius.circular(24),
         boxShadow: const <BoxShadow>[
           BoxShadow(
