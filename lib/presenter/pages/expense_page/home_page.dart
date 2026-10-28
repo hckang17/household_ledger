@@ -13,6 +13,7 @@ import 'package:household_ledger/model/trip.dart';
 import 'package:household_ledger/presenter/widgets/common/bootstrap_style/bootstrap_widgets.dart';
 import 'package:household_ledger/presenter/extensions/currency_extension.dart';
 import 'package:household_ledger/presenter/widgets/home_page/comparison_card.dart';
+import 'package:household_ledger/presenter/widgets/home_page/home_greeting.dart';
 import 'package:household_ledger/presenter/widgets/common/expense_editor_sheet.dart';
 import 'package:household_ledger/presenter/widgets/common/ledger_dialogs.dart';
 import 'package:household_ledger/presenter/widgets/common/travel_mode_control.dart';
@@ -147,12 +148,6 @@ class _HomePageState extends ConsumerState<HomePage> {
     final remainingBudget = ledger == null
         ? 0
         : monthlyBudget - monthlyExpense - monthlyFixedExpense;
-    final greeting = ledger == null
-        ? ''
-        : (strings['homepageGreeting'] ?? '{name}').replaceAll(
-            '{name}',
-            ledger.userProfile.name,
-          );
 
     final recentExpensesAsync = ref.watch(monthlyExpensesProvider(month));
     final currency = strings['currencyUnit'] ?? '';
@@ -195,10 +190,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: <Widget>[
-                    Text(
-                      greeting,
-                      style: Theme.of(context).textTheme.headlineSmall
-                          ?.copyWith(fontWeight: FontWeight.w800),
+                    HomeGreeting(
+                      name: ledger?.userProfile.name,
+                      strings: strings,
                     ),
                     const SizedBox(height: 16),
                     Row(
